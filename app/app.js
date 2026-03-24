@@ -7,6 +7,11 @@ const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
 const userInfo = document.getElementById('userInfo');
 const loadingSpinner = document.getElementById('loadingSpinner');
+const summaryCalories = document.getElementById('summaryCalories');
+const summaryProtein = document.getElementById('summaryProtein');
+const summaryCarbs = document.getElementById('summaryCarbs');
+const summaryFats = document.getElementById('summaryFats');
+const summaryEntries = document.getElementById('summaryEntries');
 
 let currentUser = null;
 
@@ -81,6 +86,7 @@ async function loadTodayEntries() {
   if (!currentUser?.userId) {
     entriesMessage.textContent = 'Please sign in to load your entries.';
     entriesList.innerHTML = '';
+    resetSummary();
     hideSpinner();
     return;
   }
@@ -104,6 +110,7 @@ async function loadTodayEntries() {
     entriesMessage.textContent = `Found ${data.count} entr${data.count === 1 ? 'y' : 'ies'} for ${data.date}.`;
 
     if (data.entries.length === 0) {
+      resetSummary();
       entriesList.innerHTML = `
         <li class="rounded-2xl border border-dashed border-green-200 bg-green-50/60 p-4 text-sm text-slate-600">
           No entries yet for today.
@@ -111,6 +118,8 @@ async function loadTodayEntries() {
       `;
       return;
     }
+
+    updateSummary(data.entries);
 
     for (const entry of data.entries) {
       const li = document.createElement('li');
@@ -211,6 +220,7 @@ async function loadUser() {
       formMessage.textContent = 'Please sign in to save entries.';
       entriesMessage.textContent = 'Please sign in to load your entries.';
       entriesList.innerHTML = '';
+      resetSummary();
       hideSpinner();
       return;
     }
@@ -232,6 +242,7 @@ async function loadUser() {
     console.error(error);
     currentUser = null;
     userInfo.textContent = 'User info could not be loaded.';
+    resetSummary();
     hideSpinner();
   }
 }
@@ -273,6 +284,37 @@ function setLoadButtonLoadingState(isLoading) {
     loadEntriesBtn.classList.remove('opacity-70', 'cursor-not-allowed');
     loadEntriesBtn.textContent = "Load Today's Entries";
   }
+}
+
+function updateSummary(entries) {
+  const totals = entries.reduce(
+    (acc, entry) => {
+      acc.calories += Number(entry.calories) || 0;
+      acc.protein += Number(entry.protein) || 0;
+      acc.carbs += Number(entry.carbs) || 0;
+      acc.fats += Number(entry.fats) || 0;
+      return acc;
+    },
+    { calories: 0, protein: 0, carbs: 0, fats: 0 }
+  );
+
+  if (summaryCalories) summaryCalories.textContent = Math.round(totals.calories);
+  if (summaryProtein) summaryProtein.textContent = `${roundToOne(totals.protein)}g`;
+  if (summaryCarbs) summaryCarbs.textContent = `${roundToOne(totals.carbs)}g`;
+  if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats)}g`;
+  if (summaryEntries) summaryEntries.textContent = entries.length;
+}
+
+function resetSummary() {
+  if (summaryCalories) summaryCalories.textContent = '0';
+  if (summaryProtein) summaryProtein.textContent = '0g';
+  if (summaryCarbs) summaryCarbs.textContent = '0g';
+  if (summaryFats) summaryFats.textContent = '0g';
+  if (summaryEntries) summaryEntries.textContent = '0';
+}
+
+function roundToOne(value) {
+  return Math.round(value * 10) / 10;
 }
 
 loadUser();
