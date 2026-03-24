@@ -18,6 +18,12 @@ const customFoodsMessage = document.getElementById('customFoodsMessage');
 
 const loadEntriesBtn = document.getElementById('loadEntriesBtn');
 const loadCustomFoodsBtn = document.getElementById('loadCustomFoodsBtn');
+const loadSavedFoodBtn = document.getElementById('loadSavedFoodBtn');
+
+const manualModeBtn = document.getElementById('manualModeBtn');
+const savedModeBtn = document.getElementById('savedModeBtn');
+const savedFoodSelectorSection = document.getElementById('savedFoodSelectorSection');
+const savedFoodSelect = document.getElementById('savedFoodSelect');
 
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
@@ -45,6 +51,7 @@ const progressEntries = document.getElementById('progressEntries');
 
 let currentUser = null;
 let currentGoals = { ...DEFAULT_GOALS };
+let customFoodsCache = [];
 
 entryForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -194,6 +201,25 @@ customFoodForm.addEventListener('submit', async (event) => {
 loadEntriesBtn.addEventListener('click', loadTodayEntries);
 loadCustomFoodsBtn.addEventListener('click', loadCustomFoods);
 
+manualModeBtn.addEventListener('click', () => setEntryMode('manual'));
+savedModeBtn.addEventListener('click', () => setEntryMode('saved'));
+
+loadSavedFoodBtn.addEventListener('click', () => {
+  const selectedFoodId = savedFoodSelect.value;
+  if (!selectedFoodId) {
+    formMessage.textContent = 'Please choose a saved food first.';
+    return;
+  }
+
+  const selectedFood = customFoodsCache.find(food => food.id === selectedFoodId);
+  if (!selectedFood) {
+    formMessage.textContent = 'Saved food could not be found.';
+    return;
+  }
+
+  applyCustomFoodToEntryForm(selectedFood);
+});
+
 entriesList.addEventListener('click', async (event) => {
   if (event.target.classList.contains('delete-btn')) {
     const entryId = event.target.getAttribute('data-entry-id');
@@ -208,24 +234,28 @@ entriesList.addEventListener('click', async (event) => {
   }
 });
 
-customFoodsList.addEventListener('click', (event) => {
+customFoodsList.addEventListener('click', async (event) => {
   if (event.target.classList.contains('use-food-btn')) {
-    const foodName = event.target.getAttribute('data-food-name');
-    const calories = event.target.getAttribute('data-calories');
-    const protein = event.target.getAttribute('data-protein');
-    const carbs = event.target.getAttribute('data-carbs');
-    const fats = event.target.getAttribute('data-fats');
-    const notes = event.target.getAttribute('data-notes');
+    const foodId = event.target.getAttribute('data-food-id');
+    const selectedFood = customFoodsCache.find(food => food.id === foodId);
 
-    document.getElementById('foodName').value = foodName || '';
-    document.getElementById('calories').value = calories || '';
-    document.getElementById('protein').value = protein || '';
-    document.getElementById('carbs').value = carbs || '';
-    document.getElementById('fats').value = fats || '';
-    document.getElementById('notes').value = notes || '';
+    if (!selectedFood) return;
 
-    formMessage.textContent = `Loaded custom food: ${foodName}`;
-    window.scrollTo({ top: document.getElementById('entryForm').offsetTop - 120, behavior: 'smooth' });
+    applyCustomFoodToEntryForm(selectedFood);
+    setEntryMode('manual');
+    formMessage.textContent = `Loaded custom food: ${selectedFood.foodName}`;
+  }
+
+  if (event.target.classList.contains('delete-custom-food-btn')) {
+    const foodId = event.target.getAttribute('data-food-id');
+    const partitionKey = event.target.getAttribute('data-partition-key');
+
+    if (!foodId || !partitionKey) return;
+
+    const confirmed = window.confirm('Delete this custom food?');
+    if (!confirmed) return;
+
+    await deleteCustomFood(foodId, partitionKey);
   }
 });
 
@@ -361,7 +391,9 @@ async function loadGoals() {
 
 async function loadCustomFoods() {
   if (!currentUser?.userId) {
+    customFoodsCache = [];
     customFoodsList.innerHTML = '';
+    populateSavedFoodsDropdown();
     customFoodsMessage.textContent = 'Please sign in to view custom foods.';
     return;
   }
@@ -379,6 +411,9 @@ async function loadCustomFoods() {
       customFoodsMessage.textContent = data.error || 'Failed to load custom foods.';
       return;
     }
+
+    customFoodsCache = data.foods;
+    populateSavedFoodsDropdown();
 
     if (data.foods.length === 0) {
       customFoodsMessage.textContent = 'No custom foods saved yet.';
@@ -403,17 +438,22 @@ async function loadCustomFoods() {
             <p class="text-sm text-slate-500">${food.notes || 'No notes'}</p>
           </div>
 
-          <button
-            type="button"
-            class="use-food-btn inline-flex items-center justify-center rounded-xl bg-lime-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-lime-700 transition"
-            data-food-name="${escapeAttribute(food.foodName)}"
-            data-calories="${food.calories}"
-            data-protein="${food.protein ?? ''}"
-            data-carbs="${food.carbs ?? ''}"
-            data-fats="${food.fats ?? ''}"
-            data-notes="${escapeAttribute(food.notes || '')}">
-            Use Food
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="use-food-btn inline-flex items-center justify-center rounded-xl bg-lime-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-lime-700 transition"
+              data-food-id="${food.id}">
+              Use Food
+            </button>
+
+            <button
+              type="button"
+              class="delete-custom-food-btn inline-flex items-center justify-center rounded-xl bg-red-500 px-3 py-2 text-sm font-medium text-white shadow hover:bg-red-600 transition"
+              data-food-id="${food.id}"
+              data-partition-key="${food.partitionKey}">
+              Delete
+            </button>
+          </div>
         </div>
 
         <div class="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-700 md:grid-cols-4">
@@ -474,13 +514,37 @@ async function deleteEntry(entryId, partitionKey) {
   }
 }
 
+async function deleteCustomFood(foodId, partitionKey) {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/deleteCustomFood?partitionKey=${encodeURIComponent(partitionKey)}&foodId=${encodeURIComponent(foodId)}`,
+      {
+        method: 'DELETE'
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      customFoodsMessage.textContent = data.error || 'Failed to delete custom food.';
+      return;
+    }
+
+    customFoodsMessage.textContent = 'Custom food deleted successfully.';
+    await loadCustomFoods();
+  } catch (error) {
+    console.error(error);
+    customFoodsMessage.textContent = 'Could not delete custom food.';
+  }
+}
+
 async function loadUser() {
   if (!userInfo) return;
 
   try {
     const response = await fetch('/.auth/me');
     const data = await response.json();
-    const clientPrincipal = data?.clientPrincipal;
+    const clientPrincipal = Array.isArray(data) ? data[0]?.clientPrincipal : data?.clientPrincipal;
 
     if (!clientPrincipal) {
       currentUser = null;
@@ -491,6 +555,8 @@ async function loadUser() {
       goalsMessage.textContent = 'Please sign in to save goals.';
       entriesList.innerHTML = '';
       customFoodsList.innerHTML = '';
+      customFoodsCache = [];
+      populateSavedFoodsDropdown();
       currentGoals = { ...DEFAULT_GOALS };
       populateGoalsForm();
       renderGoalLabels();
@@ -516,11 +582,56 @@ async function loadUser() {
     console.error(error);
     currentUser = null;
     userInfo.textContent = 'User info could not be loaded.';
+    customFoodsCache = [];
+    populateSavedFoodsDropdown();
     currentGoals = { ...DEFAULT_GOALS };
     populateGoalsForm();
     renderGoalLabels();
     resetSummary();
     hideSpinner();
+  }
+}
+
+function populateSavedFoodsDropdown() {
+  if (!savedFoodSelect) return;
+
+  savedFoodSelect.innerHTML = '<option value="">Select a saved food</option>';
+
+  for (const food of customFoodsCache) {
+    const option = document.createElement('option');
+    option.value = food.id;
+    option.textContent = `${food.foodName} (${food.calories} cal)`;
+    savedFoodSelect.appendChild(option);
+  }
+}
+
+function applyCustomFoodToEntryForm(food) {
+  document.getElementById('foodName').value = food.foodName || '';
+  document.getElementById('calories').value = food.calories ?? '';
+  document.getElementById('protein').value = food.protein ?? '';
+  document.getElementById('carbs').value = food.carbs ?? '';
+  document.getElementById('fats').value = food.fats ?? '';
+  document.getElementById('notes').value = food.notes || '';
+  formMessage.textContent = `Loaded custom food: ${food.foodName}`;
+}
+
+function setEntryMode(mode) {
+  const isSavedMode = mode === 'saved';
+
+  if (savedFoodSelectorSection) {
+    savedFoodSelectorSection.classList.toggle('hidden', !isSavedMode);
+  }
+
+  if (manualModeBtn) {
+    manualModeBtn.className = isSavedMode
+      ? 'rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition'
+      : 'rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition';
+  }
+
+  if (savedModeBtn) {
+    savedModeBtn.className = isSavedMode
+      ? 'rounded-xl bg-lime-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-lime-700 transition'
+      : 'rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition';
   }
 }
 
@@ -627,13 +738,5 @@ function setLoadButtonLoadingState(isLoading) {
   }
 }
 
-function escapeAttribute(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
-}
-
+setEntryMode('manual');
 loadUser();
