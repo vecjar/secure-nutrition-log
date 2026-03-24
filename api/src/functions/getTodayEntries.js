@@ -39,8 +39,9 @@ app.http('getTodayEntries', {
                 }
 
                 entries.push({
-                    id: entity.rowKey,
-                    date: entity.date,
+                     id: entity.rowKey,
+                     partitionKey: entity.partitionKey,
+                     date: entity.date,
                     mealType: entity.mealType,
                     foodName: entity.foodName,
                     calories: entity.calories,

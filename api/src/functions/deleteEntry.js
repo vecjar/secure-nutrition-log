@@ -7,14 +7,14 @@ app.http('deleteEntry', {
     handler: async (request, context) => {
         context.log('deleteEntry function processed a request.');
 
-        const userId = request.query.get('userId');
+        const partitionKey = request.query.get('partitionKey');
         const entryId = request.query.get('entryId');
 
-        if (!userId || !entryId) {
+        if (!partitionKey || !entryId) {
             return {
                 status: 400,
                 jsonBody: {
-                    error: 'userId and entryId are required.'
+                    error: 'partitionKey and entryId are required.'
                 }
             };
         }
@@ -24,7 +24,7 @@ app.http('deleteEntry', {
         const client = TableClient.fromConnectionString(connectionString, tableName);
 
         try {
-            await client.deleteEntity(userId, entryId);
+            await client.deleteEntity(partitionKey, entryId);
 
             return {
                 status: 200,

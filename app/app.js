@@ -60,13 +60,14 @@ loadEntriesBtn.addEventListener('click', loadTodayEntries);
 entriesList.addEventListener('click', async (event) => {
   if (event.target.classList.contains('delete-btn')) {
     const entryId = event.target.getAttribute('data-entry-id');
+    const partitionKey = event.target.getAttribute('data-partition-key');
 
-    if (!entryId) return;
+    if (!entryId || !partitionKey) return;
 
     const confirmed = window.confirm('Delete this entry?');
     if (!confirmed) return;
 
-    await deleteEntry(entryId);
+    await deleteEntry(entryId, partitionKey);
   }
 });
 
@@ -108,9 +109,13 @@ async function loadTodayEntries() {
         </div>
         <div class="meta">Notes: ${entry.notes || '-'}</div>
         <div style="margin-top: 10px;">
-          <button type="button" class="delete-btn" data-entry-id="${entry.id}">
+          <button
+            type="button"
+            class="delete-btn"
+            data-entry-id="${entry.id}"
+            data-partition-key="${entry.partitionKey}">
             Delete
-          </button>
+          </button> 
         </div>
       `;
       entriesList.appendChild(li);
@@ -121,15 +126,10 @@ async function loadTodayEntries() {
   }
 }
 
-async function deleteEntry(entryId) {
-  if (!currentUser?.userId) {
-    entriesMessage.textContent = 'Please sign in to delete entries.';
-    return;
-  }
-
+async function deleteEntry(entryId, partitionKey) {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/deleteEntry?userId=${encodeURIComponent(currentUser.userId)}&entryId=${encodeURIComponent(entryId)}`,
+      `${API_BASE_URL}/deleteEntry?partitionKey=${encodeURIComponent(partitionKey)}&entryId=${encodeURIComponent(entryId)}`,
       {
         method: 'DELETE'
       }
