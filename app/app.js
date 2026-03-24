@@ -1,6 +1,6 @@
 const API_BASE_URL = 'https://snlog-dev-func-01-bedydfafhvd3efdh.australiaeast-01.azurewebsites.net/api';
 
-const DAILY_GOALS = {
+const DEFAULT_GOALS = {
   calories: 2200,
   protein: 180,
   carbs: 220,
@@ -9,10 +9,20 @@ const DAILY_GOALS = {
 };
 
 const entryForm = document.getElementById('entryForm');
+const goalsForm = document.getElementById('goalsForm');
+const customFoodForm = document.getElementById('customFoodForm');
+
 const formMessage = document.getElementById('formMessage');
+const goalsMessage = document.getElementById('goalsMessage');
+const customFoodsMessage = document.getElementById('customFoodsMessage');
+
 const loadEntriesBtn = document.getElementById('loadEntriesBtn');
+const loadCustomFoodsBtn = document.getElementById('loadCustomFoodsBtn');
+
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
+const customFoodsList = document.getElementById('customFoodsList');
+
 const userInfo = document.getElementById('userInfo');
 const loadingSpinner = document.getElementById('loadingSpinner');
 
@@ -22,6 +32,11 @@ const summaryCarbs = document.getElementById('summaryCarbs');
 const summaryFats = document.getElementById('summaryFats');
 const summaryEntries = document.getElementById('summaryEntries');
 
+const summaryCaloriesGoal = document.getElementById('summaryCaloriesGoal');
+const summaryProteinGoal = document.getElementById('summaryProteinGoal');
+const summaryCarbsGoal = document.getElementById('summaryCarbsGoal');
+const summaryFatsGoal = document.getElementById('summaryFatsGoal');
+
 const progressCalories = document.getElementById('progressCalories');
 const progressProtein = document.getElementById('progressProtein');
 const progressCarbs = document.getElementById('progressCarbs');
@@ -29,6 +44,7 @@ const progressFats = document.getElementById('progressFats');
 const progressEntries = document.getElementById('progressEntries');
 
 let currentUser = null;
+let currentGoals = { ...DEFAULT_GOALS };
 
 entryForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -79,7 +95,104 @@ entryForm.addEventListener('submit', async (event) => {
   }
 });
 
+goalsForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  if (!currentUser?.userId) {
+    goalsMessage.textContent = 'Please sign in before saving goals.';
+    return;
+  }
+
+  goalsMessage.textContent = 'Saving goals...';
+
+  const payload = {
+    userId: currentUser.userId,
+    calories: Number(document.getElementById('goalCalories').value) || DEFAULT_GOALS.calories,
+    protein: Number(document.getElementById('goalProtein').value) || DEFAULT_GOALS.protein,
+    carbs: Number(document.getElementById('goalCarbs').value) || DEFAULT_GOALS.carbs,
+    fats: Number(document.getElementById('goalFats').value) || DEFAULT_GOALS.fats
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/saveGoals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      goalsMessage.textContent = data.error || 'Failed to save goals.';
+      return;
+    }
+
+    currentGoals = {
+      ...currentGoals,
+      calories: payload.calories,
+      protein: payload.protein,
+      carbs: payload.carbs,
+      fats: payload.fats
+    };
+
+    renderGoalLabels();
+    await loadTodayEntries();
+    goalsMessage.textContent = 'Goals saved successfully.';
+  } catch (error) {
+    console.error(error);
+    goalsMessage.textContent = 'Could not save goals.';
+  }
+});
+
+customFoodForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  if (!currentUser?.userId) {
+    customFoodsMessage.textContent = 'Please sign in before saving custom foods.';
+    return;
+  }
+
+  customFoodsMessage.textContent = 'Saving custom food...';
+
+  const payload = {
+    userId: currentUser.userId,
+    foodName: document.getElementById('customFoodName').value,
+    calories: Number(document.getElementById('customFoodCalories').value),
+    protein: Number(document.getElementById('customFoodProtein').value) || 0,
+    carbs: Number(document.getElementById('customFoodCarbs').value) || 0,
+    fats: Number(document.getElementById('customFoodFats').value) || 0,
+    notes: document.getElementById('customFoodNotes').value
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/createCustomFood`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      customFoodsMessage.textContent = data.error || 'Failed to save custom food.';
+      return;
+    }
+
+    customFoodForm.reset();
+    customFoodsMessage.textContent = `Saved custom food: ${data.food.foodName}`;
+    await loadCustomFoods();
+  } catch (error) {
+    console.error(error);
+    customFoodsMessage.textContent = 'Could not save custom food.';
+  }
+});
+
 loadEntriesBtn.addEventListener('click', loadTodayEntries);
+loadCustomFoodsBtn.addEventListener('click', loadCustomFoods);
 
 entriesList.addEventListener('click', async (event) => {
   if (event.target.classList.contains('delete-btn')) {
@@ -92,6 +205,27 @@ entriesList.addEventListener('click', async (event) => {
     if (!confirmed) return;
 
     await deleteEntry(entryId, partitionKey);
+  }
+});
+
+customFoodsList.addEventListener('click', (event) => {
+  if (event.target.classList.contains('use-food-btn')) {
+    const foodName = event.target.getAttribute('data-food-name');
+    const calories = event.target.getAttribute('data-calories');
+    const protein = event.target.getAttribute('data-protein');
+    const carbs = event.target.getAttribute('data-carbs');
+    const fats = event.target.getAttribute('data-fats');
+    const notes = event.target.getAttribute('data-notes');
+
+    document.getElementById('foodName').value = foodName || '';
+    document.getElementById('calories').value = calories || '';
+    document.getElementById('protein').value = protein || '';
+    document.getElementById('carbs').value = carbs || '';
+    document.getElementById('fats').value = fats || '';
+    document.getElementById('notes').value = notes || '';
+
+    formMessage.textContent = `Loaded custom food: ${foodName}`;
+    window.scrollTo({ top: document.getElementById('entryForm').offsetTop - 120, behavior: 'smooth' });
   }
 });
 
@@ -189,6 +323,127 @@ async function loadTodayEntries() {
   }
 }
 
+async function loadGoals() {
+  if (!currentUser?.userId) {
+    currentGoals = { ...DEFAULT_GOALS };
+    populateGoalsForm();
+    renderGoalLabels();
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/getGoals?userId=${encodeURIComponent(currentUser.userId)}`
+    );
+    const data = await response.json();
+
+    if (!response.ok || !data.goals) {
+      currentGoals = { ...DEFAULT_GOALS };
+    } else {
+      currentGoals = {
+        ...DEFAULT_GOALS,
+        calories: Number(data.goals.calories) || DEFAULT_GOALS.calories,
+        protein: Number(data.goals.protein) || DEFAULT_GOALS.protein,
+        carbs: Number(data.goals.carbs) || DEFAULT_GOALS.carbs,
+        fats: Number(data.goals.fats) || DEFAULT_GOALS.fats
+      };
+    }
+
+    populateGoalsForm();
+    renderGoalLabels();
+  } catch (error) {
+    console.error(error);
+    currentGoals = { ...DEFAULT_GOALS };
+    populateGoalsForm();
+    renderGoalLabels();
+  }
+}
+
+async function loadCustomFoods() {
+  if (!currentUser?.userId) {
+    customFoodsList.innerHTML = '';
+    customFoodsMessage.textContent = 'Please sign in to view custom foods.';
+    return;
+  }
+
+  customFoodsMessage.textContent = 'Loading custom foods...';
+  customFoodsList.innerHTML = '';
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/getCustomFoods?userId=${encodeURIComponent(currentUser.userId)}`
+    );
+    const data = await response.json();
+
+    if (!response.ok) {
+      customFoodsMessage.textContent = data.error || 'Failed to load custom foods.';
+      return;
+    }
+
+    if (data.foods.length === 0) {
+      customFoodsMessage.textContent = 'No custom foods saved yet.';
+      customFoodsList.innerHTML = `
+        <li class="rounded-2xl border border-dashed border-lime-200 bg-lime-50/60 p-4 text-sm text-slate-600">
+          Save a custom food to reuse it later.
+        </li>
+      `;
+      return;
+    }
+
+    customFoodsMessage.textContent = `Found ${data.foods.length} saved food${data.foods.length === 1 ? '' : 's'}.`;
+
+    for (const food of data.foods) {
+      const li = document.createElement('li');
+      li.className = 'bg-lime-50 border border-lime-100 rounded-2xl p-4 shadow-sm';
+
+      li.innerHTML = `
+        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p class="text-lg font-semibold text-lime-800">${food.foodName}</p>
+            <p class="text-sm text-slate-500">${food.notes || 'No notes'}</p>
+          </div>
+
+          <button
+            type="button"
+            class="use-food-btn inline-flex items-center justify-center rounded-xl bg-lime-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-lime-700 transition"
+            data-food-name="${escapeAttribute(food.foodName)}"
+            data-calories="${food.calories}"
+            data-protein="${food.protein ?? ''}"
+            data-carbs="${food.carbs ?? ''}"
+            data-fats="${food.fats ?? ''}"
+            data-notes="${escapeAttribute(food.notes || '')}">
+            Use Food
+          </button>
+        </div>
+
+        <div class="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-700 md:grid-cols-4">
+          <div class="rounded-xl bg-white px-3 py-2 border border-lime-100">
+            <span class="block text-xs text-slate-500">Calories</span>
+            <span class="font-semibold">${food.calories}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-lime-100">
+            <span class="block text-xs text-slate-500">Protein</span>
+            <span class="font-semibold">${food.protein ?? '-'}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-lime-100">
+            <span class="block text-xs text-slate-500">Carbs</span>
+            <span class="font-semibold">${food.carbs ?? '-'}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-lime-100">
+            <span class="block text-xs text-slate-500">Fats</span>
+            <span class="font-semibold">${food.fats ?? '-'}</span>
+          </div>
+        </div>
+      `;
+
+      customFoodsList.appendChild(li);
+    }
+  } catch (error) {
+    console.error(error);
+    customFoodsMessage.textContent = 'Could not load custom foods.';
+  }
+}
+
 async function deleteEntry(entryId, partitionKey) {
   showSpinner();
   setLoadButtonLoadingState(true);
@@ -232,7 +487,13 @@ async function loadUser() {
       userInfo.textContent = 'Not signed in.';
       formMessage.textContent = 'Please sign in to save entries.';
       entriesMessage.textContent = 'Please sign in to load your entries.';
+      customFoodsMessage.textContent = 'Please sign in to use custom foods.';
+      goalsMessage.textContent = 'Please sign in to save goals.';
       entriesList.innerHTML = '';
+      customFoodsList.innerHTML = '';
+      currentGoals = { ...DEFAULT_GOALS };
+      populateGoalsForm();
+      renderGoalLabels();
       resetSummary();
       hideSpinner();
       return;
@@ -248,11 +509,16 @@ async function loadUser() {
     };
 
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
+    await loadGoals();
+    await loadCustomFoods();
     await loadTodayEntries();
   } catch (error) {
     console.error(error);
     currentUser = null;
     userInfo.textContent = 'User info could not be loaded.';
+    currentGoals = { ...DEFAULT_GOALS };
+    populateGoalsForm();
+    renderGoalLabels();
     resetSummary();
     hideSpinner();
   }
@@ -276,11 +542,11 @@ function updateSummary(entries) {
   if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats)}g`;
   if (summaryEntries) summaryEntries.textContent = entries.length;
 
-  setProgress(progressCalories, totals.calories, DAILY_GOALS.calories);
-  setProgress(progressProtein, totals.protein, DAILY_GOALS.protein);
-  setProgress(progressCarbs, totals.carbs, DAILY_GOALS.carbs);
-  setProgress(progressFats, totals.fats, DAILY_GOALS.fats);
-  setProgress(progressEntries, entries.length, DAILY_GOALS.entries);
+  setProgress(progressCalories, totals.calories, currentGoals.calories);
+  setProgress(progressProtein, totals.protein, currentGoals.protein);
+  setProgress(progressCarbs, totals.carbs, currentGoals.carbs);
+  setProgress(progressFats, totals.fats, currentGoals.fats);
+  setProgress(progressEntries, entries.length, DEFAULT_GOALS.entries);
 }
 
 function resetSummary() {
@@ -290,11 +556,25 @@ function resetSummary() {
   if (summaryFats) summaryFats.textContent = '0g';
   if (summaryEntries) summaryEntries.textContent = '0';
 
-  setProgress(progressCalories, 0, DAILY_GOALS.calories);
-  setProgress(progressProtein, 0, DAILY_GOALS.protein);
-  setProgress(progressCarbs, 0, DAILY_GOALS.carbs);
-  setProgress(progressFats, 0, DAILY_GOALS.fats);
-  setProgress(progressEntries, 0, DAILY_GOALS.entries);
+  setProgress(progressCalories, 0, currentGoals.calories);
+  setProgress(progressProtein, 0, currentGoals.protein);
+  setProgress(progressCarbs, 0, currentGoals.carbs);
+  setProgress(progressFats, 0, currentGoals.fats);
+  setProgress(progressEntries, 0, DEFAULT_GOALS.entries);
+}
+
+function populateGoalsForm() {
+  document.getElementById('goalCalories').value = currentGoals.calories;
+  document.getElementById('goalProtein').value = currentGoals.protein;
+  document.getElementById('goalCarbs').value = currentGoals.carbs;
+  document.getElementById('goalFats').value = currentGoals.fats;
+}
+
+function renderGoalLabels() {
+  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${currentGoals.calories}`;
+  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${currentGoals.protein}g`;
+  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${currentGoals.carbs}g`;
+  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${currentGoals.fats}g`;
 }
 
 function setProgress(element, value, goal) {
@@ -345,6 +625,15 @@ function setLoadButtonLoadingState(isLoading) {
     loadEntriesBtn.classList.remove('opacity-70', 'cursor-not-allowed');
     loadEntriesBtn.textContent = "Load Today's Entries";
   }
+}
+
+function escapeAttribute(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 }
 
 loadUser();

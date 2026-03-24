@@ -8,14 +8,14 @@
 </head>
 <body class="bg-gradient-to-br from-green-50 via-lime-50 to-emerald-100 min-h-screen text-slate-800">
 
-  <main class="max-w-5xl mx-auto px-4 py-8">
+  <main class="max-w-6xl mx-auto px-4 py-8">
     <!-- Header -->
     <section class="mb-8">
       <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-green-100 p-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 class="text-4xl font-bold text-green-700 tracking-tight">🥗 Secure Nutrition Log</h1>
-            <p class="text-slate-600 mt-2 text-lg">Track meals, macros, and daily progress in your Azure-hosted nutrition dashboard</p>
+            <p class="text-slate-600 mt-2 text-lg">Track meals, custom foods, and daily progress in your Azure-hosted nutrition dashboard</p>
           </div>
 
           <div class="text-sm text-slate-600 bg-green-50 px-4 py-2 rounded-2xl border border-green-100">
@@ -61,7 +61,6 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-          <!-- Calories -->
           <div class="rounded-2xl bg-green-50 border border-green-100 p-4">
             <p class="text-sm text-slate-500">Calories</p>
             <p id="summaryCalories" class="text-2xl font-bold text-green-700 mt-1">0</p>
@@ -71,7 +70,6 @@
             </div>
           </div>
 
-          <!-- Protein -->
           <div class="rounded-2xl bg-blue-50 border border-blue-100 p-4">
             <p class="text-sm text-slate-500">Protein</p>
             <p id="summaryProtein" class="text-2xl font-bold text-blue-700 mt-1">0g</p>
@@ -81,7 +79,6 @@
             </div>
           </div>
 
-          <!-- Carbs -->
           <div class="rounded-2xl bg-amber-50 border border-amber-100 p-4">
             <p class="text-sm text-slate-500">Carbs</p>
             <p id="summaryCarbs" class="text-2xl font-bold text-amber-700 mt-1">0g</p>
@@ -91,7 +88,6 @@
             </div>
           </div>
 
-          <!-- Fats -->
           <div class="rounded-2xl bg-rose-50 border border-rose-100 p-4">
             <p class="text-sm text-slate-500">Fats</p>
             <p id="summaryFats" class="text-2xl font-bold text-rose-700 mt-1">0g</p>
@@ -101,7 +97,6 @@
             </div>
           </div>
 
-          <!-- Entries -->
           <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
             <p class="text-sm text-slate-500">Entries</p>
             <p id="summaryEntries" class="text-2xl font-bold text-slate-700 mt-1">0</p>
@@ -110,6 +105,119 @@
               <div id="progressEntries" class="h-full bg-slate-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Goals + Custom Foods -->
+    <section class="mb-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <!-- Goals -->
+      <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
+        <h2 class="text-2xl font-semibold text-slate-800 mb-5">Daily Goals</h2>
+
+        <form id="goalsForm" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="goalCalories" class="block text-sm font-medium text-slate-700 mb-2">Calories Goal</label>
+              <input
+                type="number"
+                id="goalCalories"
+                class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                placeholder="2200" />
+            </div>
+
+            <div>
+              <label for="goalProtein" class="block text-sm font-medium text-slate-700 mb-2">Protein Goal</label>
+              <input
+                type="number"
+                id="goalProtein"
+                step="0.1"
+                class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                placeholder="180" />
+            </div>
+
+            <div>
+              <label for="goalCarbs" class="block text-sm font-medium text-slate-700 mb-2">Carbs Goal</label>
+              <input
+                type="number"
+                id="goalCarbs"
+                step="0.1"
+                class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                placeholder="220" />
+            </div>
+
+            <div>
+              <label for="goalFats" class="block text-sm font-medium text-slate-700 mb-2">Fats Goal</label>
+              <input
+                type="number"
+                id="goalFats"
+                step="0.1"
+                class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                placeholder="70" />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full rounded-2xl bg-emerald-600 px-4 py-3 text-white text-lg font-semibold shadow hover:bg-emerald-700 transition">
+            Save Goals
+          </button>
+        </form>
+
+        <p id="goalsMessage" class="mt-4 text-sm text-slate-600"></p>
+      </div>
+
+      <!-- Custom Foods -->
+      <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
+        <h2 class="text-2xl font-semibold text-slate-800 mb-5">Custom Foods</h2>
+
+        <form id="customFoodForm" class="space-y-4 mb-6">
+          <div>
+            <label for="customFoodName" class="block text-sm font-medium text-slate-700 mb-2">Food Name</label>
+            <input
+              type="text"
+              id="customFoodName"
+              class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+              placeholder="e.g. Homemade Protein Oats" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input type="number" id="customFoodCalories" placeholder="Calories" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+            <input type="number" id="customFoodProtein" step="0.1" placeholder="Protein" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+            <input type="number" id="customFoodCarbs" step="0.1" placeholder="Carbs" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+            <input type="number" id="customFoodFats" step="0.1" placeholder="Fats" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+          </div>
+
+          <div>
+            <label for="customFoodNotes" class="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+            <textarea
+              id="customFoodNotes"
+              rows="3"
+              class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+              placeholder="Optional notes..."></textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full rounded-2xl bg-lime-600 px-4 py-3 text-white text-lg font-semibold shadow hover:bg-lime-700 transition">
+            Save Custom Food
+          </button>
+        </form>
+
+        <p id="customFoodsMessage" class="text-sm text-slate-600 mb-4"></p>
+
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold text-slate-800">Saved Foods</h3>
+            <button
+              id="loadCustomFoodsBtn"
+              type="button"
+              class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 transition">
+              Refresh
+            </button>
+          </div>
+
+          <ul id="customFoodsList" class="space-y-3"></ul>
         </div>
       </div>
     </section>
@@ -220,7 +328,6 @@
           </button>
         </div>
 
-        <!-- Loading spinner -->
         <div id="loadingSpinner" class="hidden text-center my-4">
           <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
           <p class="mt-2 text-sm text-slate-500">Loading...</p>
