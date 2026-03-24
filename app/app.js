@@ -62,6 +62,8 @@ entriesList.addEventListener('click', async (event) => {
     const entryId = event.target.getAttribute('data-entry-id');
     const partitionKey = event.target.getAttribute('data-partition-key');
 
+    console.log('Delete clicked:', { entryId, partitionKey });
+
     if (!entryId || !partitionKey) return;
 
     const confirmed = window.confirm('Delete this entry?');
