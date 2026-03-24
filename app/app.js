@@ -128,6 +128,8 @@ async function loadUser() {
   userDetails: clientPrincipal.userDetails
 };
 
+console.log('Resolved current user:', currentUser);
+
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
     await loadTodayEntries();
   } catch (error) {
