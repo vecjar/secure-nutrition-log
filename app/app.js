@@ -6,6 +6,7 @@ const loadEntriesBtn = document.getElementById('loadEntriesBtn');
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
 const userInfo = document.getElementById('userInfo');
+const loadingSpinner = document.getElementById('loadingSpinner');
 
 let currentUser = null;
 
@@ -17,6 +18,7 @@ entryForm.addEventListener('submit', async (event) => {
     return;
   }
 
+  setFormLoadingState(true);
   formMessage.textContent = 'Saving entry...';
 
   const payload = {
@@ -52,6 +54,8 @@ entryForm.addEventListener('submit', async (event) => {
   } catch (error) {
     console.error(error);
     formMessage.textContent = 'Could not save entry. Please try again.';
+  } finally {
+    setFormLoadingState(false);
   }
 });
 
@@ -77,14 +81,19 @@ async function loadTodayEntries() {
   if (!currentUser?.userId) {
     entriesMessage.textContent = 'Please sign in to load your entries.';
     entriesList.innerHTML = '';
+    hideSpinner();
     return;
   }
 
   entriesMessage.textContent = 'Loading entries...';
   entriesList.innerHTML = '';
+  showSpinner();
+  setLoadButtonLoadingState(true);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/getTodayEntries?userId=${encodeURIComponent(currentUser.userId)}`);
+    const response = await fetch(
+      `${API_BASE_URL}/getTodayEntries?userId=${encodeURIComponent(currentUser.userId)}`
+    );
     const data = await response.json();
 
     if (!response.ok) {
@@ -95,40 +104,73 @@ async function loadTodayEntries() {
     entriesMessage.textContent = `Found ${data.count} entr${data.count === 1 ? 'y' : 'ies'} for ${data.date}.`;
 
     if (data.entries.length === 0) {
-      entriesList.innerHTML = '<li>No entries yet for today.</li>';
+      entriesList.innerHTML = `
+        <li class="rounded-2xl border border-dashed border-green-200 bg-green-50/60 p-4 text-sm text-slate-600">
+          No entries yet for today.
+        </li>
+      `;
       return;
     }
 
     for (const entry of data.entries) {
       const li = document.createElement('li');
+      li.className = 'bg-green-50 border border-green-100 rounded-2xl p-4 shadow-sm';
+
       li.innerHTML = `
-        <strong>${entry.foodName}</strong> (${entry.mealType})
-        <div class="meta">
-          Calories: ${entry.calories} |
-          Protein: ${entry.protein ?? '-'} |
-          Carbs: ${entry.carbs ?? '-'} |
-          Fats: ${entry.fats ?? '-'}
-        </div>
-        <div class="meta">Notes: ${entry.notes || '-'}</div>
-        <div style="margin-top: 10px;">
+        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p class="text-lg font-semibold text-green-800">${entry.foodName}</p>
+            <p class="text-sm text-slate-500 capitalize">${entry.mealType}</p>
+          </div>
+
           <button
             type="button"
-            class="delete-btn"
+            class="delete-btn inline-flex items-center justify-center rounded-xl bg-red-500 px-3 py-2 text-sm font-medium text-white shadow hover:bg-red-600 transition"
             data-entry-id="${entry.id}"
             data-partition-key="${entry.partitionKey}">
             Delete
-          </button> 
+          </button>
+        </div>
+
+        <div class="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-700 md:grid-cols-4">
+          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+            <span class="block text-xs text-slate-500">Calories</span>
+            <span class="font-semibold">${entry.calories}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+            <span class="block text-xs text-slate-500">Protein</span>
+            <span class="font-semibold">${entry.protein ?? '-'}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+            <span class="block text-xs text-slate-500">Carbs</span>
+            <span class="font-semibold">${entry.carbs ?? '-'}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+            <span class="block text-xs text-slate-500">Fats</span>
+            <span class="font-semibold">${entry.fats ?? '-'}</span>
+          </div>
+        </div>
+
+        <div class="mt-3 text-sm text-slate-600">
+          <span class="font-medium text-slate-700">Notes:</span> ${entry.notes || '-'}
         </div>
       `;
+
       entriesList.appendChild(li);
     }
   } catch (error) {
     console.error(error);
     entriesMessage.textContent = 'Could not load today’s entries.';
+  } finally {
+    hideSpinner();
+    setLoadButtonLoadingState(false);
   }
 }
 
 async function deleteEntry(entryId, partitionKey) {
+  showSpinner();
+  setLoadButtonLoadingState(true);
+
   try {
     const response = await fetch(
       `${API_BASE_URL}/deleteEntry?partitionKey=${encodeURIComponent(partitionKey)}&entryId=${encodeURIComponent(entryId)}`,
@@ -149,6 +191,9 @@ async function deleteEntry(entryId, partitionKey) {
   } catch (error) {
     console.error(error);
     entriesMessage.textContent = 'Could not delete entry.';
+  } finally {
+    hideSpinner();
+    setLoadButtonLoadingState(false);
   }
 }
 
@@ -166,6 +211,7 @@ async function loadUser() {
       formMessage.textContent = 'Please sign in to save entries.';
       entriesMessage.textContent = 'Please sign in to load your entries.';
       entriesList.innerHTML = '';
+      hideSpinner();
       return;
     }
 
@@ -186,6 +232,46 @@ async function loadUser() {
     console.error(error);
     currentUser = null;
     userInfo.textContent = 'User info could not be loaded.';
+    hideSpinner();
+  }
+}
+
+function showSpinner() {
+  if (!loadingSpinner) return;
+  loadingSpinner.classList.remove('hidden');
+}
+
+function hideSpinner() {
+  if (!loadingSpinner) return;
+  loadingSpinner.classList.add('hidden');
+}
+
+function setFormLoadingState(isLoading) {
+  const submitButton = entryForm?.querySelector('button[type="submit"]');
+  if (!submitButton) return;
+
+  submitButton.disabled = isLoading;
+
+  if (isLoading) {
+    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+    submitButton.textContent = 'Saving...';
+  } else {
+    submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+    submitButton.textContent = 'Save Entry';
+  }
+}
+
+function setLoadButtonLoadingState(isLoading) {
+  if (!loadEntriesBtn) return;
+
+  loadEntriesBtn.disabled = isLoading;
+
+  if (isLoading) {
+    loadEntriesBtn.classList.add('opacity-70', 'cursor-not-allowed');
+    loadEntriesBtn.textContent = 'Loading...';
+  } else {
+    loadEntriesBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+    loadEntriesBtn.textContent = "Load Today's Entries";
   }
 }
 
