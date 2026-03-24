@@ -57,6 +57,19 @@ entryForm.addEventListener('submit', async (event) => {
 
 loadEntriesBtn.addEventListener('click', loadTodayEntries);
 
+entriesList.addEventListener('click', async (event) => {
+  if (event.target.classList.contains('delete-btn')) {
+    const entryId = event.target.getAttribute('data-entry-id');
+
+    if (!entryId) return;
+
+    const confirmed = window.confirm('Delete this entry?');
+    if (!confirmed) return;
+
+    await deleteEntry(entryId);
+  }
+});
+
 async function loadTodayEntries() {
   if (!currentUser?.userId) {
     entriesMessage.textContent = 'Please sign in to load your entries.';
@@ -94,12 +107,46 @@ async function loadTodayEntries() {
           Fats: ${entry.fats ?? '-'}
         </div>
         <div class="meta">Notes: ${entry.notes || '-'}</div>
+        <div style="margin-top: 10px;">
+          <button type="button" class="delete-btn" data-entry-id="${entry.id}">
+            Delete
+          </button>
+        </div>
       `;
       entriesList.appendChild(li);
     }
   } catch (error) {
     console.error(error);
     entriesMessage.textContent = 'Could not load today’s entries.';
+  }
+}
+
+async function deleteEntry(entryId) {
+  if (!currentUser?.userId) {
+    entriesMessage.textContent = 'Please sign in to delete entries.';
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/deleteEntry?userId=${encodeURIComponent(currentUser.userId)}&entryId=${encodeURIComponent(entryId)}`,
+      {
+        method: 'DELETE'
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      entriesMessage.textContent = data.error || 'Failed to delete entry.';
+      return;
+    }
+
+    entriesMessage.textContent = 'Entry deleted successfully.';
+    await loadTodayEntries();
+  } catch (error) {
+    console.error(error);
+    entriesMessage.textContent = 'Could not delete entry.';
   }
 }
 
@@ -119,16 +166,17 @@ async function loadUser() {
       entriesList.innerHTML = '';
       return;
     }
+
     const resolvedUserId =
-    clientPrincipal.userId ||
-    clientPrincipal.userDetails;
+      clientPrincipal.userId ||
+      clientPrincipal.userDetails;
 
     currentUser = {
-  userId: resolvedUserId,
-  userDetails: clientPrincipal.userDetails
-};
+      userId: resolvedUserId,
+      userDetails: clientPrincipal.userDetails
+    };
 
-console.log('Resolved current user:', currentUser);
+    console.log('Resolved current user:', currentUser);
 
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
     await loadTodayEntries();

@@ -91,3 +91,11 @@ button:hover {
   color: #6b7280;
   font-size: 0.95rem;
 }
+
+.delete-btn {
+  background: #dc2626;
+}
+
+.delete-btn:hover {
+  opacity: 0.95;
+}
