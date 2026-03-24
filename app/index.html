@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Nutrition Log</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Secure Nutrition Log</h1>
+    <p class="subtitle">Minimal frontend for your Azure Functions backend</p>
+
+    <!-- 🔐 NEW: User / Auth Section -->
+    <section class="card">
+      <div class="section-header">
+        <h2>User</h2>
+        <div>
+          <a href="/.auth/login/aad">Sign in</a>
+          |
+          <a href="/.auth/logout">Sign out</a>
+        </div>
+      </div>
+      <p id="userInfo">Checking user...</p>
+    </section>
+
+    <!-- Existing form -->
+    <section class="card">
+      <h2>Add Food Entry</h2>
+      <form id="entryForm">
+        <label>
+          Meal Type
+          <select id="mealType" required>
+            <option value="">Select a meal</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+          </select>
+        </label>
+
+        <label>
+          Food Name
+          <input type="text" id="foodName" required />
+        </label>
+
+        <label>
+          Calories
+          <input type="number" id="calories" required />
+        </label>
+
+        <label>
+          Protein
+          <input type="number" id="protein" step="0.1" />
+        </label>
+
+        <label>
+          Carbs
+          <input type="number" id="carbs" step="0.1" />
+        </label>
+
+        <label>
+          Fats
+          <input type="number" id="fats" step="0.1" />
+        </label>
+
+        <label>
+          Notes
+          <textarea id="notes" rows="3"></textarea>
+        </label>
+
+        <button type="submit">Save Entry</button>
+      </form>
+
+      <p id="formMessage"></p>
+    </section>
+
+    <!-- Existing entries section -->
+    <section class="card">
+      <div class="section-header">
+        <h2>Today's Entries</h2>
+        <button id="loadEntriesBtn" type="button">Load Today's Entries</button>
+      </div>
+
+      <p id="entriesMessage"></p>
+      <ul id="entriesList"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
