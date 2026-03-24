@@ -1,5 +1,13 @@
 const API_BASE_URL = 'https://snlog-dev-func-01-bedydfafhvd3efdh.australiaeast-01.azurewebsites.net/api';
 
+const DAILY_GOALS = {
+  calories: 2200,
+  protein: 180,
+  carbs: 220,
+  fats: 70,
+  entries: 6
+};
+
 const entryForm = document.getElementById('entryForm');
 const formMessage = document.getElementById('formMessage');
 const loadEntriesBtn = document.getElementById('loadEntriesBtn');
@@ -7,11 +15,18 @@ const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
 const userInfo = document.getElementById('userInfo');
 const loadingSpinner = document.getElementById('loadingSpinner');
+
 const summaryCalories = document.getElementById('summaryCalories');
 const summaryProtein = document.getElementById('summaryProtein');
 const summaryCarbs = document.getElementById('summaryCarbs');
 const summaryFats = document.getElementById('summaryFats');
 const summaryEntries = document.getElementById('summaryEntries');
+
+const progressCalories = document.getElementById('progressCalories');
+const progressProtein = document.getElementById('progressProtein');
+const progressCarbs = document.getElementById('progressCarbs');
+const progressFats = document.getElementById('progressFats');
+const progressEntries = document.getElementById('progressEntries');
 
 let currentUser = null;
 
@@ -70,8 +85,6 @@ entriesList.addEventListener('click', async (event) => {
   if (event.target.classList.contains('delete-btn')) {
     const entryId = event.target.getAttribute('data-entry-id');
     const partitionKey = event.target.getAttribute('data-partition-key');
-
-    console.log('Delete clicked:', { entryId, partitionKey });
 
     if (!entryId || !partitionKey) return;
 
@@ -234,8 +247,6 @@ async function loadUser() {
       userDetails: clientPrincipal.userDetails
     };
 
-    console.log('Resolved current user:', currentUser);
-
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
     await loadTodayEntries();
   } catch (error) {
@@ -245,6 +256,56 @@ async function loadUser() {
     resetSummary();
     hideSpinner();
   }
+}
+
+function updateSummary(entries) {
+  const totals = entries.reduce(
+    (acc, entry) => {
+      acc.calories += Number(entry.calories) || 0;
+      acc.protein += Number(entry.protein) || 0;
+      acc.carbs += Number(entry.carbs) || 0;
+      acc.fats += Number(entry.fats) || 0;
+      return acc;
+    },
+    { calories: 0, protein: 0, carbs: 0, fats: 0 }
+  );
+
+  if (summaryCalories) summaryCalories.textContent = Math.round(totals.calories);
+  if (summaryProtein) summaryProtein.textContent = `${roundToOne(totals.protein)}g`;
+  if (summaryCarbs) summaryCarbs.textContent = `${roundToOne(totals.carbs)}g`;
+  if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats)}g`;
+  if (summaryEntries) summaryEntries.textContent = entries.length;
+
+  setProgress(progressCalories, totals.calories, DAILY_GOALS.calories);
+  setProgress(progressProtein, totals.protein, DAILY_GOALS.protein);
+  setProgress(progressCarbs, totals.carbs, DAILY_GOALS.carbs);
+  setProgress(progressFats, totals.fats, DAILY_GOALS.fats);
+  setProgress(progressEntries, entries.length, DAILY_GOALS.entries);
+}
+
+function resetSummary() {
+  if (summaryCalories) summaryCalories.textContent = '0';
+  if (summaryProtein) summaryProtein.textContent = '0g';
+  if (summaryCarbs) summaryCarbs.textContent = '0g';
+  if (summaryFats) summaryFats.textContent = '0g';
+  if (summaryEntries) summaryEntries.textContent = '0';
+
+  setProgress(progressCalories, 0, DAILY_GOALS.calories);
+  setProgress(progressProtein, 0, DAILY_GOALS.protein);
+  setProgress(progressCarbs, 0, DAILY_GOALS.carbs);
+  setProgress(progressFats, 0, DAILY_GOALS.fats);
+  setProgress(progressEntries, 0, DAILY_GOALS.entries);
+}
+
+function setProgress(element, value, goal) {
+  if (!element) return;
+
+  const percentage = goal > 0 ? Math.min((value / goal) * 100, 100) : 0;
+  element.style.width = `${percentage}%`;
+}
+
+function roundToOne(value) {
+  return Math.round(value * 10) / 10;
 }
 
 function showSpinner() {
@@ -284,37 +345,6 @@ function setLoadButtonLoadingState(isLoading) {
     loadEntriesBtn.classList.remove('opacity-70', 'cursor-not-allowed');
     loadEntriesBtn.textContent = "Load Today's Entries";
   }
-}
-
-function updateSummary(entries) {
-  const totals = entries.reduce(
-    (acc, entry) => {
-      acc.calories += Number(entry.calories) || 0;
-      acc.protein += Number(entry.protein) || 0;
-      acc.carbs += Number(entry.carbs) || 0;
-      acc.fats += Number(entry.fats) || 0;
-      return acc;
-    },
-    { calories: 0, protein: 0, carbs: 0, fats: 0 }
-  );
-
-  if (summaryCalories) summaryCalories.textContent = Math.round(totals.calories);
-  if (summaryProtein) summaryProtein.textContent = `${roundToOne(totals.protein)}g`;
-  if (summaryCarbs) summaryCarbs.textContent = `${roundToOne(totals.carbs)}g`;
-  if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats)}g`;
-  if (summaryEntries) summaryEntries.textContent = entries.length;
-}
-
-function resetSummary() {
-  if (summaryCalories) summaryCalories.textContent = '0';
-  if (summaryProtein) summaryProtein.textContent = '0g';
-  if (summaryCarbs) summaryCarbs.textContent = '0g';
-  if (summaryFats) summaryFats.textContent = '0g';
-  if (summaryEntries) summaryEntries.textContent = '0';
-}
-
-function roundToOne(value) {
-  return Math.round(value * 10) / 10;
 }
 
 loadUser();

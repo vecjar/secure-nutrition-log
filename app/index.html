@@ -8,14 +8,14 @@
 </head>
 <body class="bg-gradient-to-br from-green-50 via-lime-50 to-emerald-100 min-h-screen text-slate-800">
 
-  <main class="max-w-4xl mx-auto px-4 py-8">
+  <main class="max-w-5xl mx-auto px-4 py-8">
     <!-- Header -->
     <section class="mb-8">
       <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-green-100 p-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 class="text-4xl font-bold text-green-700 tracking-tight">🥗 Secure Nutrition Log</h1>
-            <p class="text-slate-600 mt-2 text-lg">Track your meals with a clean Azure-hosted nutrition app</p>
+            <p class="text-slate-600 mt-2 text-lg">Track meals, macros, and daily progress in your Azure-hosted nutrition dashboard</p>
           </div>
 
           <div class="text-sm text-slate-600 bg-green-50 px-4 py-2 rounded-2xl border border-green-100">
@@ -51,43 +51,68 @@
     </section>
 
     <!-- Daily Summary -->
-<section class="mb-6">
-  <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
-      <div>
-        <h2 class="text-2xl font-semibold text-slate-800">Daily Summary</h2>
-        <p class="text-slate-500 text-sm">Your totals for today</p>
-      </div>
-    </div>
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+          <div>
+            <h2 class="text-2xl font-semibold text-slate-800">Daily Summary</h2>
+            <p class="text-slate-500 text-sm">A simple nutrition report for today</p>
+          </div>
+        </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-      <div class="rounded-2xl bg-green-50 border border-green-100 p-4">
-        <p class="text-sm text-slate-500">Calories</p>
-        <p id="summaryCalories" class="text-2xl font-bold text-green-700 mt-1">0</p>
-      </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+          <!-- Calories -->
+          <div class="rounded-2xl bg-green-50 border border-green-100 p-4">
+            <p class="text-sm text-slate-500">Calories</p>
+            <p id="summaryCalories" class="text-2xl font-bold text-green-700 mt-1">0</p>
+            <p id="summaryCaloriesGoal" class="text-xs text-slate-500 mt-1">Goal: 2200</p>
+            <div class="mt-3 h-2 w-full rounded-full bg-green-100 overflow-hidden">
+              <div id="progressCalories" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
 
-      <div class="rounded-2xl bg-blue-50 border border-blue-100 p-4">
-        <p class="text-sm text-slate-500">Protein</p>
-        <p id="summaryProtein" class="text-2xl font-bold text-blue-700 mt-1">0g</p>
-      </div>
+          <!-- Protein -->
+          <div class="rounded-2xl bg-blue-50 border border-blue-100 p-4">
+            <p class="text-sm text-slate-500">Protein</p>
+            <p id="summaryProtein" class="text-2xl font-bold text-blue-700 mt-1">0g</p>
+            <p id="summaryProteinGoal" class="text-xs text-slate-500 mt-1">Goal: 180g</p>
+            <div class="mt-3 h-2 w-full rounded-full bg-blue-100 overflow-hidden">
+              <div id="progressProtein" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
 
-      <div class="rounded-2xl bg-amber-50 border border-amber-100 p-4">
-        <p class="text-sm text-slate-500">Carbs</p>
-        <p id="summaryCarbs" class="text-2xl font-bold text-amber-700 mt-1">0g</p>
-      </div>
+          <!-- Carbs -->
+          <div class="rounded-2xl bg-amber-50 border border-amber-100 p-4">
+            <p class="text-sm text-slate-500">Carbs</p>
+            <p id="summaryCarbs" class="text-2xl font-bold text-amber-700 mt-1">0g</p>
+            <p id="summaryCarbsGoal" class="text-xs text-slate-500 mt-1">Goal: 220g</p>
+            <div class="mt-3 h-2 w-full rounded-full bg-amber-100 overflow-hidden">
+              <div id="progressCarbs" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
 
-      <div class="rounded-2xl bg-rose-50 border border-rose-100 p-4">
-        <p class="text-sm text-slate-500">Fats</p>
-        <p id="summaryFats" class="text-2xl font-bold text-rose-700 mt-1">0g</p>
-      </div>
+          <!-- Fats -->
+          <div class="rounded-2xl bg-rose-50 border border-rose-100 p-4">
+            <p class="text-sm text-slate-500">Fats</p>
+            <p id="summaryFats" class="text-2xl font-bold text-rose-700 mt-1">0g</p>
+            <p id="summaryFatsGoal" class="text-xs text-slate-500 mt-1">Goal: 70g</p>
+            <div class="mt-3 h-2 w-full rounded-full bg-rose-100 overflow-hidden">
+              <div id="progressFats" class="h-full bg-rose-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
 
-      <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-        <p class="text-sm text-slate-500">Entries</p>
-        <p id="summaryEntries" class="text-2xl font-bold text-slate-700 mt-1">0</p>
+          <!-- Entries -->
+          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+            <p class="text-sm text-slate-500">Entries</p>
+            <p id="summaryEntries" class="text-2xl font-bold text-slate-700 mt-1">0</p>
+            <p class="text-xs text-slate-500 mt-1">Meals logged today</p>
+            <div class="mt-3 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+              <div id="progressEntries" class="h-full bg-slate-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
     <!-- Add Food Entry -->
     <section class="mb-6">
