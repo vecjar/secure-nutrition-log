@@ -22,6 +22,7 @@ app.http('createEntry', {
         }
 
         const {
+            userId,
             date,
             mealType,
             foodName,
@@ -32,11 +33,11 @@ app.http('createEntry', {
             notes
         } = body;
 
-        if (!foodName || !mealType || calories === undefined) {
+        if (!userId || !foodName || !mealType || calories === undefined) {
             return {
                 status: 400,
                 jsonBody: {
-                    error: 'foodName, mealType, and calories are required.'
+                    error: 'userId, foodName, mealType, and calories are required.'
                 }
             };
         }
@@ -50,8 +51,9 @@ app.http('createEntry', {
         const client = TableClient.fromConnectionString(connectionString, tableName);
 
         const entity = {
-            partitionKey: entryDate,
+            partitionKey: userId,
             rowKey: entryId,
+            userId,
             date: entryDate,
             mealType,
             foodName,

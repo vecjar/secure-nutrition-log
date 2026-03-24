@@ -7,12 +7,20 @@ const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
 const userInfo = document.getElementById('userInfo');
 
+let currentUser = null;
+
 entryForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+
+  if (!currentUser?.userId) {
+    formMessage.textContent = 'Please sign in before saving entries.';
+    return;
+  }
 
   formMessage.textContent = 'Saving entry...';
 
   const payload = {
+    userId: currentUser.userId,
     mealType: document.getElementById('mealType').value,
     foodName: document.getElementById('foodName').value,
     calories: Number(document.getElementById('calories').value),
@@ -43,18 +51,24 @@ entryForm.addEventListener('submit', async (event) => {
     await loadTodayEntries();
   } catch (error) {
     console.error(error);
-    formMessage.textContent = 'Request failed.';
+    formMessage.textContent = 'Could not save entry. Please try again.';
   }
 });
 
 loadEntriesBtn.addEventListener('click', loadTodayEntries);
 
 async function loadTodayEntries() {
+  if (!currentUser?.userId) {
+    entriesMessage.textContent = 'Please sign in to load your entries.';
+    entriesList.innerHTML = '';
+    return;
+  }
+
   entriesMessage.textContent = 'Loading entries...';
   entriesList.innerHTML = '';
 
   try {
-    const response = await fetch(`${API_BASE_URL}/getTodayEntries`);
+    const response = await fetch(`${API_BASE_URL}/getTodayEntries?userId=${encodeURIComponent(currentUser.userId)}`);
     const data = await response.json();
 
     if (!response.ok) {
@@ -85,7 +99,7 @@ async function loadTodayEntries() {
     }
   } catch (error) {
     console.error(error);
-    entriesMessage.textContent = 'Request failed.';
+    entriesMessage.textContent = 'Could not load today’s entries.';
   }
 }
 
@@ -95,18 +109,31 @@ async function loadUser() {
   try {
     const response = await fetch('/.auth/me');
     const data = await response.json();
-
     const clientPrincipal = data?.clientPrincipal;
 
     if (!clientPrincipal) {
+      currentUser = null;
       userInfo.textContent = 'Not signed in.';
+      formMessage.textContent = 'Please sign in to save entries.';
+      entriesMessage.textContent = 'Please sign in to load your entries.';
+      entriesList.innerHTML = '';
       return;
     }
+    const resolvedUserId =
+    clientPrincipal.userId ||
+    clientPrincipal.userDetails;
+
+    currentUser = {
+  userId: resolvedUserId,
+  userDetails: clientPrincipal.userDetails
+};
 
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
+    await loadTodayEntries();
   } catch (error) {
     console.error(error);
-    userInfo.textContent = 'User info only works after deployment to Azure Static Web Apps.';
+    currentUser = null;
+    userInfo.textContent = 'User info could not be loaded.';
   }
 }
 

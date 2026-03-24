@@ -7,6 +7,17 @@ app.http('getTodayEntries', {
     handler: async (request, context) => {
         context.log('getTodayEntries function processed a request.');
 
+        const userId = request.query.get('userId');
+
+        if (!userId) {
+            return {
+                status: 400,
+                jsonBody: {
+                    error: 'userId is required.'
+                }
+            };
+        }
+
         const connectionString = process.env.AzureWebJobsStorage;
         const tableName = process.env.TABLE_NAME || 'foodentries';
 
@@ -18,11 +29,15 @@ app.http('getTodayEntries', {
         try {
             const entities = client.listEntities({
                 queryOptions: {
-                    filter: `PartitionKey eq '${today}'`
+                    filter: `PartitionKey eq '${userId}'`
                 }
             });
 
             for await (const entity of entities) {
+                if (entity.date !== today) {
+                    continue;
+                }
+
                 entries.push({
                     id: entity.rowKey,
                     date: entity.date,
