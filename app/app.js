@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:7071/api';
+const API_BASE_URL = 'https://salmon-ground-0674e7100.1.azurestaticapps.net';
 
 const entryForm = document.getElementById('entryForm');
 const formMessage = document.getElementById('formMessage');
