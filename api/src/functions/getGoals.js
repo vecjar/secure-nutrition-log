@@ -7,9 +7,12 @@ app.http('getGoals', {
   authLevel: 'anonymous',
   route: 'getGoals',
   handler: async (request, context) => {
+    context.log('getGoals called');
+
     const authResult = requireAuthenticatedUser(request);
 
     if (!authResult.ok) {
+      context.log.warn('getGoals unauthorized');
       return authResult.response;
     }
 
@@ -17,7 +20,14 @@ app.http('getGoals', {
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.GOALS_TABLE_NAME || 'usergoals';
 
+    context.log('getGoals authenticated', {
+      userKey: authUser.userKey,
+      tableName
+    });
+
     if (!connectionString) {
+      context.log.error('getGoals missing storage connection string');
+
       return {
         status: 500,
         jsonBody: {
@@ -30,8 +40,16 @@ app.http('getGoals', {
 
     try {
       client = TableClient.fromConnectionString(connectionString, tableName);
+      context.log('getGoals storage client created', {
+        userKey: authUser.userKey,
+        tableName
+      });
     } catch (error) {
-      context.log.error('Failed to create TableClient in getGoals:', error);
+      context.log.error('getGoals failed to create TableClient', {
+        userKey: authUser.userKey,
+        tableName,
+        error: error?.message || String(error)
+      });
 
       return {
         status: 500,
@@ -44,6 +62,11 @@ app.http('getGoals', {
 
     try {
       const entity = await client.getEntity(authUser.userKey, 'goals');
+
+      context.log('getGoals success', {
+        userKey: authUser.userKey,
+        tableName
+      });
 
       return {
         status: 200,
@@ -58,13 +81,22 @@ app.http('getGoals', {
       };
     } catch (error) {
       if (error.statusCode === 404) {
+        context.log('getGoals no goals found', {
+          userKey: authUser.userKey,
+          tableName
+        });
+
         return {
           status: 200,
           jsonBody: { goals: null }
         };
       }
 
-      context.log.error('Failed to get goals:', error);
+      context.log.error('getGoals failed', {
+        userKey: authUser.userKey,
+        tableName,
+        error: error?.message || String(error)
+      });
 
       return {
         status: 500,
