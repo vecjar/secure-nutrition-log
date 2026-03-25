@@ -23,8 +23,6 @@ const manualModeBtn = document.getElementById('manualModeBtn');
 const savedModeBtn = document.getElementById('savedModeBtn');
 const savedFoodSelectorSection = document.getElementById('savedFoodSelectorSection');
 const savedFoodSelect = document.getElementById('savedFoodSelect');
-
-const deleteCustomFoodSelect = document.getElementById('deleteCustomFoodSelect');
 const deleteCustomFoodBtn = document.getElementById('deleteCustomFoodBtn');
 
 const entriesMessage = document.getElementById('entriesMessage');
@@ -221,15 +219,15 @@ loadSavedFoodBtn.addEventListener('click', () => {
 });
 
 deleteCustomFoodBtn.addEventListener('click', async () => {
-  const selectedFoodId = deleteCustomFoodSelect.value;
+  const selectedFoodId = savedFoodSelect.value;
   if (!selectedFoodId) {
-    customFoodsMessage.textContent = 'Please choose a saved food to delete.';
+    formMessage.textContent = 'Please choose a saved food to delete.';
     return;
   }
 
   const selectedFood = customFoodsCache.find(food => food.id === selectedFoodId);
   if (!selectedFood) {
-    customFoodsMessage.textContent = 'Saved food could not be found.';
+    formMessage.textContent = 'Saved food could not be found.';
     return;
   }
 
@@ -387,7 +385,6 @@ async function loadCustomFoods() {
   if (!currentUser?.userId) {
     customFoodsCache = [];
     populateSavedFoodsDropdown();
-    populateDeleteCustomFoodsDropdown();
     customFoodsMessage.textContent = 'Please sign in to view custom foods.';
     return;
   }
@@ -407,7 +404,6 @@ async function loadCustomFoods() {
 
     customFoodsCache = data.foods;
     populateSavedFoodsDropdown();
-    populateDeleteCustomFoodsDropdown();
 
     if (data.foods.length === 0) {
       customFoodsMessage.textContent = 'No custom foods saved yet.';
@@ -463,15 +459,15 @@ async function deleteCustomFood(foodId, partitionKey) {
     const data = await response.json();
 
     if (!response.ok) {
-      customFoodsMessage.textContent = data.error || 'Failed to delete custom food.';
+      formMessage.textContent = data.error || 'Failed to delete saved food.';
       return;
     }
 
-    customFoodsMessage.textContent = 'Custom food deleted successfully.';
+    formMessage.textContent = 'Saved food deleted successfully.';
     await loadCustomFoods();
   } catch (error) {
     console.error(error);
-    customFoodsMessage.textContent = 'Could not delete custom food.';
+    formMessage.textContent = 'Could not delete saved food.';
   }
 }
 
@@ -492,7 +488,6 @@ async function loadUser() {
       goalsMessage.textContent = 'Please sign in to save goals.';
       customFoodsCache = [];
       populateSavedFoodsDropdown();
-      populateDeleteCustomFoodsDropdown();
       currentGoals = { ...DEFAULT_GOALS };
       populateGoalsForm();
       renderGoalLabels();
@@ -520,7 +515,6 @@ async function loadUser() {
     userInfo.textContent = 'User info could not be loaded.';
     customFoodsCache = [];
     populateSavedFoodsDropdown();
-    populateDeleteCustomFoodsDropdown();
     currentGoals = { ...DEFAULT_GOALS };
     populateGoalsForm();
     renderGoalLabels();
@@ -539,19 +533,6 @@ function populateSavedFoodsDropdown() {
     option.value = food.id;
     option.textContent = `${food.foodName} (${food.calories} cal)`;
     savedFoodSelect.appendChild(option);
-  }
-}
-
-function populateDeleteCustomFoodsDropdown() {
-  if (!deleteCustomFoodSelect) return;
-
-  deleteCustomFoodSelect.innerHTML = '<option value="">Select a saved food to delete</option>';
-
-  for (const food of customFoodsCache) {
-    const option = document.createElement('option');
-    option.value = food.id;
-    option.textContent = `${food.foodName} (${food.calories} cal)`;
-    deleteCustomFoodSelect.appendChild(option);
   }
 }
 
