@@ -47,7 +47,7 @@ app.http('createEntry', {
 
     const entryDate = date || new Date().toISOString().split('T')[0];
 
-    const connectionString = process.env.AzureWebJobsStorage;
+    const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.TABLE_NAME || 'foodentries';
     const client = TableClient.fromConnectionString(connectionString, tableName);
 

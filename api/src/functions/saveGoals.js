@@ -28,7 +28,7 @@ app.http('saveGoals', {
 
     const { calories, protein, carbs, fats } = body;
 
-    const connectionString = process.env.AzureWebJobsStorage;
+    const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.GOALS_TABLE_NAME || 'usergoals';
     const client = TableClient.fromConnectionString(connectionString, tableName);
 

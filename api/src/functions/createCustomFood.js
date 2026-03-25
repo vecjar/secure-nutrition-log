@@ -36,7 +36,7 @@ app.http('createCustomFood', {
       };
     }
 
-    const connectionString = process.env.AzureWebJobsStorage;
+    const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.CUSTOM_FOODS_TABLE_NAME || 'customfoods';
     const client = TableClient.fromConnectionString(connectionString, tableName);
 

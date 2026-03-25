@@ -19,14 +19,14 @@ app.http('getGoals', {
       };
     }
 
-    const connectionString = process.env.AzureWebJobsStorage;
+    const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.GOALS_TABLE_NAME || 'usergoals';
 
     if (!connectionString) {
       return {
         status: 500,
         jsonBody: {
-          error: 'AzureWebJobsStorage is missing.'
+          error: 'STORAGE_CONNECTION_STRING is missing.'
         }
       };
     }

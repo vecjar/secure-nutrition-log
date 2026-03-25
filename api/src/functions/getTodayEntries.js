@@ -19,7 +19,7 @@ app.http('getTodayEntries', {
     const requestedDate = request.query.get('date');
     const targetDate = requestedDate || new Date().toISOString().split('T')[0];
 
-    const connectionString = process.env.AzureWebJobsStorage;
+    const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.TABLE_NAME || 'foodentries';
     const client = TableClient.fromConnectionString(connectionString, tableName);
 
