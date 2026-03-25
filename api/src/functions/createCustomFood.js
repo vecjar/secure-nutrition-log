@@ -1,20 +1,20 @@
 const crypto = require('crypto');
 const { app } = require('@azure/functions');
 const { TableClient } = require('@azure/data-tables');
-const { getAuthenticatedUser } = require('../shared/getAuthenticatedUser');
+const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
 
 app.http('createCustomFood', {
   methods: ['POST'],
   authLevel: 'anonymous',
+  route: 'createCustomFood',
   handler: async (request, context) => {
-    const authUser = getAuthenticatedUser(request);
+    const authResult = requireAuthenticatedUser(request);
 
-    if (!authUser) {
-      return {
-        status: 401,
-        jsonBody: { error: 'Unauthorized.' }
-      };
+    if (!authResult.ok) {
+      return authResult.response;
     }
+
+    const authUser = authResult.authUser;
 
     let body;
 
@@ -47,9 +47,9 @@ app.http('createCustomFood', {
       userDetails: authUser.userDetails,
       foodName,
       calories: Number(calories),
-      protein: protein ?? 0,
-      carbs: carbs ?? 0,
-      fats: fats ?? 0,
+      protein: protein !== null && protein !== undefined ? Number(protein) : 0,
+      carbs: carbs !== null && carbs !== undefined ? Number(carbs) : 0,
+      fats: fats !== null && fats !== undefined ? Number(fats) : 0,
       notes: notes ?? '',
       createdAt: new Date().toISOString()
     };

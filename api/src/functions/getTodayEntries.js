@@ -1,20 +1,19 @@
 const { app } = require('@azure/functions');
 const { TableClient } = require('@azure/data-tables');
-const { getAuthenticatedUser } = require('../shared/getAuthenticatedUser');
+const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
 
 app.http('getTodayEntries', {
   methods: ['GET'],
   authLevel: 'anonymous',
   route: 'getTodayEntries',
   handler: async (request, context) => {
-    const authUser = getAuthenticatedUser(request);
+    const authResult = requireAuthenticatedUser(request);
 
-    if (!authUser) {
-      return {
-        status: 401,
-        jsonBody: { error: 'Unauthorized.' }
-      };
-    }
+if (!authResult.ok) {
+  return authResult.response;
+}
+
+const authUser = authResult.authUser;
 
     const requestedDate = request.query.get('date');
     const targetDate = requestedDate || new Date().toISOString().split('T')[0];

@@ -1,24 +1,19 @@
 const { app } = require('@azure/functions');
 const { TableClient } = require('@azure/data-tables');
-const { getAuthenticatedUser } = require('../shared/getAuthenticatedUser');
+const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
 
 app.http('getGoals', {
   methods: ['GET'],
   authLevel: 'anonymous',
   route: 'getGoals',
   handler: async (request, context) => {
-    const authUser = getAuthenticatedUser(request);
+    const authResult = requireAuthenticatedUser(request);
 
-    if (!authUser) {
-      return {
-        status: 401,
-        jsonBody: {
-          error: 'Unauthorized.',
-          detail: 'No authenticated user could be resolved from x-ms-client-principal.'
-        }
-      };
+    if (!authResult.ok) {
+      return authResult.response;
     }
 
+    const authUser = authResult.authUser;
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.GOALS_TABLE_NAME || 'usergoals';
 

@@ -41,4 +41,12 @@ function getAuthenticatedUser(request) {
   }
 }
 
-module.exports = { getAuthenticatedUser };
+function hasRole(user, roleName) {
+  if (!user || !Array.isArray(user.roles)) {
+    return false;
+  }
+
+  return user.roles.includes(roleName);
+}
+
+module.exports = { getAuthenticatedUser, hasRole };
