@@ -25,7 +25,11 @@ const goalsMessage = document.getElementById('goalsMessage');
 const customFoodsMessage = document.getElementById('customFoodsMessage');
 
 const loadEntriesBtn = document.getElementById('loadEntriesBtn');
-const loadSavedFoodBtn = document.getElementById('loadSavedFoodBtn');
+
+const addMealTabBtn = document.getElementById('addMealTabBtn');
+const saveCustomTabBtn = document.getElementById('saveCustomTabBtn');
+const addMealTabSection = document.getElementById('addMealTabSection');
+const saveCustomTabSection = document.getElementById('saveCustomTabSection');
 
 const manualModeBtn = document.getElementById('manualModeBtn');
 const savedModeBtn = document.getElementById('savedModeBtn');
@@ -216,6 +220,7 @@ customFoodForm.addEventListener('submit', async (event) => {
     customFoodForm.reset();
     customFoodsMessage.textContent = `Saved custom food: ${data.food.foodName}`;
     await loadCustomFoods();
+    setWorkspaceTab('meal');
   } catch (error) {
     console.error(error);
     customFoodsMessage.textContent = 'Could not save custom food.';
@@ -224,13 +229,16 @@ customFoodForm.addEventListener('submit', async (event) => {
 
 loadEntriesBtn.addEventListener('click', loadEntriesForSelectedDate);
 
+addMealTabBtn.addEventListener('click', () => setWorkspaceTab('meal'));
+saveCustomTabBtn.addEventListener('click', () => setWorkspaceTab('custom'));
+
 manualModeBtn.addEventListener('click', () => setEntryMode('manual'));
 savedModeBtn.addEventListener('click', () => setEntryMode('saved'));
 
-loadSavedFoodBtn.addEventListener('click', () => {
+savedFoodSelect.addEventListener('change', () => {
   const selectedFoodId = savedFoodSelect.value;
+
   if (!selectedFoodId) {
-    formMessage.textContent = 'Please choose a saved food first.';
     return;
   }
 
@@ -473,6 +481,13 @@ async function deleteCustomFood(foodId, partitionKey) {
 
     formMessage.textContent = 'Saved food deleted successfully.';
     await loadCustomFoods();
+
+    document.getElementById('foodName').value = '';
+    document.getElementById('calories').value = '';
+    document.getElementById('protein').value = '';
+    document.getElementById('carbs').value = '';
+    document.getElementById('fats').value = '';
+    document.getElementById('notes').value = '';
   } catch (error) {
     console.error(error);
     formMessage.textContent = 'Could not delete saved food.';
@@ -532,6 +547,21 @@ async function loadUser() {
     renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
     hideSpinner();
   }
+}
+
+function setWorkspaceTab(tab) {
+  const isMealTab = tab === 'meal';
+
+  addMealTabSection.classList.toggle('hidden', !isMealTab);
+  saveCustomTabSection.classList.toggle('hidden', isMealTab);
+
+  addMealTabBtn.className = isMealTab
+    ? 'rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition'
+    : 'rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition';
+
+  saveCustomTabBtn.className = isMealTab
+    ? 'rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition'
+    : 'rounded-xl bg-lime-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-lime-700 transition';
 }
 
 function sortEntriesByMealOrder(entries) {
@@ -799,7 +829,7 @@ function setFormLoadingState(isLoading) {
     submitButton.textContent = 'Saving...';
   } else {
     submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
-    submitButton.textContent = 'Save Entry';
+    submitButton.textContent = 'Save Meal Entry';
   }
 }
 
@@ -818,5 +848,6 @@ function setLoadButtonLoadingState(isLoading) {
 }
 
 syncSelectedDateInput();
+setWorkspaceTab('meal');
 setEntryMode('manual');
 loadUser();
