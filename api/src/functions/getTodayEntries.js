@@ -8,6 +8,7 @@ app.http('getTodayEntries', {
         context.log('getTodayEntries function processed a request.');
 
         const userId = request.query.get('userId');
+        const requestedDate = request.query.get('date');
 
         if (!userId) {
             return {
@@ -23,7 +24,7 @@ app.http('getTodayEntries', {
 
         const client = TableClient.fromConnectionString(connectionString, tableName);
 
-        const today = new Date().toISOString().split('T')[0];
+        const targetDate = requestedDate || new Date().toISOString().split('T')[0];
         const entries = [];
 
         try {
@@ -34,7 +35,7 @@ app.http('getTodayEntries', {
             });
 
             for await (const entity of entities) {
-                if (entity.date !== today) {
+                if (entity.date !== targetDate) {
                     continue;
                 }
 
@@ -66,7 +67,7 @@ app.http('getTodayEntries', {
         return {
             status: 200,
             jsonBody: {
-                date: today,
+                date: targetDate,
                 count: entries.length,
                 entries
             }

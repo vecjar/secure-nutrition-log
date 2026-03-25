@@ -8,6 +8,14 @@ const DEFAULT_GOALS = {
   entries: 6
 };
 
+const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEAL_LABELS = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  snack: 'Snack'
+};
+
 const entryForm = document.getElementById('entryForm');
 const goalsForm = document.getElementById('goalsForm');
 const customFoodForm = document.getElementById('customFoodForm');
@@ -24,6 +32,11 @@ const savedModeBtn = document.getElementById('savedModeBtn');
 const savedFoodSelectorSection = document.getElementById('savedFoodSelectorSection');
 const savedFoodSelect = document.getElementById('savedFoodSelect');
 const deleteCustomFoodBtn = document.getElementById('deleteCustomFoodBtn');
+
+const prevDayBtn = document.getElementById('prevDayBtn');
+const nextDayBtn = document.getElementById('nextDayBtn');
+const todayBtn = document.getElementById('todayBtn');
+const selectedDateInput = document.getElementById('selectedDate');
 
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
@@ -48,9 +61,20 @@ const progressCarbs = document.getElementById('progressCarbs');
 const progressFats = document.getElementById('progressFats');
 const progressEntries = document.getElementById('progressEntries');
 
+const chartDateLabel = document.getElementById('chartDateLabel');
+const chartCaloriesBar = document.getElementById('chartCaloriesBar');
+const chartProteinBar = document.getElementById('chartProteinBar');
+const chartCarbsBar = document.getElementById('chartCarbsBar');
+const chartFatsBar = document.getElementById('chartFatsBar');
+const chartCaloriesLabel = document.getElementById('chartCaloriesLabel');
+const chartProteinLabel = document.getElementById('chartProteinLabel');
+const chartCarbsLabel = document.getElementById('chartCarbsLabel');
+const chartFatsLabel = document.getElementById('chartFatsLabel');
+
 let currentUser = null;
 let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
+let currentSelectedDate = getTodayDateString();
 
 entryForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -65,6 +89,7 @@ entryForm.addEventListener('submit', async (event) => {
 
   const payload = {
     userId: currentUser.userId,
+    date: currentSelectedDate,
     mealType: document.getElementById('mealType').value,
     foodName: document.getElementById('foodName').value,
     calories: Number(document.getElementById('calories').value),
@@ -90,9 +115,9 @@ entryForm.addEventListener('submit', async (event) => {
       return;
     }
 
-    formMessage.textContent = `Saved: ${data.entry.foodName}`;
+    formMessage.textContent = `Saved: ${data.entry.foodName} for ${currentSelectedDate}`;
     entryForm.reset();
-    await loadTodayEntries();
+    await loadEntriesForSelectedDate();
   } catch (error) {
     console.error(error);
     formMessage.textContent = 'Could not save entry. Please try again.';
@@ -144,7 +169,7 @@ goalsForm.addEventListener('submit', async (event) => {
     };
 
     renderGoalLabels();
-    await loadTodayEntries();
+    await loadEntriesForSelectedDate();
     goalsMessage.textContent = 'Goals saved successfully.';
   } catch (error) {
     console.error(error);
@@ -197,7 +222,7 @@ customFoodForm.addEventListener('submit', async (event) => {
   }
 });
 
-loadEntriesBtn.addEventListener('click', loadTodayEntries);
+loadEntriesBtn.addEventListener('click', loadEntriesForSelectedDate);
 
 manualModeBtn.addEventListener('click', () => setEntryMode('manual'));
 savedModeBtn.addEventListener('click', () => setEntryMode('saved'));
@@ -237,6 +262,30 @@ deleteCustomFoodBtn.addEventListener('click', async () => {
   await deleteCustomFood(selectedFood.id, selectedFood.partitionKey);
 });
 
+prevDayBtn.addEventListener('click', async () => {
+  currentSelectedDate = shiftDateString(currentSelectedDate, -1);
+  syncSelectedDateInput();
+  await loadEntriesForSelectedDate();
+});
+
+nextDayBtn.addEventListener('click', async () => {
+  currentSelectedDate = shiftDateString(currentSelectedDate, 1);
+  syncSelectedDateInput();
+  await loadEntriesForSelectedDate();
+});
+
+todayBtn.addEventListener('click', async () => {
+  currentSelectedDate = getTodayDateString();
+  syncSelectedDateInput();
+  await loadEntriesForSelectedDate();
+});
+
+selectedDateInput.addEventListener('change', async (event) => {
+  if (!event.target.value) return;
+  currentSelectedDate = event.target.value;
+  await loadEntriesForSelectedDate();
+});
+
 entriesList.addEventListener('click', async (event) => {
   if (event.target.classList.contains('delete-btn')) {
     const entryId = event.target.getAttribute('data-entry-id');
@@ -251,11 +300,12 @@ entriesList.addEventListener('click', async (event) => {
   }
 });
 
-async function loadTodayEntries() {
+async function loadEntriesForSelectedDate() {
   if (!currentUser?.userId) {
     entriesMessage.textContent = 'Please sign in to load your entries.';
     entriesList.innerHTML = '';
     resetSummary();
+    renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
     hideSpinner();
     return;
   }
@@ -267,7 +317,7 @@ async function loadTodayEntries() {
 
   try {
     const response = await fetch(
-      `${API_BASE_URL}/getTodayEntries?userId=${encodeURIComponent(currentUser.userId)}`
+      `${API_BASE_URL}/getTodayEntries?userId=${encodeURIComponent(currentUser.userId)}&date=${encodeURIComponent(currentSelectedDate)}`
     );
     const data = await response.json();
 
@@ -278,67 +328,25 @@ async function loadTodayEntries() {
 
     entriesMessage.textContent = `Found ${data.count} entr${data.count === 1 ? 'y' : 'ies'} for ${data.date}.`;
 
-    if (data.entries.length === 0) {
-      resetSummary();
+    const sortedEntries = sortEntriesByMealOrder(data.entries);
+    const totals = calculateTotals(sortedEntries);
+
+    updateSummaryFromTotals(totals, sortedEntries.length);
+    renderMacroChart(totals, data.date);
+
+    if (sortedEntries.length === 0) {
       entriesList.innerHTML = `
         <li class="rounded-2xl border border-dashed border-green-200 bg-green-50/60 p-4 text-sm text-slate-600">
-          No entries yet for today.
+          No entries yet for ${formatDateForDisplay(data.date)}.
         </li>
       `;
       return;
     }
 
-    updateSummary(data.entries);
-
-    for (const entry of data.entries) {
-      const li = document.createElement('li');
-      li.className = 'bg-green-50 border border-green-100 rounded-2xl p-4 shadow-sm';
-
-      li.innerHTML = `
-        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p class="text-lg font-semibold text-green-800">${entry.foodName}</p>
-            <p class="text-sm text-slate-500 capitalize">${entry.mealType}</p>
-          </div>
-
-          <button
-            type="button"
-            class="delete-btn inline-flex items-center justify-center rounded-xl bg-red-500 px-3 py-2 text-sm font-medium text-white shadow hover:bg-red-600 transition"
-            data-entry-id="${entry.id}"
-            data-partition-key="${entry.partitionKey}">
-            Delete
-          </button>
-        </div>
-
-        <div class="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-700 md:grid-cols-4">
-          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
-            <span class="block text-xs text-slate-500">Calories</span>
-            <span class="font-semibold">${entry.calories}</span>
-          </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
-            <span class="block text-xs text-slate-500">Protein</span>
-            <span class="font-semibold">${entry.protein ?? '-'}</span>
-          </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
-            <span class="block text-xs text-slate-500">Carbs</span>
-            <span class="font-semibold">${entry.carbs ?? '-'}</span>
-          </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
-            <span class="block text-xs text-slate-500">Fats</span>
-            <span class="font-semibold">${entry.fats ?? '-'}</span>
-          </div>
-        </div>
-
-        <div class="mt-3 text-sm text-slate-600">
-          <span class="font-medium text-slate-700">Notes:</span> ${entry.notes || '-'}
-        </div>
-      `;
-
-      entriesList.appendChild(li);
-    }
+    renderEntriesGroupedByMeal(sortedEntries);
   } catch (error) {
     console.error(error);
-    entriesMessage.textContent = 'Could not load today’s entries.';
+    entriesMessage.textContent = 'Could not load entries for the selected day.';
   } finally {
     hideSpinner();
     setLoadButtonLoadingState(false);
@@ -437,7 +445,7 @@ async function deleteEntry(entryId, partitionKey) {
     }
 
     entriesMessage.textContent = 'Entry deleted successfully.';
-    await loadTodayEntries();
+    await loadEntriesForSelectedDate();
   } catch (error) {
     console.error(error);
     entriesMessage.textContent = 'Could not delete entry.';
@@ -492,6 +500,7 @@ async function loadUser() {
       populateGoalsForm();
       renderGoalLabels();
       resetSummary();
+      renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
       hideSpinner();
       return;
     }
@@ -506,9 +515,10 @@ async function loadUser() {
     };
 
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
+    syncSelectedDateInput();
     await loadGoals();
     await loadCustomFoods();
-    await loadTodayEntries();
+    await loadEntriesForSelectedDate();
   } catch (error) {
     console.error(error);
     currentUser = null;
@@ -519,8 +529,173 @@ async function loadUser() {
     populateGoalsForm();
     renderGoalLabels();
     resetSummary();
+    renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
     hideSpinner();
   }
+}
+
+function sortEntriesByMealOrder(entries) {
+  return [...entries].sort((a, b) => {
+    const mealIndexA = MEAL_ORDER.indexOf((a.mealType || '').toLowerCase());
+    const mealIndexB = MEAL_ORDER.indexOf((b.mealType || '').toLowerCase());
+
+    const safeIndexA = mealIndexA === -1 ? 999 : mealIndexA;
+    const safeIndexB = mealIndexB === -1 ? 999 : mealIndexB;
+
+    if (safeIndexA !== safeIndexB) {
+      return safeIndexA - safeIndexB;
+    }
+
+    const createdAtA = a.createdAt || '';
+    const createdAtB = b.createdAt || '';
+    return createdAtA.localeCompare(createdAtB);
+  });
+}
+
+function renderEntriesGroupedByMeal(entries) {
+  entriesList.innerHTML = '';
+
+  for (const mealType of MEAL_ORDER) {
+    const mealEntries = entries.filter(entry => (entry.mealType || '').toLowerCase() === mealType);
+
+    if (mealEntries.length === 0) {
+      continue;
+    }
+
+    const sectionLi = document.createElement('li');
+    sectionLi.className = 'space-y-3';
+
+    const sectionTitle = document.createElement('div');
+    sectionTitle.className = 'flex items-center gap-3';
+    sectionTitle.innerHTML = `
+      <h3 class="text-xl font-semibold text-slate-800">${MEAL_LABELS[mealType]}</h3>
+      <span class="text-sm text-slate-500">${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}</span>
+    `;
+
+    sectionLi.appendChild(sectionTitle);
+
+    const innerList = document.createElement('div');
+    innerList.className = 'space-y-3';
+
+    for (const entry of mealEntries) {
+      const entryCard = document.createElement('div');
+      entryCard.className = 'bg-green-50 border border-green-100 rounded-2xl p-4 shadow-sm';
+
+      entryCard.innerHTML = `
+        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p class="text-lg font-semibold text-green-800">${entry.foodName}</p>
+            <p class="text-sm text-slate-500 capitalize">${entry.mealType}</p>
+          </div>
+
+          <button
+            type="button"
+            class="delete-btn inline-flex items-center justify-center rounded-xl bg-red-500 px-3 py-2 text-sm font-medium text-white shadow hover:bg-red-600 transition"
+            data-entry-id="${entry.id}"
+            data-partition-key="${entry.partitionKey}">
+            Delete
+          </button>
+        </div>
+
+        <div class="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-700 md:grid-cols-4">
+          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+            <span class="block text-xs text-slate-500">Calories</span>
+            <span class="font-semibold">${entry.calories}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+            <span class="block text-xs text-slate-500">Protein</span>
+            <span class="font-semibold">${entry.protein ?? '-'}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+            <span class="block text-xs text-slate-500">Carbs</span>
+            <span class="font-semibold">${entry.carbs ?? '-'}</span>
+          </div>
+          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+            <span class="block text-xs text-slate-500">Fats</span>
+            <span class="font-semibold">${entry.fats ?? '-'}</span>
+          </div>
+        </div>
+
+        <div class="mt-3 text-sm text-slate-600">
+          <span class="font-medium text-slate-700">Notes:</span> ${entry.notes || '-'}
+        </div>
+      `;
+
+      innerList.appendChild(entryCard);
+    }
+
+    sectionLi.appendChild(innerList);
+    entriesList.appendChild(sectionLi);
+  }
+}
+
+function calculateTotals(entries) {
+  return entries.reduce(
+    (acc, entry) => {
+      acc.calories += Number(entry.calories) || 0;
+      acc.protein += Number(entry.protein) || 0;
+      acc.carbs += Number(entry.carbs) || 0;
+      acc.fats += Number(entry.fats) || 0;
+      return acc;
+    },
+    { calories: 0, protein: 0, carbs: 0, fats: 0 }
+  );
+}
+
+function updateSummaryFromTotals(totals, entryCount) {
+  if (summaryCalories) summaryCalories.textContent = Math.round(totals.calories);
+  if (summaryProtein) summaryProtein.textContent = `${roundToOne(totals.protein)}g`;
+  if (summaryCarbs) summaryCarbs.textContent = `${roundToOne(totals.carbs)}g`;
+  if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats)}g`;
+  if (summaryEntries) summaryEntries.textContent = entryCount;
+
+  setProgress(progressCalories, totals.calories, currentGoals.calories);
+  setProgress(progressProtein, totals.protein, currentGoals.protein);
+  setProgress(progressCarbs, totals.carbs, currentGoals.carbs);
+  setProgress(progressFats, totals.fats, currentGoals.fats);
+  setProgress(progressEntries, entryCount, DEFAULT_GOALS.entries);
+}
+
+function renderMacroChart(totals, dateString) {
+  if (chartDateLabel) chartDateLabel.textContent = formatDateForDisplay(dateString);
+
+  if (chartCaloriesLabel) chartCaloriesLabel.textContent = `${Math.round(totals.calories)}`;
+  if (chartProteinLabel) chartProteinLabel.textContent = `${roundToOne(totals.protein)}g`;
+  if (chartCarbsLabel) chartCarbsLabel.textContent = `${roundToOne(totals.carbs)}g`;
+  if (chartFatsLabel) chartFatsLabel.textContent = `${roundToOne(totals.fats)}g`;
+
+  setProgress(chartCaloriesBar, totals.calories, currentGoals.calories);
+  setProgress(chartProteinBar, totals.protein, currentGoals.protein);
+  setProgress(chartCarbsBar, totals.carbs, currentGoals.carbs);
+  setProgress(chartFatsBar, totals.fats, currentGoals.fats);
+}
+
+function resetSummary() {
+  if (summaryCalories) summaryCalories.textContent = '0';
+  if (summaryProtein) summaryProtein.textContent = '0g';
+  if (summaryCarbs) summaryCarbs.textContent = '0g';
+  if (summaryFats) summaryFats.textContent = '0g';
+  if (summaryEntries) summaryEntries.textContent = '0';
+
+  setProgress(progressCalories, 0, currentGoals.calories);
+  setProgress(progressProtein, 0, currentGoals.protein);
+  setProgress(progressCarbs, 0, currentGoals.carbs);
+  setProgress(progressFats, 0, currentGoals.fats);
+  setProgress(progressEntries, 0, DEFAULT_GOALS.entries);
+}
+
+function populateGoalsForm() {
+  document.getElementById('goalCalories').value = currentGoals.calories;
+  document.getElementById('goalProtein').value = currentGoals.protein;
+  document.getElementById('goalCarbs').value = currentGoals.carbs;
+  document.getElementById('goalFats').value = currentGoals.fats;
+}
+
+function renderGoalLabels() {
+  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${currentGoals.calories}`;
+  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${currentGoals.protein}g`;
+  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${currentGoals.carbs}g`;
+  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${currentGoals.fats}g`;
 }
 
 function populateSavedFoodsDropdown() {
@@ -566,59 +741,6 @@ function setEntryMode(mode) {
   }
 }
 
-function updateSummary(entries) {
-  const totals = entries.reduce(
-    (acc, entry) => {
-      acc.calories += Number(entry.calories) || 0;
-      acc.protein += Number(entry.protein) || 0;
-      acc.carbs += Number(entry.carbs) || 0;
-      acc.fats += Number(entry.fats) || 0;
-      return acc;
-    },
-    { calories: 0, protein: 0, carbs: 0, fats: 0 }
-  );
-
-  if (summaryCalories) summaryCalories.textContent = Math.round(totals.calories);
-  if (summaryProtein) summaryProtein.textContent = `${roundToOne(totals.protein)}g`;
-  if (summaryCarbs) summaryCarbs.textContent = `${roundToOne(totals.carbs)}g`;
-  if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats)}g`;
-  if (summaryEntries) summaryEntries.textContent = entries.length;
-
-  setProgress(progressCalories, totals.calories, currentGoals.calories);
-  setProgress(progressProtein, totals.protein, currentGoals.protein);
-  setProgress(progressCarbs, totals.carbs, currentGoals.carbs);
-  setProgress(progressFats, totals.fats, currentGoals.fats);
-  setProgress(progressEntries, entries.length, DEFAULT_GOALS.entries);
-}
-
-function resetSummary() {
-  if (summaryCalories) summaryCalories.textContent = '0';
-  if (summaryProtein) summaryProtein.textContent = '0g';
-  if (summaryCarbs) summaryCarbs.textContent = '0g';
-  if (summaryFats) summaryFats.textContent = '0g';
-  if (summaryEntries) summaryEntries.textContent = '0';
-
-  setProgress(progressCalories, 0, currentGoals.calories);
-  setProgress(progressProtein, 0, currentGoals.protein);
-  setProgress(progressCarbs, 0, currentGoals.carbs);
-  setProgress(progressFats, 0, currentGoals.fats);
-  setProgress(progressEntries, 0, DEFAULT_GOALS.entries);
-}
-
-function populateGoalsForm() {
-  document.getElementById('goalCalories').value = currentGoals.calories;
-  document.getElementById('goalProtein').value = currentGoals.protein;
-  document.getElementById('goalCarbs').value = currentGoals.carbs;
-  document.getElementById('goalFats').value = currentGoals.fats;
-}
-
-function renderGoalLabels() {
-  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${currentGoals.calories}`;
-  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${currentGoals.protein}g`;
-  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${currentGoals.carbs}g`;
-  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${currentGoals.fats}g`;
-}
-
 function setProgress(element, value, goal) {
   if (!element) return;
 
@@ -628,6 +750,32 @@ function setProgress(element, value, goal) {
 
 function roundToOne(value) {
   return Math.round(value * 10) / 10;
+}
+
+function getTodayDateString() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function shiftDateString(dateString, days) {
+  const date = new Date(`${dateString}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split('T')[0];
+}
+
+function syncSelectedDateInput() {
+  if (selectedDateInput) {
+    selectedDateInput.value = currentSelectedDate;
+  }
+}
+
+function formatDateForDisplay(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  return date.toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 }
 
 function showSpinner() {
@@ -665,9 +813,10 @@ function setLoadButtonLoadingState(isLoading) {
     loadEntriesBtn.textContent = 'Loading...';
   } else {
     loadEntriesBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-    loadEntriesBtn.textContent = "Load Today's Entries";
+    loadEntriesBtn.textContent = 'Load Selected Day';
   }
 }
 
+syncSelectedDateInput();
 setEntryMode('manual');
 loadUser();
