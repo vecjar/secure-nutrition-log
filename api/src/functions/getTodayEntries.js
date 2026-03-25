@@ -7,20 +7,62 @@ app.http('getTodayEntries', {
   authLevel: 'anonymous',
   route: 'getTodayEntries',
   handler: async (request, context) => {
+    context.log('getTodayEntries called');
+
     const authResult = requireAuthenticatedUser(request);
 
-if (!authResult.ok) {
-  return authResult.response;
-}
+    if (!authResult.ok) {
+      context.log.warn('getTodayEntries unauthorized');
+      return authResult.response;
+    }
 
-const authUser = authResult.authUser;
+    const authUser = authResult.authUser;
 
     const requestedDate = request.query.get('date');
     const targetDate = requestedDate || new Date().toISOString().split('T')[0];
 
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.TABLE_NAME || 'foodentries';
-    const client = TableClient.fromConnectionString(connectionString, tableName);
+
+    context.log('getTodayEntries authenticated', {
+      userKey: authUser.userKey,
+      tableName,
+      targetDate
+    });
+
+    if (!connectionString) {
+      context.log.error('getTodayEntries missing storage connection string', {
+        userKey: authUser.userKey,
+        tableName
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'STORAGE_CONNECTION_STRING is missing.' }
+      };
+    }
+
+    let client;
+
+    try {
+      client = TableClient.fromConnectionString(connectionString, tableName);
+
+      context.log('getTodayEntries storage client created', {
+        userKey: authUser.userKey,
+        tableName
+      });
+    } catch (error) {
+      context.log.error('getTodayEntries failed to create storage client', {
+        userKey: authUser.userKey,
+        tableName,
+        error: error?.message || String(error)
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'Failed to create storage client.' }
+      };
+    }
 
     const entries = [];
 
@@ -50,6 +92,13 @@ const authUser = authResult.authUser;
         });
       }
 
+      context.log('getTodayEntries success', {
+        userKey: authUser.userKey,
+        tableName,
+        targetDate,
+        count: entries.length
+      });
+
       return {
         status: 200,
         jsonBody: {
@@ -59,7 +108,12 @@ const authUser = authResult.authUser;
         }
       };
     } catch (error) {
-      context.log.error('Failed to retrieve entries:', error);
+      context.log.error('getTodayEntries failed', {
+        userKey: authUser.userKey,
+        tableName,
+        targetDate,
+        error: error?.message || String(error)
+      });
 
       return {
         status: 500,

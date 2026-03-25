@@ -7,17 +7,58 @@ app.http('getCustomFoods', {
   authLevel: 'anonymous',
   route: 'getCustomFoods',
   handler: async (request, context) => {
+    context.log('getCustomFoods called');
+
     const authResult = requireAuthenticatedUser(request);
 
-if (!authResult.ok) {
-  return authResult.response;
-}
+    if (!authResult.ok) {
+      context.log.warn('getCustomFoods unauthorized');
+      return authResult.response;
+    }
 
-const authUser = authResult.authUser;
+    const authUser = authResult.authUser;
 
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.CUSTOM_FOODS_TABLE_NAME || 'customfoods';
-    const client = TableClient.fromConnectionString(connectionString, tableName);
+
+    context.log('getCustomFoods authenticated', {
+      userKey: authUser.userKey,
+      tableName
+    });
+
+    if (!connectionString) {
+      context.log.error('getCustomFoods missing storage connection string', {
+        userKey: authUser.userKey,
+        tableName
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'STORAGE_CONNECTION_STRING is missing.' }
+      };
+    }
+
+    let client;
+
+    try {
+      client = TableClient.fromConnectionString(connectionString, tableName);
+
+      context.log('getCustomFoods storage client created', {
+        userKey: authUser.userKey,
+        tableName
+      });
+    } catch (error) {
+      context.log.error('getCustomFoods failed to create storage client', {
+        userKey: authUser.userKey,
+        tableName,
+        error: error?.message || String(error)
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'Failed to create storage client.' }
+      };
+    }
 
     const foods = [];
 
@@ -41,12 +82,22 @@ const authUser = authResult.authUser;
         });
       }
 
+      context.log('getCustomFoods success', {
+        userKey: authUser.userKey,
+        tableName,
+        count: foods.length
+      });
+
       return {
         status: 200,
         jsonBody: { foods }
       };
     } catch (error) {
-      context.log.error('Failed to load custom foods:', error);
+      context.log.error('getCustomFoods failed', {
+        userKey: authUser.userKey,
+        tableName,
+        error: error?.message || String(error)
+      });
 
       return {
         status: 500,

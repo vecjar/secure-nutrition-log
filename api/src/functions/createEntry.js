@@ -6,20 +6,28 @@ const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser
 app.http('createEntry', {
   methods: ['POST'],
   authLevel: 'anonymous',
+  route: 'createEntry',
   handler: async (request, context) => {
+    context.log('createEntry called');
+
     const authResult = requireAuthenticatedUser(request);
 
-if (!authResult.ok) {
-  return authResult.response;
-}
+    if (!authResult.ok) {
+      context.log.warn('createEntry unauthorized');
+      return authResult.response;
+    }
 
-const authUser = authResult.authUser;
+    const authUser = authResult.authUser;
 
     let body;
 
     try {
       body = await request.json();
     } catch {
+      context.log.warn('createEntry invalid JSON body', {
+        userKey: authUser.userKey
+      });
+
       return {
         status: 400,
         jsonBody: { error: 'Request body must be valid JSON.' }
@@ -38,6 +46,13 @@ const authUser = authResult.authUser;
     } = body;
 
     if (!mealType || !foodName || calories === undefined || calories === null) {
+      context.log.warn('createEntry missing required fields', {
+        userKey: authUser.userKey,
+        hasMealType: !!mealType,
+        hasFoodName: !!foodName,
+        hasCalories: calories !== undefined && calories !== null
+      });
+
       return {
         status: 400,
         jsonBody: { error: 'mealType, foodName, and calories are required.' }
@@ -45,10 +60,48 @@ const authUser = authResult.authUser;
     }
 
     const entryDate = date || new Date().toISOString().split('T')[0];
-
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.TABLE_NAME || 'foodentries';
-    const client = TableClient.fromConnectionString(connectionString, tableName);
+
+    context.log('createEntry authenticated', {
+      userKey: authUser.userKey,
+      tableName,
+      entryDate,
+      mealType
+    });
+
+    if (!connectionString) {
+      context.log.error('createEntry missing storage connection string', {
+        userKey: authUser.userKey,
+        tableName
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'STORAGE_CONNECTION_STRING is missing.' }
+      };
+    }
+
+    let client;
+
+    try {
+      client = TableClient.fromConnectionString(connectionString, tableName);
+      context.log('createEntry storage client created', {
+        userKey: authUser.userKey,
+        tableName
+      });
+    } catch (error) {
+      context.log.error('createEntry failed to create storage client', {
+        userKey: authUser.userKey,
+        tableName,
+        error: error?.message || String(error)
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'Failed to create storage client.' }
+      };
+    }
 
     const entity = {
       partitionKey: authUser.userKey,
@@ -69,6 +122,14 @@ const authUser = authResult.authUser;
     try {
       await client.createEntity(entity);
 
+      context.log('createEntry success', {
+        userKey: authUser.userKey,
+        tableName,
+        entryId: entity.rowKey,
+        entryDate,
+        mealType
+      });
+
       return {
         status: 201,
         jsonBody: {
@@ -88,7 +149,13 @@ const authUser = authResult.authUser;
         }
       };
     } catch (error) {
-      context.log.error('Failed to create entry:', error);
+      context.log.error('createEntry failed', {
+        userKey: authUser.userKey,
+        tableName,
+        entryDate,
+        mealType,
+        error: error?.message || String(error)
+      });
 
       return {
         status: 500,

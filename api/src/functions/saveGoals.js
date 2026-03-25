@@ -5,20 +5,28 @@ const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser
 app.http('saveGoals', {
   methods: ['POST'],
   authLevel: 'anonymous',
+  route: 'saveGoals',
   handler: async (request, context) => {
+    context.log('saveGoals called');
+
     const authResult = requireAuthenticatedUser(request);
 
-if (!authResult.ok) {
-  return authResult.response;
-}
+    if (!authResult.ok) {
+      context.log.warn('saveGoals unauthorized');
+      return authResult.response;
+    }
 
-const authUser = authResult.authUser;
+    const authUser = authResult.authUser;
 
     let body;
 
     try {
       body = await request.json();
     } catch {
+      context.log.warn('saveGoals invalid JSON body', {
+        userKey: authUser.userKey
+      });
+
       return {
         status: 400,
         jsonBody: { error: 'Request body must be valid JSON.' }
@@ -26,10 +34,47 @@ const authUser = authResult.authUser;
     }
 
     const { calories, protein, carbs, fats } = body;
-
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.GOALS_TABLE_NAME || 'usergoals';
-    const client = TableClient.fromConnectionString(connectionString, tableName);
+
+    context.log('saveGoals authenticated', {
+      userKey: authUser.userKey,
+      tableName
+    });
+
+    if (!connectionString) {
+      context.log.error('saveGoals missing storage connection string', {
+        userKey: authUser.userKey,
+        tableName
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'STORAGE_CONNECTION_STRING is missing.' }
+      };
+    }
+
+    let client;
+
+    try {
+      client = TableClient.fromConnectionString(connectionString, tableName);
+
+      context.log('saveGoals storage client created', {
+        userKey: authUser.userKey,
+        tableName
+      });
+    } catch (error) {
+      context.log.error('saveGoals failed to create storage client', {
+        userKey: authUser.userKey,
+        tableName,
+        error: error?.message || String(error)
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'Failed to create storage client.' }
+      };
+    }
 
     const entity = {
       partitionKey: authUser.userKey,
@@ -46,6 +91,11 @@ const authUser = authResult.authUser;
     try {
       await client.upsertEntity(entity, 'Replace');
 
+      context.log('saveGoals success', {
+        userKey: authUser.userKey,
+        tableName
+      });
+
       return {
         status: 200,
         jsonBody: {
@@ -59,7 +109,11 @@ const authUser = authResult.authUser;
         }
       };
     } catch (error) {
-      context.log.error('Failed to save goals:', error);
+      context.log.error('saveGoals failed', {
+        userKey: authUser.userKey,
+        tableName,
+        error: error?.message || String(error)
+      });
 
       return {
         status: 500,
