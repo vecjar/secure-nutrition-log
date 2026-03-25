@@ -5,6 +5,7 @@ const { getAuthenticatedUser } = require('../shared/getAuthenticatedUser');
 app.http('getTodayEntries', {
   methods: ['GET'],
   authLevel: 'anonymous',
+  route: 'getTodayEntries',
   handler: async (request, context) => {
     const authUser = getAuthenticatedUser(request);
 

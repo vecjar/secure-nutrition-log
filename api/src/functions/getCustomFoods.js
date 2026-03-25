@@ -5,6 +5,7 @@ const { getAuthenticatedUser } = require('../shared/getAuthenticatedUser');
 app.http('getCustomFoods', {
   methods: ['GET'],
   authLevel: 'anonymous',
+  route: 'getCustomFoods',
   handler: async (request, context) => {
     const authUser = getAuthenticatedUser(request);
 
