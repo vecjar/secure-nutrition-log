@@ -15,7 +15,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 class="text-4xl font-bold text-green-700 tracking-tight">🥗 Secure Nutrition Log</h1>
-            <p class="text-slate-600 mt-2 text-lg">Track meals, custom foods, and daily progress in my Azure-hosted nutrition dashboard</p>
+            <p class="text-slate-600 mt-2 text-lg">Track meals, custom foods, and daily progress in your Azure-hosted nutrition dashboard</p>
           </div>
 
           <div class="text-sm text-slate-600 bg-green-50 px-4 py-2 rounded-2xl border border-green-100">
@@ -175,15 +175,25 @@
 
         <p id="customFoodsMessage" class="text-sm text-slate-600 mb-4"></p>
 
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-lg font-semibold text-slate-800">Saved Foods</h3>
-            <button id="loadCustomFoodsBtn" type="button" class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 transition">
-              Refresh
+        <div class="rounded-2xl border border-lime-200 bg-lime-50 p-4">
+          <h3 class="text-lg font-semibold text-slate-800 mb-3">Manage Saved Foods</h3>
+
+          <div class="flex flex-col md:flex-row gap-3">
+            <select
+              id="deleteCustomFoodSelect"
+              class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200">
+              <option value="">Select a saved food to delete</option>
+            </select>
+
+            <button
+              id="deleteCustomFoodBtn"
+              type="button"
+              class="rounded-2xl bg-red-500 px-5 py-3 text-white font-semibold shadow hover:bg-red-600 transition">
+              Delete Saved Food
             </button>
           </div>
 
-          <ul id="customFoodsList" class="space-y-3"></ul>
+          <p class="text-xs text-slate-500 mt-2">Saved foods stay available in the “Use Saved Food” tab below until you delete them here.</p>
         </div>
       </div>
     </section>

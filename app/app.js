@@ -17,7 +17,6 @@ const goalsMessage = document.getElementById('goalsMessage');
 const customFoodsMessage = document.getElementById('customFoodsMessage');
 
 const loadEntriesBtn = document.getElementById('loadEntriesBtn');
-const loadCustomFoodsBtn = document.getElementById('loadCustomFoodsBtn');
 const loadSavedFoodBtn = document.getElementById('loadSavedFoodBtn');
 
 const manualModeBtn = document.getElementById('manualModeBtn');
@@ -25,9 +24,11 @@ const savedModeBtn = document.getElementById('savedModeBtn');
 const savedFoodSelectorSection = document.getElementById('savedFoodSelectorSection');
 const savedFoodSelect = document.getElementById('savedFoodSelect');
 
+const deleteCustomFoodSelect = document.getElementById('deleteCustomFoodSelect');
+const deleteCustomFoodBtn = document.getElementById('deleteCustomFoodBtn');
+
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
-const customFoodsList = document.getElementById('customFoodsList');
 
 const userInfo = document.getElementById('userInfo');
 const loadingSpinner = document.getElementById('loadingSpinner');
@@ -199,7 +200,6 @@ customFoodForm.addEventListener('submit', async (event) => {
 });
 
 loadEntriesBtn.addEventListener('click', loadTodayEntries);
-loadCustomFoodsBtn.addEventListener('click', loadCustomFoods);
 
 manualModeBtn.addEventListener('click', () => setEntryMode('manual'));
 savedModeBtn.addEventListener('click', () => setEntryMode('saved'));
@@ -220,6 +220,25 @@ loadSavedFoodBtn.addEventListener('click', () => {
   applyCustomFoodToEntryForm(selectedFood);
 });
 
+deleteCustomFoodBtn.addEventListener('click', async () => {
+  const selectedFoodId = deleteCustomFoodSelect.value;
+  if (!selectedFoodId) {
+    customFoodsMessage.textContent = 'Please choose a saved food to delete.';
+    return;
+  }
+
+  const selectedFood = customFoodsCache.find(food => food.id === selectedFoodId);
+  if (!selectedFood) {
+    customFoodsMessage.textContent = 'Saved food could not be found.';
+    return;
+  }
+
+  const confirmed = window.confirm(`Delete saved food "${selectedFood.foodName}"?`);
+  if (!confirmed) return;
+
+  await deleteCustomFood(selectedFood.id, selectedFood.partitionKey);
+});
+
 entriesList.addEventListener('click', async (event) => {
   if (event.target.classList.contains('delete-btn')) {
     const entryId = event.target.getAttribute('data-entry-id');
@@ -231,31 +250,6 @@ entriesList.addEventListener('click', async (event) => {
     if (!confirmed) return;
 
     await deleteEntry(entryId, partitionKey);
-  }
-});
-
-customFoodsList.addEventListener('click', async (event) => {
-  if (event.target.classList.contains('use-food-btn')) {
-    const foodId = event.target.getAttribute('data-food-id');
-    const selectedFood = customFoodsCache.find(food => food.id === foodId);
-
-    if (!selectedFood) return;
-
-    applyCustomFoodToEntryForm(selectedFood);
-    setEntryMode('manual');
-    formMessage.textContent = `Loaded custom food: ${selectedFood.foodName}`;
-  }
-
-  if (event.target.classList.contains('delete-custom-food-btn')) {
-    const foodId = event.target.getAttribute('data-food-id');
-    const partitionKey = event.target.getAttribute('data-partition-key');
-
-    if (!foodId || !partitionKey) return;
-
-    const confirmed = window.confirm('Delete this custom food?');
-    if (!confirmed) return;
-
-    await deleteCustomFood(foodId, partitionKey);
   }
 });
 
@@ -392,14 +386,13 @@ async function loadGoals() {
 async function loadCustomFoods() {
   if (!currentUser?.userId) {
     customFoodsCache = [];
-    customFoodsList.innerHTML = '';
     populateSavedFoodsDropdown();
+    populateDeleteCustomFoodsDropdown();
     customFoodsMessage.textContent = 'Please sign in to view custom foods.';
     return;
   }
 
   customFoodsMessage.textContent = 'Loading custom foods...';
-  customFoodsList.innerHTML = '';
 
   try {
     const response = await fetch(
@@ -414,70 +407,14 @@ async function loadCustomFoods() {
 
     customFoodsCache = data.foods;
     populateSavedFoodsDropdown();
+    populateDeleteCustomFoodsDropdown();
 
     if (data.foods.length === 0) {
       customFoodsMessage.textContent = 'No custom foods saved yet.';
-      customFoodsList.innerHTML = `
-        <li class="rounded-2xl border border-dashed border-lime-200 bg-lime-50/60 p-4 text-sm text-slate-600">
-          Save a custom food to reuse it later.
-        </li>
-      `;
       return;
     }
 
     customFoodsMessage.textContent = `Found ${data.foods.length} saved food${data.foods.length === 1 ? '' : 's'}.`;
-
-    for (const food of data.foods) {
-      const li = document.createElement('li');
-      li.className = 'bg-lime-50 border border-lime-100 rounded-2xl p-4 shadow-sm';
-
-      li.innerHTML = `
-        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p class="text-lg font-semibold text-lime-800">${food.foodName}</p>
-            <p class="text-sm text-slate-500">${food.notes || 'No notes'}</p>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              class="use-food-btn inline-flex items-center justify-center rounded-xl bg-lime-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-lime-700 transition"
-              data-food-id="${food.id}">
-              Use Food
-            </button>
-
-            <button
-              type="button"
-              class="delete-custom-food-btn inline-flex items-center justify-center rounded-xl bg-red-500 px-3 py-2 text-sm font-medium text-white shadow hover:bg-red-600 transition"
-              data-food-id="${food.id}"
-              data-partition-key="${food.partitionKey}">
-              Delete
-            </button>
-          </div>
-        </div>
-
-        <div class="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-700 md:grid-cols-4">
-          <div class="rounded-xl bg-white px-3 py-2 border border-lime-100">
-            <span class="block text-xs text-slate-500">Calories</span>
-            <span class="font-semibold">${food.calories}</span>
-          </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-lime-100">
-            <span class="block text-xs text-slate-500">Protein</span>
-            <span class="font-semibold">${food.protein ?? '-'}</span>
-          </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-lime-100">
-            <span class="block text-xs text-slate-500">Carbs</span>
-            <span class="font-semibold">${food.carbs ?? '-'}</span>
-          </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-lime-100">
-            <span class="block text-xs text-slate-500">Fats</span>
-            <span class="font-semibold">${food.fats ?? '-'}</span>
-          </div>
-        </div>
-      `;
-
-      customFoodsList.appendChild(li);
-    }
   } catch (error) {
     console.error(error);
     customFoodsMessage.textContent = 'Could not load custom foods.';
@@ -553,10 +490,9 @@ async function loadUser() {
       entriesMessage.textContent = 'Please sign in to load your entries.';
       customFoodsMessage.textContent = 'Please sign in to use custom foods.';
       goalsMessage.textContent = 'Please sign in to save goals.';
-      entriesList.innerHTML = '';
-      customFoodsList.innerHTML = '';
       customFoodsCache = [];
       populateSavedFoodsDropdown();
+      populateDeleteCustomFoodsDropdown();
       currentGoals = { ...DEFAULT_GOALS };
       populateGoalsForm();
       renderGoalLabels();
@@ -584,6 +520,7 @@ async function loadUser() {
     userInfo.textContent = 'User info could not be loaded.';
     customFoodsCache = [];
     populateSavedFoodsDropdown();
+    populateDeleteCustomFoodsDropdown();
     currentGoals = { ...DEFAULT_GOALS };
     populateGoalsForm();
     renderGoalLabels();
@@ -602,6 +539,19 @@ function populateSavedFoodsDropdown() {
     option.value = food.id;
     option.textContent = `${food.foodName} (${food.calories} cal)`;
     savedFoodSelect.appendChild(option);
+  }
+}
+
+function populateDeleteCustomFoodsDropdown() {
+  if (!deleteCustomFoodSelect) return;
+
+  deleteCustomFoodSelect.innerHTML = '<option value="">Select a saved food to delete</option>';
+
+  for (const food of customFoodsCache) {
+    const option = document.createElement('option');
+    option.value = food.id;
+    option.textContent = `${food.foodName} (${food.calories} cal)`;
+    deleteCustomFoodSelect.appendChild(option);
   }
 }
 
