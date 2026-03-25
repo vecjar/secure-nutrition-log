@@ -1,46 +1,47 @@
 const { app } = require('@azure/functions');
 const { TableClient } = require('@azure/data-tables');
+const { getAuthenticatedUser } = require('../shared/getAuthenticatedUser');
 
 app.http('deleteEntry', {
-    methods: ['DELETE'],
-    authLevel: 'anonymous',
-    handler: async (request, context) => {
-        context.log('deleteEntry function processed a request.');
+  methods: ['DELETE'],
+  authLevel: 'anonymous',
+  handler: async (request, context) => {
+    const authUser = getAuthenticatedUser(request);
 
-        const partitionKey = request.query.get('partitionKey');
-        const entryId = request.query.get('entryId');
-
-        if (!partitionKey || !entryId) {
-            return {
-                status: 400,
-                jsonBody: {
-                    error: 'partitionKey and entryId are required.'
-                }
-            };
-        }
-
-        const connectionString = process.env.AzureWebJobsStorage;
-        const tableName = process.env.TABLE_NAME || 'foodentries';
-        const client = TableClient.fromConnectionString(connectionString, tableName);
-
-        try {
-            await client.deleteEntity(partitionKey, entryId);
-
-            return {
-                status: 200,
-                jsonBody: {
-                    message: 'Entry deleted successfully.'
-                }
-            };
-        } catch (error) {
-            context.log.error('Failed to delete entry:', error);
-
-            return {
-                status: 500,
-                jsonBody: {
-                    error: 'Failed to delete entry.'
-                }
-            };
-        }
+    if (!authUser) {
+      return {
+        status: 401,
+        jsonBody: { error: 'Unauthorized.' }
+      };
     }
+
+    const entryId = request.query.get('entryId');
+
+    if (!entryId) {
+      return {
+        status: 400,
+        jsonBody: { error: 'entryId is required.' }
+      };
+    }
+
+    const connectionString = process.env.AzureWebJobsStorage;
+    const tableName = process.env.TABLE_NAME || 'foodentries';
+    const client = TableClient.fromConnectionString(connectionString, tableName);
+
+    try {
+      await client.deleteEntity(authUser.userKey, entryId);
+
+      return {
+        status: 200,
+        jsonBody: { message: 'Entry deleted successfully.' }
+      };
+    } catch (error) {
+      context.log.error('Failed to delete entry:', error);
+
+      return {
+        status: 500,
+        jsonBody: { error: 'Failed to delete entry.' }
+      };
+    }
+  }
 });

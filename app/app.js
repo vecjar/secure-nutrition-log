@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://snlog-dev-func-01-bedydfafhvd3efdh.australiaeast-01.azurewebsites.net/api';
+const API_BASE_URL = '/api';
 
 const DEFAULT_GOALS = {
   calories: 2200,
@@ -83,7 +83,7 @@ let currentSelectedDate = getTodayDateString();
 entryForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  if (!currentUser?.userId) {
+  if (!currentUser) {
     formMessage.textContent = 'Please sign in before saving entries.';
     return;
   }
@@ -92,7 +92,6 @@ entryForm.addEventListener('submit', async (event) => {
   formMessage.textContent = 'Saving entry...';
 
   const payload = {
-    userId: currentUser.userId,
     date: currentSelectedDate,
     mealType: document.getElementById('mealType').value,
     foodName: document.getElementById('foodName').value,
@@ -133,7 +132,7 @@ entryForm.addEventListener('submit', async (event) => {
 goalsForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  if (!currentUser?.userId) {
+  if (!currentUser) {
     goalsMessage.textContent = 'Please sign in before saving goals.';
     return;
   }
@@ -141,7 +140,6 @@ goalsForm.addEventListener('submit', async (event) => {
   goalsMessage.textContent = 'Saving goals...';
 
   const payload = {
-    userId: currentUser.userId,
     calories: Number(document.getElementById('goalCalories').value) || DEFAULT_GOALS.calories,
     protein: Number(document.getElementById('goalProtein').value) || DEFAULT_GOALS.protein,
     carbs: Number(document.getElementById('goalCarbs').value) || DEFAULT_GOALS.carbs,
@@ -184,7 +182,7 @@ goalsForm.addEventListener('submit', async (event) => {
 customFoodForm.addEventListener('submit', async (event) => {
   event.preventDefault();
 
-  if (!currentUser?.userId) {
+  if (!currentUser) {
     customFoodsMessage.textContent = 'Please sign in before saving custom foods.';
     return;
   }
@@ -192,7 +190,6 @@ customFoodForm.addEventListener('submit', async (event) => {
   customFoodsMessage.textContent = 'Saving custom food...';
 
   const payload = {
-    userId: currentUser.userId,
     foodName: document.getElementById('customFoodName').value,
     calories: Number(document.getElementById('customFoodCalories').value),
     protein: Number(document.getElementById('customFoodProtein').value) || 0,
@@ -267,7 +264,7 @@ deleteCustomFoodBtn.addEventListener('click', async () => {
   const confirmed = window.confirm(`Delete saved food "${selectedFood.foodName}"?`);
   if (!confirmed) return;
 
-  await deleteCustomFood(selectedFood.id, selectedFood.partitionKey);
+  await deleteCustomFood(selectedFood.id);
 });
 
 prevDayBtn.addEventListener('click', async () => {
@@ -297,19 +294,18 @@ selectedDateInput.addEventListener('change', async (event) => {
 entriesList.addEventListener('click', async (event) => {
   if (event.target.classList.contains('delete-btn')) {
     const entryId = event.target.getAttribute('data-entry-id');
-    const partitionKey = event.target.getAttribute('data-partition-key');
 
-    if (!entryId || !partitionKey) return;
+    if (!entryId) return;
 
     const confirmed = window.confirm('Delete this entry?');
     if (!confirmed) return;
 
-    await deleteEntry(entryId, partitionKey);
+    await deleteEntry(entryId);
   }
 });
 
 async function loadEntriesForSelectedDate() {
-  if (!currentUser?.userId) {
+  if (!currentUser) {
     entriesMessage.textContent = 'Please sign in to load your entries.';
     entriesList.innerHTML = '';
     resetSummary();
@@ -325,7 +321,7 @@ async function loadEntriesForSelectedDate() {
 
   try {
     const response = await fetch(
-      `${API_BASE_URL}/getTodayEntries?userId=${encodeURIComponent(currentUser.userId)}&date=${encodeURIComponent(currentSelectedDate)}`
+      `${API_BASE_URL}/getTodayEntries?date=${encodeURIComponent(currentSelectedDate)}`
     );
     const data = await response.json();
 
@@ -362,7 +358,7 @@ async function loadEntriesForSelectedDate() {
 }
 
 async function loadGoals() {
-  if (!currentUser?.userId) {
+  if (!currentUser) {
     currentGoals = { ...DEFAULT_GOALS };
     populateGoalsForm();
     renderGoalLabels();
@@ -370,9 +366,7 @@ async function loadGoals() {
   }
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/getGoals?userId=${encodeURIComponent(currentUser.userId)}`
-    );
+    const response = await fetch(`${API_BASE_URL}/getGoals`);
     const data = await response.json();
 
     if (!response.ok || !data.goals) {
@@ -398,7 +392,7 @@ async function loadGoals() {
 }
 
 async function loadCustomFoods() {
-  if (!currentUser?.userId) {
+  if (!currentUser) {
     customFoodsCache = [];
     populateSavedFoodsDropdown();
     customFoodsMessage.textContent = 'Please sign in to view custom foods.';
@@ -408,9 +402,7 @@ async function loadCustomFoods() {
   customFoodsMessage.textContent = 'Loading custom foods...';
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/getCustomFoods?userId=${encodeURIComponent(currentUser.userId)}`
-    );
+    const response = await fetch(`${API_BASE_URL}/getCustomFoods`);
     const data = await response.json();
 
     if (!response.ok) {
@@ -433,13 +425,13 @@ async function loadCustomFoods() {
   }
 }
 
-async function deleteEntry(entryId, partitionKey) {
+async function deleteEntry(entryId) {
   showSpinner();
   setLoadButtonLoadingState(true);
 
   try {
     const response = await fetch(
-      `${API_BASE_URL}/deleteEntry?partitionKey=${encodeURIComponent(partitionKey)}&entryId=${encodeURIComponent(entryId)}`,
+      `${API_BASE_URL}/deleteEntry?entryId=${encodeURIComponent(entryId)}`,
       {
         method: 'DELETE'
       }
@@ -463,10 +455,10 @@ async function deleteEntry(entryId, partitionKey) {
   }
 }
 
-async function deleteCustomFood(foodId, partitionKey) {
+async function deleteCustomFood(foodId) {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/deleteCustomFood?partitionKey=${encodeURIComponent(partitionKey)}&foodId=${encodeURIComponent(foodId)}`,
+      `${API_BASE_URL}/deleteCustomFood?foodId=${encodeURIComponent(foodId)}`,
       {
         method: 'DELETE'
       }
@@ -520,13 +512,9 @@ async function loadUser() {
       return;
     }
 
-    const resolvedUserId =
-      clientPrincipal.userId ||
-      clientPrincipal.userDetails;
-
     currentUser = {
-      userId: resolvedUserId,
-      userDetails: clientPrincipal.userDetails
+      userId: clientPrincipal.userId || null,
+      userDetails: clientPrincipal.userDetails || ''
     };
 
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
@@ -621,8 +609,7 @@ function renderEntriesGroupedByMeal(entries) {
           <button
             type="button"
             class="delete-btn inline-flex items-center justify-center rounded-xl bg-red-500 px-3 py-2 text-sm font-medium text-white shadow hover:bg-red-600 transition"
-            data-entry-id="${entry.id}"
-            data-partition-key="${entry.partitionKey}">
+            data-entry-id="${entry.id}">
             Delete
           </button>
         </div>
