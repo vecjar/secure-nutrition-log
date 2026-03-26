@@ -5,7 +5,7 @@ const { hasRole } = require('../shared/getAuthenticatedUser');
 app.http('getAdminData', {
   methods: ['GET'],
   authLevel: 'anonymous',
-  route: 'admin/data',
+  route: 'rolecheck/admin-data',
   handler: async (request, context) => {
     context.log('getAdminData called');
 
