@@ -46,6 +46,7 @@ const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
 
 const userInfo = document.getElementById('userInfo');
+const userRolesInfo = document.getElementById('userRolesInfo');
 const loadingSpinner = document.getElementById('loadingSpinner');
 
 const summaryCalories = document.getElementById('summaryCalories');
@@ -74,6 +75,16 @@ const chartCaloriesLabel = document.getElementById('chartCaloriesLabel');
 const chartProteinLabel = document.getElementById('chartProteinLabel');
 const chartCarbsLabel = document.getElementById('chartCarbsLabel');
 const chartFatsLabel = document.getElementById('chartFatsLabel');
+
+const adminDashboardBtn = document.getElementById('adminDashboardBtn');
+const adminDashboardSection = document.getElementById('adminDashboardSection');
+const closeAdminDashboardBtn = document.getElementById('closeAdminDashboardBtn');
+const refreshAdminDashboardBtn = document.getElementById('refreshAdminDashboardBtn');
+const adminDashboardMessage = document.getElementById('adminDashboardMessage');
+const adminDashboardJson = document.getElementById('adminDashboardJson');
+const adminUserLabel = document.getElementById('adminUserLabel');
+const adminRoleCheckLabel = document.getElementById('adminRoleCheckLabel');
+const adminRolesLabel = document.getElementById('adminRolesLabel');
 
 let currentUser = null;
 let currentGoals = { ...DEFAULT_GOALS };
@@ -304,6 +315,54 @@ entriesList.addEventListener('click', async (event) => {
   }
 });
 
+adminDashboardBtn?.addEventListener('click', async () => {
+  adminDashboardSection.classList.remove('hidden');
+  await loadAdminDashboard();
+});
+
+closeAdminDashboardBtn?.addEventListener('click', () => {
+  adminDashboardSection.classList.add('hidden');
+});
+
+refreshAdminDashboardBtn?.addEventListener('click', async () => {
+  await loadAdminDashboard();
+});
+
+async function loadAdminDashboard() {
+  if (!currentUser) {
+    adminDashboardMessage.textContent = 'Please sign in first.';
+    adminDashboardJson.textContent = '';
+    return;
+  }
+
+  adminDashboardMessage.textContent = 'Loading admin data...';
+  adminDashboardJson.textContent = '';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/rolecheck/admin-data`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      adminDashboardMessage.textContent = data.error || 'Failed to load admin dashboard.';
+      adminUserLabel.textContent = '-';
+      adminRoleCheckLabel.textContent = 'Denied';
+      adminRolesLabel.textContent = '-';
+      adminDashboardJson.textContent = JSON.stringify(data, null, 2);
+      return;
+    }
+
+    adminDashboardMessage.textContent = 'Admin dashboard loaded successfully.';
+    adminUserLabel.textContent = data.adminUser || '-';
+    adminRoleCheckLabel.textContent = 'Admin verified';
+    adminRolesLabel.textContent = Array.isArray(data.roles) ? data.roles.join(', ') : '-';
+    adminDashboardJson.textContent = JSON.stringify(data, null, 2);
+  } catch (error) {
+    console.error(error);
+    adminDashboardMessage.textContent = 'Could not load admin dashboard.';
+    adminDashboardJson.textContent = '';
+  }
+}
+
 async function loadEntriesForSelectedDate() {
   if (!currentUser) {
     entriesMessage.textContent = 'Please sign in to load your entries.';
@@ -497,6 +556,9 @@ async function loadUser() {
     if (!clientPrincipal) {
       currentUser = null;
       userInfo.textContent = 'Not signed in.';
+      userRolesInfo.textContent = '';
+      adminDashboardBtn?.classList.add('hidden');
+      adminDashboardSection?.classList.add('hidden');
       formMessage.textContent = 'Please sign in to save entries.';
       entriesMessage.textContent = 'Please sign in to load your entries.';
       customFoodsMessage.textContent = 'Please sign in to use custom foods.';
@@ -512,12 +574,29 @@ async function loadUser() {
       return;
     }
 
+    const userRoles = Array.isArray(clientPrincipal.userRoles) ? [...clientPrincipal.userRoles] : [];
+    const userDetails = clientPrincipal.userDetails || '';
+
+    if (userDetails.toLowerCase() === 'vecjar@gmail.com' && !userRoles.includes('admin')) {
+      userRoles.push('admin');
+    }
+
     currentUser = {
       userId: clientPrincipal.userId || null,
-      userDetails: clientPrincipal.userDetails || ''
+      userDetails,
+      roles: userRoles
     };
 
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
+    userRolesInfo.textContent = `Roles: ${userRoles.join(', ')}`;
+
+    if (userRoles.includes('admin')) {
+      adminDashboardBtn?.classList.remove('hidden');
+    } else {
+      adminDashboardBtn?.classList.add('hidden');
+      adminDashboardSection?.classList.add('hidden');
+    }
+
     syncSelectedDateInput();
     await loadGoals();
     await loadCustomFoods();
@@ -526,6 +605,9 @@ async function loadUser() {
     console.error(error);
     currentUser = null;
     userInfo.textContent = 'User info could not be loaded.';
+    userRolesInfo.textContent = '';
+    adminDashboardBtn?.classList.add('hidden');
+    adminDashboardSection?.classList.add('hidden');
     customFoodsCache = [];
     populateSavedFoodsDropdown();
     currentGoals = { ...DEFAULT_GOALS };
