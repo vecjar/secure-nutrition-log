@@ -3,7 +3,7 @@ function getAuthenticatedUser(request) {
     request.headers.get('x-ms-client-principal') ||
     request.headers.get('X-MS-CLIENT-PRINCIPAL');
 
-  if (!header) {
+  if (!header || typeof header !== 'string') {
     return null;
   }
 
@@ -16,7 +16,7 @@ function getAuthenticatedUser(request) {
     }
 
     const roles = Array.isArray(clientPrincipal.userRoles)
-      ? clientPrincipal.userRoles
+      ? [...clientPrincipal.userRoles]
       : [];
 
     if (!roles.includes('authenticated')) {
@@ -29,10 +29,18 @@ function getAuthenticatedUser(request) {
       return null;
     }
 
+    const userDetails = clientPrincipal.userDetails || '';
+
+    // Temporary learning/demo role mapping
+    // Make your account an admin for testing role-based access
+    if (userDetails.toLowerCase() === 'vecjar@gmail.com' && !roles.includes('admin')) {
+      roles.push('admin');
+    }
+
     return {
       userKey,
       userId: clientPrincipal.userId || null,
-      userDetails: clientPrincipal.userDetails || '',
+      userDetails,
       identityProvider: clientPrincipal.identityProvider || '',
       roles
     };

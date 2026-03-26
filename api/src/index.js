@@ -6,3 +6,4 @@ require('./functions/deleteCustomFood');
 require('./functions/deleteEntry');
 require('./functions/getGoals');
 require('./functions/saveGoals');
+require('./functions/getAdminData');
