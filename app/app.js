@@ -55,6 +55,12 @@ const summaryProteinGoal = document.getElementById('summaryProteinGoal');
 const summaryCarbsGoal = document.getElementById('summaryCarbsGoal');
 const summaryFatsGoal = document.getElementById('summaryFatsGoal');
 
+const summaryCaloriesRemaining = document.getElementById('summaryCaloriesRemaining');
+const summaryProteinRemaining = document.getElementById('summaryProteinRemaining');
+const summaryCarbsRemaining = document.getElementById('summaryCarbsRemaining');
+const summaryFatsRemaining = document.getElementById('summaryFatsRemaining');
+const summaryEntriesHint = document.getElementById('summaryEntriesHint');
+
 const progressCalories = document.getElementById('progressCalories');
 const progressProtein = document.getElementById('progressProtein');
 const progressCarbs = document.getElementById('progressCarbs');
@@ -83,12 +89,28 @@ const focusSubtext = document.getElementById('focusSubtext');
 const focusCaloriesRemaining = document.getElementById('focusCaloriesRemaining');
 const focusProteinRemaining = document.getElementById('focusProteinRemaining');
 const focusMealsLogged = document.getElementById('focusMealsLogged');
+const focusAddMealBtn = document.getElementById('focusAddMealBtn');
+
+const savedFoodsCount = document.getElementById('savedFoodsCount');
+const savedFoodsLastUsed = document.getElementById('savedFoodsLastUsed');
 
 let currentUser = null;
 let nutritionProfile = null;
 let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
 let currentSelectedDate = getTodayDateString();
+let lastLoadedSavedFoodName = 'None yet';
+
+if (focusAddMealBtn) {
+  focusAddMealBtn.addEventListener('click', () => {
+    setWorkspaceTab('meal');
+    document.getElementById('mealType')?.focus();
+    window.scrollTo({
+      top: document.getElementById('entryForm')?.getBoundingClientRect().top + window.scrollY - 100,
+      behavior: 'smooth'
+    });
+  });
+}
 
 entryForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -202,6 +224,8 @@ savedFoodSelect.addEventListener('change', () => {
     return;
   }
 
+  lastLoadedSavedFoodName = selectedFood.foodName || 'Saved food';
+  updateSavedFoodsSummary();
   applyCustomFoodToEntryForm(selectedFood);
 });
 
@@ -330,7 +354,7 @@ async function initializeNutritionProfile() {
     }
 
     renderGoalLabels();
-    updateProfileStatusBadge();
+    updateProfileStatusBadge(true);
     return true;
   } catch (error) {
     console.error('Failed to initialize nutrition profile', error);
@@ -401,6 +425,7 @@ async function loadCustomFoods() {
     customFoodsCache = [];
     populateSavedFoodsDropdown();
     customFoodsMessage.textContent = 'Please sign in to view custom foods.';
+    updateSavedFoodsSummary();
     return;
   }
 
@@ -417,6 +442,7 @@ async function loadCustomFoods() {
 
     customFoodsCache = data.foods;
     populateSavedFoodsDropdown();
+    updateSavedFoodsSummary();
 
     if (data.foods.length === 0) {
       customFoodsMessage.textContent = 'No custom foods saved yet.';
@@ -514,6 +540,7 @@ async function loadUser() {
       customFoodsMessage.textContent = 'Please sign in to use custom foods.';
       customFoodsCache = [];
       populateSavedFoodsDropdown();
+      updateSavedFoodsSummary();
       currentGoals = { ...DEFAULT_GOALS };
       renderGoalLabels();
       resetSummary();
@@ -571,6 +598,7 @@ async function loadUser() {
     editProfileBtn?.classList.add('hidden');
     customFoodsCache = [];
     populateSavedFoodsDropdown();
+    updateSavedFoodsSummary();
     currentGoals = { ...DEFAULT_GOALS };
     renderGoalLabels();
     resetSummary();
@@ -642,6 +670,16 @@ function updateTodayFocus(totals, entryCount) {
   }
 }
 
+function updateSavedFoodsSummary() {
+  if (savedFoodsCount) {
+    savedFoodsCount.textContent = customFoodsCache.length;
+  }
+
+  if (savedFoodsLastUsed) {
+    savedFoodsLastUsed.textContent = lastLoadedSavedFoodName || 'None yet';
+  }
+}
+
 function setWorkspaceTab(tab) {
   const isMealTab = tab === 'meal';
 
@@ -702,7 +740,7 @@ function renderEntriesGroupedByMeal(entries) {
 
     for (const entry of mealEntries) {
       const entryCard = document.createElement('div');
-      entryCard.className = 'bg-green-50 border border-green-100 rounded-2xl p-4 shadow-sm';
+      entryCard.className = 'rounded-2xl border border-green-100 bg-gradient-to-r from-white to-green-50 p-4 shadow-sm';
 
       entryCard.innerHTML = `
         <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -713,28 +751,28 @@ function renderEntriesGroupedByMeal(entries) {
 
           <button
             type="button"
-            class="delete-btn inline-flex items-center justify-center rounded-xl bg-red-500 px-3 py-2 text-sm font-medium text-white shadow hover:bg-red-600 transition"
+            class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 transition"
             data-entry-id="${entry.id}">
             Delete
           </button>
         </div>
 
-        <div class="mt-3 grid grid-cols-2 gap-2 text-sm text-slate-700 md:grid-cols-4">
+        <div class="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
           <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
             <span class="block text-xs text-slate-500">Calories</span>
-            <span class="font-semibold">${entry.calories}</span>
+            <span class="font-semibold text-slate-800">${entry.calories}</span>
           </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+          <div class="rounded-xl bg-white px-3 py-2 border border-blue-100">
             <span class="block text-xs text-slate-500">Protein</span>
-            <span class="font-semibold">${entry.protein ?? '-'}</span>
+            <span class="font-semibold text-slate-800">${entry.protein ?? '-'}</span>
           </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+          <div class="rounded-xl bg-white px-3 py-2 border border-amber-100">
             <span class="block text-xs text-slate-500">Carbs</span>
-            <span class="font-semibold">${entry.carbs ?? '-'}</span>
+            <span class="font-semibold text-slate-800">${entry.carbs ?? '-'}</span>
           </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
+          <div class="rounded-xl bg-white px-3 py-2 border border-rose-100">
             <span class="block text-xs text-slate-500">Fats</span>
-            <span class="font-semibold">${entry.fats ?? '-'}</span>
+            <span class="font-semibold text-slate-800">${entry.fats ?? '-'}</span>
           </div>
         </div>
 
@@ -771,6 +809,28 @@ function updateSummaryFromTotals(totals, entryCount) {
   if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats)}g`;
   if (summaryEntries) summaryEntries.textContent = entryCount;
 
+  const caloriesRemaining = Math.max(0, Math.round((currentGoals.calories || 0) - (totals.calories || 0)));
+  const proteinRemaining = Math.max(0, roundToOne((currentGoals.protein || 0) - (totals.protein || 0)));
+  const carbsRemaining = Math.max(0, roundToOne((currentGoals.carbs || 0) - (totals.carbs || 0)));
+  const fatsRemaining = Math.max(0, roundToOne((currentGoals.fats || 0) - (totals.fats || 0)));
+
+  if (summaryCaloriesRemaining) summaryCaloriesRemaining.textContent = `Remaining: ${caloriesRemaining}`;
+  if (summaryProteinRemaining) summaryProteinRemaining.textContent = `Remaining: ${proteinRemaining}g`;
+  if (summaryCarbsRemaining) summaryCarbsRemaining.textContent = `Remaining: ${carbsRemaining}g`;
+  if (summaryFatsRemaining) summaryFatsRemaining.textContent = `Remaining: ${fatsRemaining}g`;
+
+  if (summaryEntriesHint) {
+    if (entryCount === 0) {
+      summaryEntriesHint.textContent = 'No meals logged yet';
+    } else if (entryCount < 3) {
+      summaryEntriesHint.textContent = 'A good start to the day';
+    } else if (entryCount < 5) {
+      summaryEntriesHint.textContent = 'Solid meal logging today';
+    } else {
+      summaryEntriesHint.textContent = 'Excellent tracking consistency';
+    }
+  }
+
   setProgress(progressCalories, totals.calories, currentGoals.calories);
   setProgress(progressProtein, totals.protein, currentGoals.protein);
   setProgress(progressCarbs, totals.carbs, currentGoals.carbs);
@@ -798,6 +858,11 @@ function resetSummary() {
   if (summaryCarbs) summaryCarbs.textContent = '0g';
   if (summaryFats) summaryFats.textContent = '0g';
   if (summaryEntries) summaryEntries.textContent = '0';
+  if (summaryCaloriesRemaining) summaryCaloriesRemaining.textContent = `Remaining: ${currentGoals.calories}`;
+  if (summaryProteinRemaining) summaryProteinRemaining.textContent = `Remaining: ${currentGoals.protein}g`;
+  if (summaryCarbsRemaining) summaryCarbsRemaining.textContent = `Remaining: ${currentGoals.carbs}g`;
+  if (summaryFatsRemaining) summaryFatsRemaining.textContent = `Remaining: ${currentGoals.fats}g`;
+  if (summaryEntriesHint) summaryEntriesHint.textContent = 'No meals logged yet';
 
   setProgress(progressCalories, 0, currentGoals.calories);
   setProgress(progressProtein, 0, currentGoals.protein);
@@ -923,4 +988,5 @@ function setLoadButtonLoadingState(isLoading) {
 
 syncSelectedDateInput();
 setWorkspaceTab('meal');
+updateSavedFoodsSummary();
 loadUser();

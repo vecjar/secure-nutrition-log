@@ -4,59 +4,162 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard</title>
 </head>
-<body class="bg-slate-100 p-6">
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased">
 
-  <div class="max-w-6xl mx-auto">
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <section class="mb-8">
+      <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 class="text-4xl font-bold text-slate-900 tracking-tight">Admin Dashboard</h1>
+            <p class="text-slate-500 mt-2 text-lg">Monitor activity, users, profile completion, and nutrition data quality.</p>
+          </div>
 
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">Admin Dashboard</h1>
-      <a href="/" class="bg-gray-800 text-white px-4 py-2 rounded">Back</a>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white p-4 rounded shadow">
-        <p>Total Entries</p>
-        <h2 id="totalEntries" class="text-2xl font-bold">0</h2>
+          <a
+            href="/index.html"
+            class="inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2 text-white font-medium shadow hover:bg-slate-900 transition">
+            Back
+          </a>
+        </div>
       </div>
+    </section>
 
-      <div class="bg-white p-4 rounded shadow">
-        <p>Custom Foods</p>
-        <h2 id="totalFoods" class="text-2xl font-bold">0</h2>
-      </div>
+    <!-- KPI Cards -->
+    <section class="mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Meals Logged Today</p>
+          <p id="kpiMealsToday" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+          <p class="text-xs text-slate-500 mt-1">Entries recorded today</p>
+        </div>
 
-      <div class="bg-white p-4 rounded shadow">
-        <p>Goal Profiles</p>
-        <h2 id="totalGoals" class="text-2xl font-bold">0</h2>
-      </div>
+        <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Saved Foods</p>
+          <p id="kpiSavedFoods" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+          <p class="text-xs text-slate-500 mt-1">Reusable foods created</p>
+        </div>
 
-      <div class="bg-white p-4 rounded shadow">
-        <p>Users</p>
-        <h2 id="totalUsers" class="text-2xl font-bold">0</h2>
+        <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Profiles Completed</p>
+          <p id="kpiProfilesCompleted" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+          <p class="text-xs text-slate-500 mt-1">Users with completed profile setup</p>
+        </div>
+
+        <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Users</p>
+          <p id="kpiUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+          <p class="text-xs text-slate-500 mt-1">Unique authenticated users</p>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- Charts -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-white p-4 rounded shadow">
-        <h3 class="mb-2 font-semibold">Meals Breakdown</h3>
-        <canvas id="mealChart"></canvas>
+    <section class="mb-6">
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-slate-900">Meal Type Breakdown</h2>
+            <span class="text-sm text-slate-500">Current data snapshot</span>
+          </div>
+          <div class="h-[320px]">
+            <canvas id="mealBreakdownChart"></canvas>
+          </div>
+        </div>
+
+        <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-slate-900">System Overview</h2>
+            <span class="text-sm text-slate-500">Core usage metrics</span>
+          </div>
+          <div class="h-[320px]">
+            <canvas id="systemOverviewChart"></canvas>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <div class="bg-white p-4 rounded shadow">
-        <h3 class="mb-2 font-semibold">System Overview</h3>
-        <canvas id="systemChart"></canvas>
+    <!-- Data Health -->
+    <section class="mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="rounded-3xl bg-white border border-amber-200 p-5 shadow-sm">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Profiles Missing</p>
+          <p id="healthProfilesMissing" class="text-3xl font-bold text-amber-700 mt-2">0</p>
+          <p class="text-xs text-slate-500 mt-1">Users without complete profile setup</p>
+        </div>
+
+        <div class="rounded-3xl bg-white border border-blue-200 p-5 shadow-sm">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Entries Missing Macros</p>
+          <p id="healthEntriesMissingMacros" class="text-3xl font-bold text-blue-700 mt-2">0</p>
+          <p class="text-xs text-slate-500 mt-1">Meals with incomplete macro data</p>
+        </div>
+
+        <div class="rounded-3xl bg-white border border-rose-200 p-5 shadow-sm">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Inactive Users</p>
+          <p id="healthInactiveUsers" class="text-3xl font-bold text-rose-700 mt-2">0</p>
+          <p class="text-xs text-slate-500 mt-1">Users with no recent activity in current snapshot</p>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- JSON debug -->
-    <div class="mt-6 bg-black text-green-400 p-4 rounded">
-      <pre id="rawJson"></pre>
-    </div>
+    <!-- User + Activity -->
+    <section class="mb-6">
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-slate-900">User Overview</h2>
+            <span class="text-sm text-slate-500">Admin visibility</span>
+          </div>
 
-  </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead>
+                <tr class="text-left text-slate-500 border-b border-slate-200">
+                  <th class="py-3 pr-4">User</th>
+                  <th class="py-3 pr-4">Entries</th>
+                  <th class="py-3 pr-4">Saved Foods</th>
+                  <th class="py-3 pr-4">Profile</th>
+                  <th class="py-3">Last Active</th>
+                </tr>
+              </thead>
+              <tbody id="userOverviewTable" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="5" class="py-4 text-slate-500">Loading user overview...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-slate-900">Recent Activity</h2>
+            <span class="text-sm text-slate-500">Latest admin-visible events</span>
+          </div>
+
+          <div id="recentActivityList" class="space-y-3">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              Loading recent activity...
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Raw Debug -->
+    <section>
+      <div class="rounded-3xl bg-slate-950 border border-slate-800 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-white">Raw Admin Data</h2>
+          <span class="text-xs text-slate-400">Useful for debugging</span>
+        </div>
+        <pre id="adminDebugOutput" class="overflow-x-auto text-sm text-emerald-400 whitespace-pre-wrap"></pre>
+      </div>
+    </section>
+  </main>
 
   <script src="admin.js"></script>
 </body>

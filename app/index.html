@@ -15,7 +15,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 class="text-4xl font-bold text-green-700 tracking-tight">🥗 Secure Nutrition Log</h1>
-            <p class="text-slate-600 mt-2 text-lg">Track meals, saved foods, and daily progress in your Azure-hosted nutrition dashboard</p>
+            <p class="text-slate-600 mt-2 text-lg">Track meals, hit your nutrition targets, and stay consistent each day.</p>
           </div>
 
           <div class="text-sm text-slate-600 bg-green-50 px-4 py-2 rounded-2xl border border-green-100">
@@ -93,6 +93,21 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Today Focus</p>
             <h2 id="focusHeadline" class="text-3xl font-bold text-slate-800 mt-2">Ready to log your day</h2>
             <p id="focusSubtext" class="text-slate-500 mt-2">Start by adding your first meal and tracking your progress.</p>
+
+            <div class="flex flex-wrap items-center gap-3 mt-4">
+              <button
+                id="focusAddMealBtn"
+                type="button"
+                class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-white font-medium shadow hover:bg-green-700 transition">
+                Add Meal
+              </button>
+
+              <a
+                href="/profile.html"
+                class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
+                Edit Targets
+              </a>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
@@ -124,7 +139,7 @@
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
           <div>
             <h2 class="text-2xl font-semibold text-slate-800">Daily Summary</h2>
-            <p class="text-slate-500 text-sm">Metrics for the selected day</p>
+            <p class="text-slate-500 text-sm">Your totals, targets, and progress for the selected day.</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
@@ -161,6 +176,7 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
             <p id="summaryCalories" class="text-3xl font-bold text-green-700 mt-2">0</p>
             <p id="summaryCaloriesGoal" class="text-xs text-slate-500 mt-1">Goal: 2200</p>
+            <p id="summaryCaloriesRemaining" class="text-xs text-green-700 mt-1">Remaining: 2200</p>
             <div class="mt-4 h-2 w-full rounded-full bg-green-100 overflow-hidden">
               <div id="progressCalories" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
             </div>
@@ -170,6 +186,7 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
             <p id="summaryProtein" class="text-3xl font-bold text-blue-700 mt-2">0g</p>
             <p id="summaryProteinGoal" class="text-xs text-slate-500 mt-1">Goal: 180g</p>
+            <p id="summaryProteinRemaining" class="text-xs text-blue-700 mt-1">Remaining: 180g</p>
             <div class="mt-4 h-2 w-full rounded-full bg-blue-100 overflow-hidden">
               <div id="progressProtein" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
             </div>
@@ -179,6 +196,7 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
             <p id="summaryCarbs" class="text-3xl font-bold text-amber-700 mt-2">0g</p>
             <p id="summaryCarbsGoal" class="text-xs text-slate-500 mt-1">Goal: 220g</p>
+            <p id="summaryCarbsRemaining" class="text-xs text-amber-700 mt-1">Remaining: 220g</p>
             <div class="mt-4 h-2 w-full rounded-full bg-amber-100 overflow-hidden">
               <div id="progressCarbs" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
             </div>
@@ -188,6 +206,7 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
             <p id="summaryFats" class="text-3xl font-bold text-rose-700 mt-2">0g</p>
             <p id="summaryFatsGoal" class="text-xs text-slate-500 mt-1">Goal: 70g</p>
+            <p id="summaryFatsRemaining" class="text-xs text-rose-700 mt-1">Remaining: 70g</p>
             <div class="mt-4 h-2 w-full rounded-full bg-rose-100 overflow-hidden">
               <div id="progressFats" class="h-full bg-rose-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
             </div>
@@ -197,6 +216,7 @@
             <p class="text-xs uppercase tracking-wide text-slate-400">Entries</p>
             <p id="summaryEntries" class="text-3xl font-bold text-slate-700 mt-2">0</p>
             <p class="text-xs text-slate-500 mt-1">Meals logged</p>
+            <p id="summaryEntriesHint" class="text-xs text-slate-600 mt-1">A good start to the day</p>
             <div class="mt-4 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
               <div id="progressEntries" class="h-full bg-slate-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
             </div>
@@ -260,7 +280,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
             <h2 class="text-2xl font-semibold text-slate-800">Quick Add</h2>
-            <p class="text-slate-500 text-sm">Log a meal fast or reuse one of your saved foods</p>
+            <p class="text-slate-500 text-sm">Log a meal fast or reuse one of your saved foods.</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-3">
@@ -270,6 +290,26 @@
             <button id="saveCustomTabBtn" type="button" class="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
               Create Custom Meal
             </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+            <p class="text-xs uppercase tracking-wide text-slate-400">Saved Foods</p>
+            <p id="savedFoodsCount" class="text-2xl font-bold text-slate-800 mt-2">0</p>
+            <p class="text-xs text-slate-500 mt-1">Reusable foods available</p>
+          </div>
+
+          <div class="rounded-2xl bg-lime-50 border border-lime-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-slate-400">Last Loaded</p>
+            <p id="savedFoodsLastUsed" class="text-lg font-semibold text-slate-800 mt-2">None yet</p>
+            <p class="text-xs text-slate-500 mt-1">Most recently selected saved food</p>
+          </div>
+
+          <div class="rounded-2xl bg-green-50 border border-green-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-slate-400">Workflow</p>
+            <p class="text-lg font-semibold text-slate-800 mt-2">Fast meal entry</p>
+            <p class="text-xs text-slate-500 mt-1">Choose a saved food or enter a fresh meal below</p>
           </div>
         </div>
 
@@ -412,11 +452,14 @@
       </div>
     </section>
 
-    <!-- Today's Meals -->
+    <!-- Today's Log -->
     <section>
       <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-          <h2 class="text-2xl font-semibold text-slate-800">Today's Meals</h2>
+          <div>
+            <h2 class="text-2xl font-semibold text-slate-800">Today’s Log</h2>
+            <p class="text-slate-500 text-sm">Your meals for the selected day, grouped by meal type.</p>
+          </div>
 
           <button
             id="loadEntriesBtn"
