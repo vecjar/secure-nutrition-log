@@ -1048,6 +1048,8 @@ function hideStartupOverlay() {
 }
 
 async function initApp() {
+  const navEntry = performance.getEntriesByType("navigation")[0];
+  const isReload = navEntry && navEntry.type === "reload";
   const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
 
   try {
@@ -1056,7 +1058,7 @@ async function initApp() {
   } catch (e) {
     console.error(e);
   } finally {
-    if (!hasSeenStartup) {
+    if (!hasSeenStartup || isReload) {
       sessionStorage.setItem("hasSeenStartup", "true");
 
       setTimeout(() => {

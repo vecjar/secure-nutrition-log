@@ -6,8 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Secure Nutrition Log</title>
   <link rel="stylesheet" href="style.css" />
-  <script>
-  if (sessionStorage.getItem("hasSeenStartup")) {
+ <script>
+  const navEntry = performance.getEntriesByType("navigation")[0];
+  const isReload = navEntry && navEntry.type === "reload";
+  const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
+
+  if (hasSeenStartup && !isReload) {
     document.documentElement.classList.add("startup-seen");
   }
 </script>
