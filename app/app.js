@@ -777,22 +777,26 @@ function renderEntriesGroupedByMeal(entries) {
     breakfast: {
       badge: 'bg-blue-100 text-blue-700',
       border: 'border-blue-100',
-      bg: 'from-blue-50 to-white'
+      cardBg: 'bg-white',
+      accent: 'text-blue-700'
     },
     lunch: {
       badge: 'bg-emerald-100 text-emerald-700',
       border: 'border-emerald-100',
-      bg: 'from-emerald-50 to-white'
+      cardBg: 'bg-white',
+      accent: 'text-emerald-700'
     },
     dinner: {
       badge: 'bg-amber-100 text-amber-700',
       border: 'border-amber-100',
-      bg: 'from-amber-50 to-white'
+      cardBg: 'bg-white',
+      accent: 'text-amber-700'
     },
     snack: {
       badge: 'bg-rose-100 text-rose-700',
       border: 'border-rose-100',
-      bg: 'from-rose-50 to-white'
+      cardBg: 'bg-white',
+      accent: 'text-rose-700'
     }
   };
 
@@ -806,11 +810,12 @@ function renderEntriesGroupedByMeal(entries) {
     const style = mealStyles[mealType] || {
       badge: 'bg-slate-100 text-slate-700',
       border: 'border-slate-200',
-      bg: 'from-slate-50 to-white'
+      cardBg: 'bg-white',
+      accent: 'text-slate-700'
     };
 
     const sectionLi = document.createElement('li');
-    sectionLi.className = 'space-y-4';
+    sectionLi.className = 'space-y-3';
 
     const sectionTitle = document.createElement('div');
     sectionTitle.className = 'flex items-center gap-3';
@@ -820,51 +825,65 @@ function renderEntriesGroupedByMeal(entries) {
       </span>
       <span class="text-sm text-slate-500">${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}</span>
     `;
-
     sectionLi.appendChild(sectionTitle);
 
     const innerList = document.createElement('div');
     innerList.className = 'space-y-3';
 
     for (const entry of mealEntries) {
+      const hasNotes = entry.notes && String(entry.notes).trim() !== '';
+
       const entryCard = document.createElement('div');
-      entryCard.className = `rounded-2xl border ${style.border} bg-gradient-to-r ${style.bg} p-4 shadow-sm`;
+      entryCard.className = `rounded-2xl border ${style.border} ${style.cardBg} p-4 shadow-sm`;
 
       entryCard.innerHTML = `
         <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div class="min-w-0">
-            <div class="flex items-start gap-3">
+          
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div class="min-w-0">
-                <p class="text-lg font-semibold text-slate-800">${entry.foodName}</p>
-                <p class="text-sm text-slate-500 capitalize mt-1">${entry.mealType}</p>
+                <p class="text-xl font-semibold text-slate-800 break-words">${entry.foodName}</p>
+              </div>
+
+              <div class="sm:text-right">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
+                <p class="text-2xl font-bold ${style.accent}">${entry.calories}</p>
               </div>
             </div>
 
-            <div class="mt-4 flex flex-wrap gap-2">
-              <span class="inline-flex items-center rounded-full bg-white px-3 py-1 text-sm font-medium text-slate-700 border border-slate-200">
-                ${entry.calories} cal
-              </span>
-              <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 border border-blue-100">
-                Protein: ${entry.protein ?? '-'}
-              </span>
-              <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 border border-amber-100">
-                Carbs: ${entry.carbs ?? '-'}
-              </span>
-              <span class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700 border border-rose-100">
-                Fats: ${entry.fats ?? '-'}
-              </span>
+            <div class="mt-4 grid grid-cols-3 gap-2 sm:max-w-md">
+              <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Protein</p>
+                <p class="text-sm font-semibold text-blue-700">${entry.protein ?? '-'}</p>
+              </div>
+
+              <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Carbs</p>
+                <p class="text-sm font-semibold text-amber-700">${entry.carbs ?? '-'}</p>
+              </div>
+
+              <div class="rounded-xl bg-rose-50 border border-rose-100 px-3 py-2">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400">Fats</p>
+                <p class="text-sm font-semibold text-rose-700">${entry.fats ?? '-'}</p>
+              </div>
             </div>
 
-            <div class="mt-4 text-sm text-slate-600">
-              <span class="font-medium text-slate-700">Notes:</span>
-              <span class="text-slate-500">${entry.notes || '—'}</span>
-            </div>
+            ${
+              hasNotes
+                ? `
+              <div class="mt-4 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+                <p class="text-[11px] uppercase tracking-wide text-slate-400 mb-1">Notes</p>
+                <p class="text-sm text-slate-600 break-words">${entry.notes}</p>
+              </div>
+            `
+                : ''
+            }
           </div>
 
           <div class="md:flex-shrink-0">
             <button
               type="button"
-              class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 transition"
+              class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
               data-entry-id="${entry.id}">
               Delete
             </button>
