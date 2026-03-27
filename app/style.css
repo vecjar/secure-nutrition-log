@@ -138,11 +138,6 @@ button:hover {
   display: block;
 }
 
-.startup-photo {
-  width: 200%;
-  height: 200%;
-  object-fit: cover;
-
   /* 🔥 strong zoom + manual centering */
   transform: translate(-25%, -18%);
 }
