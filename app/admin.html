@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+</head>
+<body class="bg-slate-100 p-6">
+
+  <div class="max-w-6xl mx-auto">
+
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+      <a href="/" class="bg-gray-800 text-white px-4 py-2 rounded">Back</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white p-4 rounded shadow">
+        <p>Total Entries</p>
+        <h2 id="totalEntries" class="text-2xl font-bold">0</h2>
+      </div>
+
+      <div class="bg-white p-4 rounded shadow">
+        <p>Custom Foods</p>
+        <h2 id="totalFoods" class="text-2xl font-bold">0</h2>
+      </div>
+
+      <div class="bg-white p-4 rounded shadow">
+        <p>Goal Profiles</p>
+        <h2 id="totalGoals" class="text-2xl font-bold">0</h2>
+      </div>
+
+      <div class="bg-white p-4 rounded shadow">
+        <p>Users</p>
+        <h2 id="totalUsers" class="text-2xl font-bold">0</h2>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="mb-2 font-semibold">Meals Breakdown</h3>
+        <canvas id="mealChart"></canvas>
+      </div>
+
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="mb-2 font-semibold">System Overview</h3>
+        <canvas id="systemChart"></canvas>
+      </div>
+    </div>
+
+    <!-- JSON debug -->
+    <div class="mt-6 bg-black text-green-400 p-4 rounded">
+      <pre id="rawJson"></pre>
+    </div>
+
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 const { app } = require('@azure/functions');
+const { TableClient } = require('@azure/data-tables');
 const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
 const { hasRole } = require('../shared/getAuthenticatedUser');
 
@@ -12,42 +13,79 @@ app.http('getAdminData', {
     const authResult = requireAuthenticatedUser(request);
 
     if (!authResult.ok) {
-      context.log.warn('getAdminData unauthorized');
       return authResult.response;
     }
 
     const authUser = authResult.authUser;
 
-    context.log('getAdminData authenticated', {
-      userKey: authUser.userKey,
-      userDetails: authUser.userDetails,
-      roles: authUser.roles
-    });
-
     if (!hasRole(authUser, 'admin')) {
-      context.log.warn('getAdminData forbidden', {
-        userKey: authUser.userKey,
-        userDetails: authUser.userDetails,
-        roles: authUser.roles
-      });
-
       return {
         status: 403,
         jsonBody: { error: 'Admin access required.' }
       };
     }
 
-    context.log('getAdminData success', {
-      userKey: authUser.userKey,
-      userDetails: authUser.userDetails
-    });
+    const connectionString = process.env.STORAGE_CONNECTION_STRING;
+
+    const entriesClient = TableClient.fromConnectionString(
+      connectionString,
+      process.env.TABLE_NAME || 'foodentries'
+    );
+
+    const foodsClient = TableClient.fromConnectionString(
+      connectionString,
+      process.env.CUSTOM_FOODS_TABLE_NAME || 'customfoods'
+    );
+
+    const goalsClient = TableClient.fromConnectionString(
+      connectionString,
+      process.env.GOALS_TABLE_NAME || 'usergoals'
+    );
+
+    let totalEntries = 0;
+    let totalCustomFoods = 0;
+    let totalGoals = 0;
+    const uniqueUsers = new Set();
+
+    const mealTypeCounts = {
+      breakfast: 0,
+      lunch: 0,
+      dinner: 0,
+      snack: 0
+    };
+
+    // 🔹 Entries
+    for await (const entity of entriesClient.listEntities()) {
+      totalEntries++;
+      uniqueUsers.add(entity.partitionKey);
+
+      if (entity.mealType && mealTypeCounts[entity.mealType] !== undefined) {
+        mealTypeCounts[entity.mealType]++;
+      }
+    }
+
+    // 🔹 Custom foods
+    for await (const entity of foodsClient.listEntities()) {
+      totalCustomFoods++;
+    }
+
+    // 🔹 Goals
+    for await (const entity of goalsClient.listEntities()) {
+      totalGoals++;
+    }
 
     return {
       status: 200,
       jsonBody: {
-        message: 'Welcome admin',
         adminUser: authUser.userDetails,
-        roles: authUser.roles
+        roles: authUser.roles,
+        stats: {
+          totalEntries,
+          totalCustomFoods,
+          totalGoals,
+          totalUsers: uniqueUsers.size,
+          mealBreakdown: mealTypeCounts
+        }
       }
     };
   }
