@@ -10,13 +10,12 @@
 <body class="bg-slate-100 min-h-screen text-slate-800 antialiased">
 
   <main class="max-w-7xl mx-auto px-4 py-8">
-    <!-- Header -->
     <section class="mb-8">
       <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 class="text-4xl font-bold text-slate-900 tracking-tight">Admin Dashboard</h1>
-            <p class="text-slate-500 mt-2 text-lg">Monitor activity, users, profile completion, and nutrition data quality.</p>
+            <p class="text-slate-500 mt-2 text-lg">Monitor users, profile completion, recent activity, and admin-visible data quality.</p>
           </div>
 
           <a
@@ -28,42 +27,40 @@
       </div>
     </section>
 
-    <!-- KPI Cards -->
     <section class="mb-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Meals Logged Today</p>
+          <p class="text-xs uppercase tracking-wide text-slate-400">Tracked Records</p>
           <p id="kpiMealsToday" class="text-3xl font-bold text-slate-900 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Entries recorded today</p>
+          <p class="text-xs text-slate-500 mt-1">Total meal entry records in current snapshot</p>
         </div>
 
         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Saved Foods</p>
+          <p class="text-xs uppercase tracking-wide text-slate-400">Custom Food Records</p>
           <p id="kpiSavedFoods" class="text-3xl font-bold text-slate-900 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Reusable foods created</p>
+          <p class="text-xs text-slate-500 mt-1">Reusable food items created by users</p>
         </div>
 
         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
           <p class="text-xs uppercase tracking-wide text-slate-400">Profiles Completed</p>
           <p id="kpiProfilesCompleted" class="text-3xl font-bold text-slate-900 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Users with completed profile setup</p>
+          <p class="text-xs text-slate-500 mt-1">Users with completed nutrition profiles</p>
         </div>
 
         <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Users</p>
+          <p class="text-xs uppercase tracking-wide text-slate-400">Registered Users</p>
           <p id="kpiUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Unique authenticated users</p>
+          <p class="text-xs text-slate-500 mt-1">Unique authenticated users in current snapshot</p>
         </div>
       </div>
     </section>
 
-    <!-- Charts -->
     <section class="mb-6">
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-semibold text-slate-900">Meal Type Breakdown</h2>
-            <span class="text-sm text-slate-500">Current data snapshot</span>
+            <h2 class="text-xl font-semibold text-slate-900">User Status Breakdown</h2>
+            <span class="text-sm text-slate-500">Profile and activity snapshot</span>
           </div>
           <div class="h-[320px]">
             <canvas id="mealBreakdownChart"></canvas>
@@ -72,8 +69,8 @@
 
         <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-semibold text-slate-900">System Overview</h2>
-            <span class="text-sm text-slate-500">Core usage metrics</span>
+            <h2 class="text-xl font-semibold text-slate-900">Admin Snapshot</h2>
+            <span class="text-sm text-slate-500">Useful system overview</span>
           </div>
           <div class="h-[320px]">
             <canvas id="systemOverviewChart"></canvas>
@@ -82,36 +79,34 @@
       </div>
     </section>
 
-    <!-- Data Health -->
     <section class="mb-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-3xl bg-white border border-amber-200 p-5 shadow-sm">
           <p class="text-xs uppercase tracking-wide text-slate-400">Profiles Missing</p>
           <p id="healthProfilesMissing" class="text-3xl font-bold text-amber-700 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Users without complete profile setup</p>
+          <p class="text-xs text-slate-500 mt-1">Users without a completed nutrition profile</p>
         </div>
 
         <div class="rounded-3xl bg-white border border-blue-200 p-5 shadow-sm">
           <p class="text-xs uppercase tracking-wide text-slate-400">Entries Missing Macros</p>
           <p id="healthEntriesMissingMacros" class="text-3xl font-bold text-blue-700 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Meals with incomplete macro data</p>
+          <p class="text-xs text-slate-500 mt-1">Logged entries with incomplete macro data</p>
         </div>
 
         <div class="rounded-3xl bg-white border border-rose-200 p-5 shadow-sm">
           <p class="text-xs uppercase tracking-wide text-slate-400">Inactive Users</p>
           <p id="healthInactiveUsers" class="text-3xl font-bold text-rose-700 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Users with no recent activity in current snapshot</p>
+          <p class="text-xs text-slate-500 mt-1">Users with no recent visible activity</p>
         </div>
       </div>
     </section>
 
-    <!-- User + Activity -->
     <section class="mb-6">
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-semibold text-slate-900">User Overview</h2>
-            <span class="text-sm text-slate-500">Admin visibility</span>
+            <span class="text-sm text-slate-500">Current admin-visible user data</span>
           </div>
 
           <div class="overflow-x-auto">
@@ -149,12 +144,11 @@
       </div>
     </section>
 
-    <!-- Raw Debug -->
     <section>
       <div class="rounded-3xl bg-slate-950 border border-slate-800 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-lg font-semibold text-white">Raw Admin Data</h2>
-          <span class="text-xs text-slate-400">Useful for debugging</span>
+          <span class="text-xs text-slate-400">Useful for debugging and backend planning</span>
         </div>
         <pre id="adminDebugOutput" class="overflow-x-auto text-sm text-emerald-400 whitespace-pre-wrap"></pre>
       </div>

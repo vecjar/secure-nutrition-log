@@ -61,13 +61,12 @@ function normalizeAdminData(data) {
   const totalGoals = Number(stats.totalGoals ?? profiles.length ?? 0) || 0;
   const totalUsers = Number(stats.totalUsers ?? users.length ?? 0) || 0;
 
-  const mealBreakdown = calculateMealBreakdown(entries, stats.mealBreakdown);
   const profilesCompleted = calculateProfilesCompleted(users, profiles, totalGoals);
   const profilesMissing = Math.max(0, totalUsers - profilesCompleted);
   const entriesMissingMacros = calculateEntriesMissingMacros(entries, stats.entriesMissingMacros);
   const inactiveUsers = calculateInactiveUsers(users, totalUsers);
 
-  const mealsToday = Number(stats.mealsToday ?? totalEntries) || 0;
+  const recordsTracked = Number(stats.mealsToday ?? totalEntries) || 0;
 
   return {
     raw: data,
@@ -76,7 +75,7 @@ function normalizeAdminData(data) {
       totalCustomFoods,
       totalGoals,
       totalUsers,
-      mealsToday,
+      recordsTracked,
       profilesCompleted,
       profilesMissing,
       entriesMissingMacros,
@@ -86,36 +85,8 @@ function normalizeAdminData(data) {
     activity,
     entries,
     foods,
-    profiles,
-    mealBreakdown
+    profiles
   };
-}
-
-function calculateMealBreakdown(entries, fallbackBreakdown) {
-  if (fallbackBreakdown && typeof fallbackBreakdown === 'object') {
-    return {
-      breakfast: Number(fallbackBreakdown.breakfast || 0),
-      lunch: Number(fallbackBreakdown.lunch || 0),
-      dinner: Number(fallbackBreakdown.dinner || 0),
-      snack: Number(fallbackBreakdown.snack || 0)
-    };
-  }
-
-  const breakdown = {
-    breakfast: 0,
-    lunch: 0,
-    dinner: 0,
-    snack: 0
-  };
-
-  for (const entry of entries) {
-    const meal = String(entry.mealType || '').toLowerCase();
-    if (breakdown[meal] !== undefined) {
-      breakdown[meal] += 1;
-    }
-  }
-
-  return breakdown;
 }
 
 function calculateProfilesCompleted(users, profiles, fallbackTotalGoals) {
@@ -162,7 +133,7 @@ function calculateInactiveUsers(users, fallbackTotalUsers) {
 }
 
 function renderKpis(data) {
-  kpiMealsToday.textContent = data.stats.mealsToday;
+  kpiMealsToday.textContent = data.stats.recordsTracked;
   kpiSavedFoods.textContent = data.stats.totalCustomFoods;
   kpiProfilesCompleted.textContent = data.stats.profilesCompleted;
   kpiUsers.textContent = data.stats.totalUsers;
@@ -235,11 +206,11 @@ function renderRecentActivity(activity) {
 }
 
 function renderCharts(data) {
-  renderMealBreakdownChart(data.mealBreakdown);
-  renderSystemOverviewChart(data.stats);
+  renderUserStatusChart(data.stats);
+  renderAdminSnapshotChart(data.stats);
 }
 
-function renderMealBreakdownChart(mealBreakdown) {
+function renderUserStatusChart(stats) {
   const ctx = document.getElementById('mealBreakdownChart');
   if (!ctx) return;
 
@@ -250,20 +221,20 @@ function renderMealBreakdownChart(mealBreakdown) {
   mealBreakdownChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Breakfast', 'Lunch', 'Dinner', 'Snack'],
+      labels: ['Profiles Complete', 'Profiles Missing', 'Active Users', 'Inactive Users'],
       datasets: [
         {
           data: [
-            mealBreakdown.breakfast,
-            mealBreakdown.lunch,
-            mealBreakdown.dinner,
-            mealBreakdown.snack
+            stats.profilesCompleted,
+            stats.profilesMissing,
+            Math.max(0, stats.totalUsers - stats.inactiveUsers),
+            stats.inactiveUsers
           ],
           backgroundColor: [
+            '#22c55e',
+            '#f59e0b',
             '#3b82f6',
-            '#f43f5e',
-            '#fb923c',
-            '#f6c453'
+            '#ef4444'
           ],
           borderColor: '#ffffff',
           borderWidth: 2
@@ -283,7 +254,7 @@ function renderMealBreakdownChart(mealBreakdown) {
   });
 }
 
-function renderSystemOverviewChart(stats) {
+function renderAdminSnapshotChart(stats) {
   const ctx = document.getElementById('systemOverviewChart');
   if (!ctx) return;
 
@@ -294,21 +265,21 @@ function renderSystemOverviewChart(stats) {
   systemOverviewChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Meals Today', 'Saved Foods', 'Profiles', 'Users'],
+      labels: ['Users', 'Profiles Complete', 'Profiles Missing', 'Inactive Users'],
       datasets: [
         {
           label: 'Counts',
           data: [
-            stats.mealsToday,
-            stats.totalCustomFoods,
+            stats.totalUsers,
             stats.profilesCompleted,
-            stats.totalUsers
+            stats.profilesMissing,
+            stats.inactiveUsers
           ],
           backgroundColor: [
-            '#86efac',
             '#93c5fd',
+            '#86efac',
             '#fde68a',
-            '#c4b5fd'
+            '#fda4af'
           ],
           borderRadius: 12
         }
