@@ -1048,17 +1048,28 @@ function hideStartupOverlay() {
 }
 
 async function initApp() {
+  const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
+
   try {
     await loadUser();
     await loadNutritionProfile();
   } catch (e) {
     console.error(e);
   } finally {
-    hideStartupOverlay();
+    if (!hasSeenStartup) {
+      // first time → show animation, then mark as seen
+      sessionStorage.setItem("hasSeenStartup", "true");
+
+      setTimeout(() => {
+        hideStartupOverlay();
+      }, 1500);
+    } else {
+      // already seen → hide instantly
+      hideStartupOverlay();
+    }
   }
 }
 
-// 👇 run app startup
 initApp();
 
 // keep your other setup calls
