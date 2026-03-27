@@ -83,6 +83,7 @@ const signOutBtn = document.getElementById('signOutBtn');
 const editProfileBtn = document.getElementById('editProfileBtn');
 const profileStatusBadge = document.getElementById('profileStatusBadge');
 const userAvatar = document.getElementById('userAvatar');
+const accountHeading = document.getElementById('accountHeading');
 
 const focusHeadline = document.getElementById('focusHeadline');
 const focusSubtext = document.getElementById('focusSubtext');
@@ -93,6 +94,9 @@ const focusAddMealBtn = document.getElementById('focusAddMealBtn');
 
 const savedFoodsCount = document.getElementById('savedFoodsCount');
 const savedFoodsLastUsed = document.getElementById('savedFoodsLastUsed');
+
+const profileSetupModal = document.getElementById('profileSetupModal');
+const startProfileSetupBtn = document.getElementById('startProfileSetupBtn');
 
 let currentUser = null;
 let nutritionProfile = null;
@@ -109,6 +113,12 @@ if (focusAddMealBtn) {
       top: document.getElementById('entryForm')?.getBoundingClientRect().top + window.scrollY - 100,
       behavior: 'smooth'
     });
+  });
+}
+
+if (startProfileSetupBtn) {
+  startProfileSetupBtn.addEventListener('click', () => {
+    window.location.href = '/profile.html';
   });
 }
 
@@ -300,6 +310,7 @@ function isProfileComplete(profile) {
   if (!profile) return false;
 
   const hasCoreFields =
+    profile.displayName &&
     profile.age &&
     profile.sex &&
     profile.heightCm &&
@@ -329,15 +340,30 @@ function getActiveProfileTargets(profile) {
     : profile.calculatedTargets;
 }
 
+function getFriendlyName() {
+  return nutritionProfile?.displayName || 'there';
+}
+
+function showProfileSetupModal() {
+  profileSetupModal?.classList.remove('hidden');
+}
+
+function hideProfileSetupModal() {
+  profileSetupModal?.classList.add('hidden');
+}
+
 async function initializeNutritionProfile() {
   try {
     const result = await fetchNutritionProfile();
     nutritionProfile = result.profile ?? null;
 
     if (!isProfileComplete(nutritionProfile)) {
-      window.location.href = '/profile.html';
+      updateProfileStatusBadge(false);
+      showProfileSetupModal();
       return false;
     }
+
+    hideProfileSetupModal();
 
     const targets = getActiveProfileTargets(nutritionProfile);
 
@@ -355,12 +381,14 @@ async function initializeNutritionProfile() {
 
     renderGoalLabels();
     updateProfileStatusBadge(true);
+    updatePersonalizedCopy();
     return true;
   } catch (error) {
     console.error('Failed to initialize nutrition profile', error);
     currentGoals = { ...DEFAULT_GOALS };
     renderGoalLabels();
     updateProfileStatusBadge(false);
+    updatePersonalizedCopy();
     return true;
   }
 }
@@ -530,11 +558,13 @@ async function loadUser() {
       nutritionProfile = null;
       userInfo.textContent = 'Not signed in.';
       userRolesInfo.textContent = '';
+      if (accountHeading) accountHeading.textContent = 'Your Account';
       userAvatar.textContent = 'U';
       adminDashboardBtn?.classList.add('hidden');
       signInBtn?.classList.remove('hidden');
       signOutBtn?.classList.add('hidden');
       editProfileBtn?.classList.add('hidden');
+      hideProfileSetupModal();
       formMessage.textContent = 'Please sign in to save entries.';
       entriesMessage.textContent = 'Please sign in to load your entries.';
       customFoodsMessage.textContent = 'Please sign in to use custom foods.';
@@ -547,6 +577,7 @@ async function loadUser() {
       renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
       updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
       updateProfileStatusBadge(false);
+      updatePersonalizedCopy();
       hideSpinner();
       return;
     }
@@ -591,6 +622,7 @@ async function loadUser() {
     nutritionProfile = null;
     userInfo.textContent = 'User info could not be loaded.';
     userRolesInfo.textContent = '';
+    if (accountHeading) accountHeading.textContent = 'Your Account';
     userAvatar.textContent = 'U';
     adminDashboardBtn?.classList.add('hidden');
     signInBtn?.classList.remove('hidden');
@@ -605,6 +637,7 @@ async function loadUser() {
     renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
     updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
     updateProfileStatusBadge(false);
+    updatePersonalizedCopy();
     hideSpinner();
   }
 }
@@ -627,7 +660,28 @@ function updateProfileStatusBadge(isActive = true) {
   }
 }
 
+function updatePersonalizedCopy() {
+  const name = getFriendlyName();
+
+  if (accountHeading) {
+    accountHeading.textContent = nutritionProfile?.displayName
+      ? `${name}'s Account`
+      : 'Your Account';
+  }
+
+  if (!nutritionProfile?.displayName) {
+    if (focusHeadline) focusHeadline.textContent = 'Ready to log your day';
+    if (focusSubtext) focusSubtext.textContent = 'Start by adding your first meal and tracking your progress.';
+    return;
+  }
+
+  if (focusHeadline && (!summaryEntries || Number(summaryEntries.textContent) === 0)) {
+    focusHeadline.textContent = `Welcome back, ${name}`;
+  }
+}
+
 function updateTodayFocus(totals, entryCount) {
+  const name = getFriendlyName();
   const caloriesRemaining = Math.max(0, Math.round((currentGoals.calories || 0) - (totals.calories || 0)));
   const proteinRemaining = Math.max(0, roundToOne((currentGoals.protein || 0) - (totals.protein || 0)));
 
@@ -646,8 +700,12 @@ function updateTodayFocus(totals, entryCount) {
   if (!focusHeadline || !focusSubtext) return;
 
   if (entryCount === 0) {
-    focusHeadline.textContent = 'Ready to log your day';
-    focusSubtext.textContent = 'Start by adding your first meal and tracking your progress.';
+    focusHeadline.textContent = nutritionProfile?.displayName
+      ? `Welcome back, ${name}`
+      : 'Ready to log your day';
+    focusSubtext.textContent = nutritionProfile?.displayName
+      ? `${name}, start by adding your first meal and tracking your progress today.`
+      : 'Start by adding your first meal and tracking your progress.';
     return;
   }
 
@@ -656,16 +714,16 @@ function updateTodayFocus(totals, entryCount) {
   const progressRatio = calorieGoal > 0 ? caloriesUsed / calorieGoal : 0;
 
   if (progressRatio < 0.4) {
-    focusHeadline.textContent = 'Nice start today';
+    focusHeadline.textContent = `Nice start, ${name}`;
     focusSubtext.textContent = 'You are building momentum. Keep logging meals to stay on track.';
   } else if (progressRatio < 0.85) {
-    focusHeadline.textContent = 'You are on track';
+    focusHeadline.textContent = `${name}, you are on track`;
     focusSubtext.textContent = 'Your daily intake is progressing well for the selected day.';
   } else if (progressRatio <= 1.05) {
-    focusHeadline.textContent = 'Close to your target';
-    focusSubtext.textContent = 'You are right around your calorie goal. Great job staying balanced.';
+    focusHeadline.textContent = `Great job, ${name}`;
+    focusSubtext.textContent = 'You are right around your calorie goal. Nice balanced progress today.';
   } else {
-    focusHeadline.textContent = 'You are over target today';
+    focusHeadline.textContent = `${name}, you are over target today`;
     focusSubtext.textContent = 'Still useful data — review your meals and adjust the rest of the day if needed.';
   }
 }

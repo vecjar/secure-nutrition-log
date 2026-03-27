@@ -3,6 +3,7 @@ const calculateTargetsBtn = document.getElementById("calculateTargetsBtn");
 const profileMessage = document.getElementById("profileMessage");
 
 const fields = {
+  displayName: document.getElementById("displayName"),
   age: document.getElementById("age"),
   sex: document.getElementById("sex"),
   heightCm: document.getElementById("heightCm"),
@@ -59,6 +60,7 @@ function populateTargets(targets) {
 function populateForm(profile) {
   if (!profile) return;
 
+  fields.displayName.value = profile.displayName ?? "";
   fields.age.value = profile.age ?? "";
   fields.sex.value = profile.sex ?? "";
   fields.heightCm.value = profile.heightCm ?? "";
@@ -131,7 +133,15 @@ async function calculateTargets() {
   try {
     const payload = getCalculationPayload();
 
-    if (!payload.age || !payload.sex || !payload.heightCm || !payload.weightKg || !payload.activityLevel || !payload.goal) {
+    if (
+      !fields.displayName.value.trim() ||
+      !payload.age ||
+      !payload.sex ||
+      !payload.heightCm ||
+      !payload.weightKg ||
+      !payload.activityLevel ||
+      !payload.goal
+    ) {
       setMessage("Please complete all required fields before calculating.", true);
       return;
     }
@@ -164,6 +174,7 @@ async function calculateTargets() {
 
 function getSavePayload() {
   return {
+    displayName: fields.displayName.value.trim(),
     age: Number(fields.age.value),
     sex: fields.sex.value,
     heightCm: Number(fields.heightCm.value),
@@ -189,7 +200,15 @@ async function saveNutritionProfile(event) {
   try {
     const payload = getSavePayload();
 
-    if (!payload.age || !payload.sex || !payload.heightCm || !payload.weightKg || !payload.activityLevel || !payload.goal) {
+    if (
+      !payload.displayName ||
+      !payload.age ||
+      !payload.sex ||
+      !payload.heightCm ||
+      !payload.weightKg ||
+      !payload.activityLevel ||
+      !payload.goal
+    ) {
       setMessage("Please complete all required profile fields.", true);
       return;
     }

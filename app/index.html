@@ -8,6 +8,44 @@
 </head>
 <body class="bg-gradient-to-br from-green-50 via-lime-50 to-emerald-100 min-h-screen text-slate-800 antialiased">
 
+  <!-- First-time setup modal -->
+  <div id="profileSetupModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+      <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl border border-green-100 p-6 md:p-7">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-green-700 text-2xl">
+            🥗
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">Welcome to Secure Nutrition Log</h2>
+            <p class="text-sm text-slate-500 mt-1">Let’s set up your profile first.</p>
+          </div>
+        </div>
+
+        <p class="text-slate-600 leading-7">
+          To personalise your dashboard and calculate your nutrition targets, please complete your profile before using the app.
+        </p>
+
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <button
+            id="startProfileSetupBtn"
+            type="button"
+            class="inline-flex items-center justify-center rounded-2xl bg-green-600 px-5 py-3 text-white font-semibold shadow hover:bg-green-700 transition">
+            Set Up Profile
+          </button>
+
+          <a
+            href="/.auth/logout"
+            class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
+            Sign out
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <main class="max-w-6xl mx-auto px-4 py-8">
     <!-- Header -->
     <section class="mb-8">
@@ -37,18 +75,12 @@
               </div>
 
               <div class="min-w-0">
-                <h2 class="text-2xl font-semibold text-slate-800">Your Account</h2>
+                <h2 id="accountHeading" class="text-2xl font-semibold text-slate-800">Your Account</h2>
                 <p id="userInfo" class="text-slate-600 mt-1 truncate">Checking user...</p>
                 <p id="userRolesInfo" class="text-xs text-slate-500 mt-1"></p>
               </div>
             </div>
           </div>
-
-          <div class="flex flex-col items-start lg:items-end gap-3">
-            <div id="profileStatusBadge" class="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-sm text-green-700">
-              <span class="h-2 w-2 rounded-full bg-green-500"></span>
-              Profile active
-            </div>
 
             <div class="flex flex-wrap items-center gap-3">
               <a
@@ -92,23 +124,7 @@
           <div>
             <p class="text-xs uppercase tracking-wide text-slate-400">Today Focus</p>
             <h2 id="focusHeadline" class="text-3xl font-bold text-slate-800 mt-2">Ready to log your day</h2>
-            <p id="focusSubtext" class="text-slate-500 mt-2">Start by adding your first meal and tracking your progress.</p>
-
-            <div class="flex flex-wrap items-center gap-3 mt-4">
-              <button
-                id="focusAddMealBtn"
-                type="button"
-                class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-white font-medium shadow hover:bg-green-700 transition">
-                Add Meal
-              </button>
-
-              <a
-                href="/profile.html"
-                class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
-                Edit Targets
-              </a>
-            </div>
-          </div>
+            <p id="focusSubtext" class="text-slate-500 mt-2">Start by adding your first meal and tracking your progress.</p>       
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
             <div class="rounded-2xl bg-green-50 border border-green-100 p-4">
@@ -290,26 +306,6 @@
             <button id="saveCustomTabBtn" type="button" class="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
               Create Custom Meal
             </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
-          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Saved Foods</p>
-            <p id="savedFoodsCount" class="text-2xl font-bold text-slate-800 mt-2">0</p>
-            <p class="text-xs text-slate-500 mt-1">Reusable foods available</p>
-          </div>
-
-          <div class="rounded-2xl bg-lime-50 border border-lime-100 p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Last Loaded</p>
-            <p id="savedFoodsLastUsed" class="text-lg font-semibold text-slate-800 mt-2">None yet</p>
-            <p class="text-xs text-slate-500 mt-1">Most recently selected saved food</p>
-          </div>
-
-          <div class="rounded-2xl bg-green-50 border border-green-100 p-4">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Workflow</p>
-            <p class="text-lg font-semibold text-slate-800 mt-2">Fast meal entry</p>
-            <p class="text-xs text-slate-500 mt-1">Choose a saved food or enter a fresh meal below</p>
           </div>
         </div>
 
