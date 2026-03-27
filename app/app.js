@@ -1057,14 +1057,12 @@ async function initApp() {
     console.error(e);
   } finally {
     if (!hasSeenStartup) {
-      // first time → show animation, then mark as seen
       sessionStorage.setItem("hasSeenStartup", "true");
 
       setTimeout(() => {
         hideStartupOverlay();
       }, 1500);
     } else {
-      // already seen → hide instantly
       hideStartupOverlay();
     }
   }

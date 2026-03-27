@@ -138,10 +138,6 @@ button:hover {
   display: block;
 }
 
-  /* 🔥 strong zoom + manual centering */
-  transform: translate(-25%, -18%);
-}
-
 .fruit {
   position: absolute;
   font-size: 3rem;
