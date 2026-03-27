@@ -230,6 +230,11 @@ async function saveNutritionProfile(event) {
 
     setMessage("Saving profile...");
 
+    // 👉 ADD THIS RIGHT HERE
+    const submitBtn = profileForm.querySelector("button[type='submit']");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+
     const response = await fetch("/api/saveNutritionProfile", {
       method: "POST",
       headers: {
@@ -244,6 +249,11 @@ async function saveNutritionProfile(event) {
     }
 
     setMessage("Profile saved successfully.");
+
+  // small delay so user sees success message (feels premium)
+  setTimeout(() => {
+    window.location.href = "/index.html";
+  }, 600);
   } catch (error) {
     console.error(error);
     setMessage(error.message || "Could not save profile.", true);
