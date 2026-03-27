@@ -7,3 +7,6 @@ require('./functions/deleteEntry');
 require('./functions/getGoals');
 require('./functions/saveGoals');
 require('./functions/getAdminData');
+require('./functions/getNutritionProfile');
+require('./functions/saveNutritionProfile');
+require('./functions/calculateNutritionTargets');

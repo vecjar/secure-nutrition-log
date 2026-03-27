@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nutrition Profile</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="page-header">
+      <h1>Nutrition Profile</h1>
+      <p>Complete your profile to calculate your daily calorie and macro targets.</p>
+    </header>
+
+    <section class="card">
+      <form id="profileForm" class="form-grid">
+        <div class="form-group">
+          <label for="age">Age</label>
+          <input type="number" id="age" min="1" max="120" required />
+        </div>
+
+        <div class="form-group">
+          <label for="sex">Sex</label>
+          <select id="sex" required>
+            <option value="">Select</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="heightCm">Height (cm)</label>
+          <input type="number" id="heightCm" min="50" max="300" required />
+        </div>
+
+        <div class="form-group">
+          <label for="weightKg">Weight (kg)</label>
+          <input type="number" id="weightKg" min="20" max="500" step="0.1" required />
+        </div>
+
+        <div class="form-group">
+          <label for="activityLevel">Activity Level</label>
+          <select id="activityLevel" required>
+            <option value="">Select</option>
+            <option value="sedentary">Sedentary</option>
+            <option value="light">Lightly Active</option>
+            <option value="moderate">Moderately Active</option>
+            <option value="very">Very Active</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="goal">Goal</label>
+          <select id="goal" required>
+            <option value="">Select</option>
+            <option value="fat_loss">Fat Loss</option>
+            <option value="maintain">Maintain</option>
+            <option value="muscle_gain">Muscle Gain</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="targetWeightKg">Target Weight (kg)</label>
+          <input type="number" id="targetWeightKg" min="20" max="500" step="0.1" />
+        </div>
+
+        <div class="form-group">
+          <label for="weeklyGoalRate">Weekly Goal Rate (kg/week)</label>
+          <input type="number" id="weeklyGoalRate" min="0" max="2" step="0.1" />
+        </div>
+
+        <div class="form-actions full-width">
+          <button type="button" id="calculateTargetsBtn">Calculate Suggested Targets</button>
+        </div>
+
+        <div class="full-width">
+          <h2>Suggested Targets</h2>
+        </div>
+
+        <div class="form-group">
+          <label for="suggestedCalories">Calories</label>
+          <input type="number" id="suggestedCalories" readonly />
+        </div>
+
+        <div class="form-group">
+          <label for="suggestedProtein">Protein (g)</label>
+          <input type="number" id="suggestedProtein" readonly />
+        </div>
+
+        <div class="form-group">
+          <label for="suggestedCarbs">Carbs (g)</label>
+          <input type="number" id="suggestedCarbs" readonly />
+        </div>
+
+        <div class="form-group">
+          <label for="suggestedFat">Fat (g)</label>
+          <input type="number" id="suggestedFat" readonly />
+        </div>
+
+        <div class="full-width">
+          <h2>Final Daily Targets</h2>
+          <label class="checkbox-row">
+            <input type="checkbox" id="useCustomTargets" />
+            Manually adjust my targets
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label for="targetCalories">Calories</label>
+          <input type="number" id="targetCalories" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="targetProtein">Protein (g)</label>
+          <input type="number" id="targetProtein" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="targetCarbs">Carbs (g)</label>
+          <input type="number" id="targetCarbs" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="targetFat">Fat (g)</label>
+          <input type="number" id="targetFat" min="0" />
+        </div>
+
+        <div class="form-actions full-width">
+          <button type="submit">Save Profile</button>
+          <a href="index.html" class="secondary-btn">Back to Dashboard</a>
+        </div>
+
+        <p id="profileMessage" class="status-message full-width"></p>
+      </form>
+    </section>
+  </div>
+
+  <script src="profile.js"></script>
+</body>
+</html>
