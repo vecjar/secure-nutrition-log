@@ -27,7 +27,7 @@ app.http("saveNutritionProfile", {
       const body = await req.json();
 
       const tableClient = TableClient.fromConnectionString(
-        process.env.AZURE_STORAGE_CONNECTION_STRING,
+        process.env.STORAGE_CONNECTION_STRING,
         "NutritionProfiles"
       );
 

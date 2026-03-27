@@ -25,7 +25,7 @@ app.http("getNutritionProfile", {
       }
 
       const tableClient = TableClient.fromConnectionString(
-        process.env.AZURE_STORAGE_CONNECTION_STRING,
+        process.env.STORAGE_CONNECTION_STRING,
         "NutritionProfiles"
       );
 
