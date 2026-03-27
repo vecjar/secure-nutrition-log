@@ -83,11 +83,6 @@
           </div>
 
           <div class="flex flex-col items-start lg:items-end gap-3">
-            <div id="profileStatusBadge" class="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-sm text-green-700">
-              <span class="h-2 w-2 rounded-full bg-green-500"></span>
-              Profile active
-            </div>
-
             <div class="flex flex-wrap items-center gap-3">
               <a
                 href="/admin.html"
@@ -314,6 +309,26 @@
           </div>
         </div>
 
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+            <p class="text-xs uppercase tracking-wide text-slate-400">Saved Foods</p>
+            <p id="savedFoodsCount" class="text-2xl font-bold text-slate-800 mt-2">0</p>
+            <p class="text-xs text-slate-500 mt-1">Reusable foods available</p>
+          </div>
+
+          <div class="rounded-2xl bg-lime-50 border border-lime-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-slate-400">Last Loaded</p>
+            <p id="savedFoodsLastUsed" class="text-lg font-semibold text-slate-800 mt-2">None yet</p>
+            <p class="text-xs text-slate-500 mt-1">Most recently selected saved food</p>
+          </div>
+
+          <div class="rounded-2xl bg-green-50 border border-green-100 p-4">
+            <p class="text-xs uppercase tracking-wide text-slate-400">Workflow</p>
+            <p class="text-lg font-semibold text-slate-800 mt-2">Fast meal entry</p>
+            <p class="text-xs text-slate-500 mt-1">Choose a saved food or enter a fresh meal below</p>
+          </div>
+        </div>
+
         <div id="addMealTabSection">
           <div id="savedFoodSelectorSection" class="mb-5 rounded-2xl border border-lime-200 bg-lime-50 p-4">
             <label for="savedFoodSelect" class="block text-sm font-medium text-slate-700 mb-2">Use a saved food</label>
@@ -459,7 +474,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div>
             <h2 class="text-2xl font-semibold text-slate-800">Today’s Log</h2>
-            <p class="text-slate-500 text-sm">Your meals are grouped by breakfast, lunch, dinner, and snacks for easier reading.</p>
+            <p class="text-slate-500 text-sm">Meals grouped by breakfast, lunch, dinner, and snacks.</p>
           </div>
 
           <button

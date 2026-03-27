@@ -81,7 +81,6 @@ const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 const signInBtn = document.getElementById('signInBtn');
 const signOutBtn = document.getElementById('signOutBtn');
 const editProfileBtn = document.getElementById('editProfileBtn');
-const profileStatusBadge = document.getElementById('profileStatusBadge');
 const userAvatar = document.getElementById('userAvatar');
 const accountHeading = document.getElementById('accountHeading');
 
@@ -89,7 +88,6 @@ const focusHeadline = document.getElementById('focusHeadline');
 const focusSubtext = document.getElementById('focusSubtext');
 const focusCaloriesRemaining = document.getElementById('focusCaloriesRemaining');
 const focusMealsLogged = document.getElementById('focusMealsLogged');
-const focusAddMealBtn = document.getElementById('focusAddMealBtn');
 
 const savedFoodsCount = document.getElementById('savedFoodsCount');
 const savedFoodsLastUsed = document.getElementById('savedFoodsLastUsed');
@@ -104,67 +102,52 @@ let customFoodsCache = [];
 let currentSelectedDate = getTodayDateString();
 let lastLoadedSavedFoodName = 'None yet';
 
-if (focusAddMealBtn) {
-  focusAddMealBtn.addEventListener('click', () => {
-    setWorkspaceTab('meal');
-    document.getElementById('mealType')?.focus();
-    window.scrollTo({
-      top: document.getElementById('entryForm')?.getBoundingClientRect().top + window.scrollY - 100,
-      behavior: 'smooth'
-    });
-  });
-}
-
-if (startProfileSetupBtn) {
-  startProfileSetupBtn.addEventListener('click', () => {
-    window.location.href = '/profile.html';
-  });
-}
+startProfileSetupBtn?.addEventListener('click', () => {
+  window.location.href = '/profile.html';
+});
 
 entryForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   if (!currentUser) {
-    formMessage.textContent = 'Please sign in before saving entries.';
+    if (formMessage) formMessage.textContent = 'Please sign in before saving entries.';
     return;
   }
 
   setFormLoadingState(true);
-  formMessage.textContent = 'Saving entry...';
+  if (formMessage) formMessage.textContent = 'Saving entry...';
 
   const payload = {
     date: currentSelectedDate,
-    mealType: document.getElementById('mealType').value,
-    foodName: document.getElementById('foodName').value,
-    calories: Number(document.getElementById('calories').value),
-    protein: document.getElementById('protein').value ? Number(document.getElementById('protein').value) : null,
-    carbs: document.getElementById('carbs').value ? Number(document.getElementById('carbs').value) : null,
-    fats: document.getElementById('fats').value ? Number(document.getElementById('fats').value) : null,
-    notes: document.getElementById('notes').value
+    mealType: document.getElementById('mealType')?.value,
+    foodName: document.getElementById('foodName')?.value,
+    calories: Number(document.getElementById('calories')?.value),
+    protein: document.getElementById('protein')?.value ? Number(document.getElementById('protein').value) : null,
+    carbs: document.getElementById('carbs')?.value ? Number(document.getElementById('carbs').value) : null,
+    fats: document.getElementById('fats')?.value ? Number(document.getElementById('fats').value) : null,
+    notes: document.getElementById('notes')?.value || ''
   };
 
   try {
     const response = await fetch(`${API_BASE_URL}/createEntry`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      formMessage.textContent = data.error || 'Failed to save entry.';
+      if (formMessage) formMessage.textContent = data.error || 'Failed to save entry.';
       return;
     }
 
-    formMessage.textContent = `Saved: ${data.entry.foodName} for ${currentSelectedDate}`;
+    if (formMessage) formMessage.textContent = `Saved: ${data.entry.foodName} for ${currentSelectedDate}`;
     entryForm.reset();
     await loadEntriesForSelectedDate();
   } catch (error) {
     console.error(error);
-    formMessage.textContent = 'Could not save entry. Please try again.';
+    if (formMessage) formMessage.textContent = 'Could not save entry. Please try again.';
   } finally {
     setFormLoadingState(false);
   }
@@ -174,62 +157,56 @@ customFoodForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   if (!currentUser) {
-    customFoodsMessage.textContent = 'Please sign in before saving custom foods.';
+    if (customFoodsMessage) customFoodsMessage.textContent = 'Please sign in before saving custom foods.';
     return;
   }
 
-  customFoodsMessage.textContent = 'Saving custom food...';
+  if (customFoodsMessage) customFoodsMessage.textContent = 'Saving custom food...';
 
   const payload = {
-    foodName: document.getElementById('customFoodName').value,
-    calories: Number(document.getElementById('customFoodCalories').value),
-    protein: Number(document.getElementById('customFoodProtein').value) || 0,
-    carbs: Number(document.getElementById('customFoodCarbs').value) || 0,
-    fats: Number(document.getElementById('customFoodFats').value) || 0,
-    notes: document.getElementById('customFoodNotes').value
+    foodName: document.getElementById('customFoodName')?.value,
+    calories: Number(document.getElementById('customFoodCalories')?.value),
+    protein: Number(document.getElementById('customFoodProtein')?.value) || 0,
+    carbs: Number(document.getElementById('customFoodCarbs')?.value) || 0,
+    fats: Number(document.getElementById('customFoodFats')?.value) || 0,
+    notes: document.getElementById('customFoodNotes')?.value || ''
   };
 
   try {
     const response = await fetch(`${API_BASE_URL}/createCustomFood`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      customFoodsMessage.textContent = data.error || 'Failed to save custom food.';
+      if (customFoodsMessage) customFoodsMessage.textContent = data.error || 'Failed to save custom food.';
       return;
     }
 
     customFoodForm.reset();
-    customFoodsMessage.textContent = `Saved custom food: ${data.food.foodName}`;
+    if (customFoodsMessage) customFoodsMessage.textContent = `Saved custom food: ${data.food.foodName}`;
     await loadCustomFoods();
     setWorkspaceTab('meal');
   } catch (error) {
     console.error(error);
-    customFoodsMessage.textContent = 'Could not save custom food.';
+    if (customFoodsMessage) customFoodsMessage.textContent = 'Could not save custom food.';
   }
 });
 
-loadEntriesBtn.addEventListener('click', loadEntriesForSelectedDate);
+loadEntriesBtn?.addEventListener('click', loadEntriesForSelectedDate);
+addMealTabBtn?.addEventListener('click', () => setWorkspaceTab('meal'));
+saveCustomTabBtn?.addEventListener('click', () => setWorkspaceTab('custom'));
 
-addMealTabBtn.addEventListener('click', () => setWorkspaceTab('meal'));
-saveCustomTabBtn.addEventListener('click', () => setWorkspaceTab('custom'));
-
-savedFoodSelect.addEventListener('change', () => {
+savedFoodSelect?.addEventListener('change', () => {
   const selectedFoodId = savedFoodSelect.value;
-
-  if (!selectedFoodId) {
-    return;
-  }
+  if (!selectedFoodId) return;
 
   const selectedFood = customFoodsCache.find(food => food.id === selectedFoodId);
   if (!selectedFood) {
-    formMessage.textContent = 'Saved food could not be found.';
+    if (formMessage) formMessage.textContent = 'Saved food could not be found.';
     return;
   }
 
@@ -238,16 +215,16 @@ savedFoodSelect.addEventListener('change', () => {
   applyCustomFoodToEntryForm(selectedFood);
 });
 
-deleteCustomFoodBtn.addEventListener('click', async () => {
-  const selectedFoodId = savedFoodSelect.value;
+deleteCustomFoodBtn?.addEventListener('click', async () => {
+  const selectedFoodId = savedFoodSelect?.value;
   if (!selectedFoodId) {
-    formMessage.textContent = 'Please choose a saved food to delete.';
+    if (formMessage) formMessage.textContent = 'Please choose a saved food to delete.';
     return;
   }
 
   const selectedFood = customFoodsCache.find(food => food.id === selectedFoodId);
   if (!selectedFood) {
-    formMessage.textContent = 'Saved food could not be found.';
+    if (formMessage) formMessage.textContent = 'Saved food could not be found.';
     return;
   }
 
@@ -257,34 +234,33 @@ deleteCustomFoodBtn.addEventListener('click', async () => {
   await deleteCustomFood(selectedFood.id);
 });
 
-prevDayBtn.addEventListener('click', async () => {
+prevDayBtn?.addEventListener('click', async () => {
   currentSelectedDate = shiftDateString(currentSelectedDate, -1);
   syncSelectedDateInput();
   await loadEntriesForSelectedDate();
 });
 
-nextDayBtn.addEventListener('click', async () => {
+nextDayBtn?.addEventListener('click', async () => {
   currentSelectedDate = shiftDateString(currentSelectedDate, 1);
   syncSelectedDateInput();
   await loadEntriesForSelectedDate();
 });
 
-todayBtn.addEventListener('click', async () => {
+todayBtn?.addEventListener('click', async () => {
   currentSelectedDate = getTodayDateString();
   syncSelectedDateInput();
   await loadEntriesForSelectedDate();
 });
 
-selectedDateInput.addEventListener('change', async (event) => {
+selectedDateInput?.addEventListener('change', async (event) => {
   if (!event.target.value) return;
   currentSelectedDate = event.target.value;
   await loadEntriesForSelectedDate();
 });
 
-entriesList.addEventListener('click', async (event) => {
+entriesList?.addEventListener('click', async (event) => {
   if (event.target.classList.contains('delete-btn')) {
     const entryId = event.target.getAttribute('data-entry-id');
-
     if (!entryId) return;
 
     const confirmed = window.confirm('Delete this entry?');
@@ -357,7 +333,6 @@ async function initializeNutritionProfile() {
     nutritionProfile = result.profile ?? null;
 
     if (!isProfileComplete(nutritionProfile)) {
-      updateProfileStatusBadge(false);
       showProfileSetupModal();
       return false;
     }
@@ -379,14 +354,12 @@ async function initializeNutritionProfile() {
     }
 
     renderGoalLabels();
-    updateProfileStatusBadge(true);
     updatePersonalizedCopy();
     return true;
   } catch (error) {
     console.error('Failed to initialize nutrition profile', error);
     currentGoals = { ...DEFAULT_GOALS };
     renderGoalLabels();
-    updateProfileStatusBadge(false);
     updatePersonalizedCopy();
     return true;
   }
@@ -394,8 +367,8 @@ async function initializeNutritionProfile() {
 
 async function loadEntriesForSelectedDate() {
   if (!currentUser) {
-    entriesMessage.textContent = 'Please sign in to load your entries.';
-    entriesList.innerHTML = '';
+    if (entriesMessage) entriesMessage.textContent = 'Please sign in to load your entries.';
+    if (entriesList) entriesList.innerHTML = '';
     resetSummary();
     renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
     updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
@@ -403,8 +376,8 @@ async function loadEntriesForSelectedDate() {
     return;
   }
 
-  entriesMessage.textContent = 'Loading entries...';
-  entriesList.innerHTML = '';
+  if (entriesMessage) entriesMessage.textContent = 'Loading entries...';
+  if (entriesList) entriesList.innerHTML = '';
   showSpinner();
   setLoadButtonLoadingState(true);
 
@@ -415,11 +388,13 @@ async function loadEntriesForSelectedDate() {
     const data = await response.json();
 
     if (!response.ok) {
-      entriesMessage.textContent = data.error || 'Failed to load entries.';
+      if (entriesMessage) entriesMessage.textContent = data.error || 'Failed to load entries.';
       return;
     }
 
-    entriesMessage.textContent = `Found ${data.count} entr${data.count === 1 ? 'y' : 'ies'} for ${data.date}.`;
+    if (entriesMessage) {
+      entriesMessage.textContent = `Found ${data.count} entr${data.count === 1 ? 'y' : 'ies'} for ${data.date}.`;
+    }
 
     const sortedEntries = sortEntriesByMealOrder(data.entries);
     const totals = calculateTotals(sortedEntries);
@@ -429,18 +404,20 @@ async function loadEntriesForSelectedDate() {
     updateTodayFocus(totals, sortedEntries.length);
 
     if (sortedEntries.length === 0) {
-      entriesList.innerHTML = `
-        <li class="rounded-2xl border border-dashed border-green-200 bg-green-50/60 p-4 text-sm text-slate-600">
-          No entries yet for ${formatDateForDisplay(data.date)}.
-        </li>
-      `;
+      if (entriesList) {
+        entriesList.innerHTML = `
+          <li class="rounded-2xl border border-dashed border-green-200 bg-green-50/60 p-4 text-sm text-slate-600">
+            No entries yet for ${formatDateForDisplay(data.date)}.
+          </li>
+        `;
+      }
       return;
     }
 
     renderEntriesGroupedByMeal(sortedEntries);
   } catch (error) {
     console.error(error);
-    entriesMessage.textContent = 'Could not load entries for the selected day.';
+    if (entriesMessage) entriesMessage.textContent = 'Could not load entries for the selected day.';
   } finally {
     hideSpinner();
     setLoadButtonLoadingState(false);
@@ -451,19 +428,19 @@ async function loadCustomFoods() {
   if (!currentUser) {
     customFoodsCache = [];
     populateSavedFoodsDropdown();
-    customFoodsMessage.textContent = 'Please sign in to view custom foods.';
+    if (customFoodsMessage) customFoodsMessage.textContent = 'Please sign in to view custom foods.';
     updateSavedFoodsSummary();
     return;
   }
 
-  customFoodsMessage.textContent = 'Loading custom foods...';
+  if (customFoodsMessage) customFoodsMessage.textContent = 'Loading custom foods...';
 
   try {
     const response = await fetch(`${API_BASE_URL}/getCustomFoods`);
     const data = await response.json();
 
     if (!response.ok) {
-      customFoodsMessage.textContent = data.error || 'Failed to load custom foods.';
+      if (customFoodsMessage) customFoodsMessage.textContent = data.error || 'Failed to load custom foods.';
       return;
     }
 
@@ -472,14 +449,16 @@ async function loadCustomFoods() {
     updateSavedFoodsSummary();
 
     if (data.foods.length === 0) {
-      customFoodsMessage.textContent = 'No custom foods saved yet.';
+      if (customFoodsMessage) customFoodsMessage.textContent = 'No custom foods saved yet.';
       return;
     }
 
-    customFoodsMessage.textContent = `Found ${data.foods.length} saved food${data.foods.length === 1 ? '' : 's'}.`;
+    if (customFoodsMessage) {
+      customFoodsMessage.textContent = `Found ${data.foods.length} saved food${data.foods.length === 1 ? '' : 's'}.`;
+    }
   } catch (error) {
     console.error(error);
-    customFoodsMessage.textContent = 'Could not load custom foods.';
+    if (customFoodsMessage) customFoodsMessage.textContent = 'Could not load custom foods.';
   }
 }
 
@@ -490,23 +469,21 @@ async function deleteEntry(entryId) {
   try {
     const response = await fetch(
       `${API_BASE_URL}/deleteEntry?entryId=${encodeURIComponent(entryId)}`,
-      {
-        method: 'DELETE'
-      }
+      { method: 'DELETE' }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      entriesMessage.textContent = data.error || 'Failed to delete entry.';
+      if (entriesMessage) entriesMessage.textContent = data.error || 'Failed to delete entry.';
       return;
     }
 
-    entriesMessage.textContent = 'Entry deleted successfully.';
+    if (entriesMessage) entriesMessage.textContent = 'Entry deleted successfully.';
     await loadEntriesForSelectedDate();
   } catch (error) {
     console.error(error);
-    entriesMessage.textContent = 'Could not delete entry.';
+    if (entriesMessage) entriesMessage.textContent = 'Could not delete entry.';
   } finally {
     hideSpinner();
     setLoadButtonLoadingState(false);
@@ -517,19 +494,17 @@ async function deleteCustomFood(foodId) {
   try {
     const response = await fetch(
       `${API_BASE_URL}/deleteCustomFood?foodId=${encodeURIComponent(foodId)}`,
-      {
-        method: 'DELETE'
-      }
+      { method: 'DELETE' }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      formMessage.textContent = data.error || 'Failed to delete saved food.';
+      if (formMessage) formMessage.textContent = data.error || 'Failed to delete saved food.';
       return;
     }
 
-    formMessage.textContent = 'Saved food deleted successfully.';
+    if (formMessage) formMessage.textContent = 'Saved food deleted successfully.';
     await loadCustomFoods();
 
     document.getElementById('foodName').value = '';
@@ -540,7 +515,7 @@ async function deleteCustomFood(foodId) {
     document.getElementById('notes').value = '';
   } catch (error) {
     console.error(error);
-    formMessage.textContent = 'Could not delete saved food.';
+    if (formMessage) formMessage.textContent = 'Could not delete saved food.';
   }
 }
 
@@ -556,17 +531,17 @@ async function loadUser() {
       currentUser = null;
       nutritionProfile = null;
       userInfo.textContent = 'Not signed in.';
-      userRolesInfo.textContent = '';
+      if (userRolesInfo) userRolesInfo.textContent = '';
       if (accountHeading) accountHeading.textContent = 'Your Account';
-      userAvatar.textContent = 'U';
+      if (userAvatar) userAvatar.textContent = 'U';
       adminDashboardBtn?.classList.add('hidden');
       signInBtn?.classList.remove('hidden');
       signOutBtn?.classList.add('hidden');
       editProfileBtn?.classList.add('hidden');
       hideProfileSetupModal();
-      formMessage.textContent = 'Please sign in to save entries.';
-      entriesMessage.textContent = 'Please sign in to load your entries.';
-      customFoodsMessage.textContent = 'Please sign in to use custom foods.';
+      if (formMessage) formMessage.textContent = 'Please sign in to save entries.';
+      if (entriesMessage) entriesMessage.textContent = 'Please sign in to load your entries.';
+      if (customFoodsMessage) customFoodsMessage.textContent = 'Please sign in to use custom foods.';
       customFoodsCache = [];
       populateSavedFoodsDropdown();
       updateSavedFoodsSummary();
@@ -575,7 +550,6 @@ async function loadUser() {
       resetSummary();
       renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
       updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
-      updateProfileStatusBadge(false);
       updatePersonalizedCopy();
       hideSpinner();
       return;
@@ -595,8 +569,8 @@ async function loadUser() {
     };
 
     userInfo.textContent = `Signed in as ${clientPrincipal.userDetails}`;
-    userRolesInfo.textContent = `Roles: ${userRoles.join(', ')}`;
-    userAvatar.textContent = (clientPrincipal.userDetails || 'U').charAt(0).toUpperCase();
+    if (userRolesInfo) userRolesInfo.textContent = `Roles: ${userRoles.join(', ')}`;
+    if (userAvatar) userAvatar.textContent = (clientPrincipal.userDetails || 'U').charAt(0).toUpperCase();
 
     signInBtn?.classList.add('hidden');
     signOutBtn?.classList.remove('hidden');
@@ -620,9 +594,9 @@ async function loadUser() {
     currentUser = null;
     nutritionProfile = null;
     userInfo.textContent = 'User info could not be loaded.';
-    userRolesInfo.textContent = '';
+    if (userRolesInfo) userRolesInfo.textContent = '';
     if (accountHeading) accountHeading.textContent = 'Your Account';
-    userAvatar.textContent = 'U';
+    if (userAvatar) userAvatar.textContent = 'U';
     adminDashboardBtn?.classList.add('hidden');
     signInBtn?.classList.remove('hidden');
     signOutBtn?.classList.add('hidden');
@@ -635,27 +609,8 @@ async function loadUser() {
     resetSummary();
     renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
     updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
-    updateProfileStatusBadge(false);
     updatePersonalizedCopy();
     hideSpinner();
-  }
-}
-
-function updateProfileStatusBadge(isActive = true) {
-  if (!profileStatusBadge) return;
-
-  if (isActive && nutritionProfile) {
-    profileStatusBadge.className = 'inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-sm text-green-700';
-    profileStatusBadge.innerHTML = `
-      <span class="h-2 w-2 rounded-full bg-green-500"></span>
-      Profile active
-    `;
-  } else {
-    profileStatusBadge.className = 'inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm text-amber-700';
-    profileStatusBadge.innerHTML = `
-      <span class="h-2 w-2 rounded-full bg-amber-500"></span>
-      Profile needs setup
-    `;
   }
 }
 
@@ -676,6 +631,9 @@ function updatePersonalizedCopy() {
 
   if (focusHeadline && (!summaryEntries || Number(summaryEntries.textContent) === 0)) {
     focusHeadline.textContent = `Welcome back, ${name}`;
+    if (focusSubtext) {
+      focusSubtext.textContent = `${name}, start by adding your first meal and tracking your progress today.`;
+    }
   }
 }
 
@@ -740,16 +698,20 @@ function updateSavedFoodsSummary() {
 function setWorkspaceTab(tab) {
   const isMealTab = tab === 'meal';
 
-  addMealTabSection.classList.toggle('hidden', !isMealTab);
-  saveCustomTabSection.classList.toggle('hidden', isMealTab);
+  if (addMealTabSection) addMealTabSection.classList.toggle('hidden', !isMealTab);
+  if (saveCustomTabSection) saveCustomTabSection.classList.toggle('hidden', isMealTab);
 
-  addMealTabBtn.className = isMealTab
-    ? 'rounded-xl bg-green-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-green-700 transition'
-    : 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition';
+  if (addMealTabBtn) {
+    addMealTabBtn.className = isMealTab
+      ? 'rounded-xl bg-green-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-green-700 transition'
+      : 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition';
+  }
 
-  saveCustomTabBtn.className = isMealTab
-    ? 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition'
-    : 'rounded-xl bg-lime-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-lime-700 transition';
+  if (saveCustomTabBtn) {
+    saveCustomTabBtn.className = isMealTab
+      ? 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition'
+      : 'rounded-xl bg-lime-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-lime-700 transition';
+  }
 }
 
 function sortEntriesByMealOrder(entries) {
@@ -771,32 +733,26 @@ function sortEntriesByMealOrder(entries) {
 }
 
 function renderEntriesGroupedByMeal(entries) {
+  if (!entriesList) return;
+
   entriesList.innerHTML = '';
 
   const mealStyles = {
     breakfast: {
       badge: 'bg-blue-100 text-blue-700',
-      border: 'border-blue-100',
-      cardBg: 'bg-white',
-      accent: 'text-blue-700'
+      border: 'border-blue-100'
     },
     lunch: {
       badge: 'bg-emerald-100 text-emerald-700',
-      border: 'border-emerald-100',
-      cardBg: 'bg-white',
-      accent: 'text-emerald-700'
+      border: 'border-emerald-100'
     },
     dinner: {
       badge: 'bg-amber-100 text-amber-700',
-      border: 'border-amber-100',
-      cardBg: 'bg-white',
-      accent: 'text-amber-700'
+      border: 'border-amber-100'
     },
     snack: {
       badge: 'bg-rose-100 text-rose-700',
-      border: 'border-rose-100',
-      cardBg: 'bg-white',
-      accent: 'text-rose-700'
+      border: 'border-rose-100'
     }
   };
 
@@ -809,9 +765,7 @@ function renderEntriesGroupedByMeal(entries) {
 
     const style = mealStyles[mealType] || {
       badge: 'bg-slate-100 text-slate-700',
-      border: 'border-slate-200',
-      cardBg: 'bg-white',
-      accent: 'text-slate-700'
+      border: 'border-slate-200'
     };
 
     const sectionLi = document.createElement('li');
@@ -834,47 +788,39 @@ function renderEntriesGroupedByMeal(entries) {
       const hasNotes = entry.notes && String(entry.notes).trim() !== '';
 
       const entryCard = document.createElement('div');
-      entryCard.className = `rounded-2xl border ${style.border} ${style.cardBg} p-4 shadow-sm`;
+      entryCard.className = `rounded-2xl border ${style.border} bg-white p-4 shadow-sm hover:shadow-md transition`;
 
       entryCard.innerHTML = `
-        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           
           <div class="min-w-0 flex-1">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div class="flex items-start justify-between gap-4">
               <div class="min-w-0">
-                <p class="text-xl font-semibold text-slate-800 break-words">${entry.foodName}</p>
-              </div>
-
-              <div class="sm:text-right">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
-                <p class="text-2xl font-bold ${style.accent}">${entry.calories}</p>
+                <p class="text-lg font-semibold text-slate-800 break-words">${entry.foodName}</p>
               </div>
             </div>
 
-            <div class="mt-4 grid grid-cols-3 gap-2 sm:max-w-md">
-              <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2">
-                <p class="text-[11px] uppercase tracking-wide text-slate-400">Protein</p>
-                <p class="text-sm font-semibold text-blue-700">${entry.protein ?? '-'}</p>
-              </div>
-
-              <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2">
-                <p class="text-[11px] uppercase tracking-wide text-slate-400">Carbs</p>
-                <p class="text-sm font-semibold text-amber-700">${entry.carbs ?? '-'}</p>
-              </div>
-
-              <div class="rounded-xl bg-rose-50 border border-rose-100 px-3 py-2">
-                <p class="text-[11px] uppercase tracking-wide text-slate-400">Fats</p>
-                <p class="text-sm font-semibold text-rose-700">${entry.fats ?? '-'}</p>
-              </div>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+                ${entry.calories} cal
+              </span>
+              <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700">
+                P ${entry.protein ?? '-'}
+              </span>
+              <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-700">
+                C ${entry.carbs ?? '-'}
+              </span>
+              <span class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1 text-sm text-rose-700">
+                F ${entry.fats ?? '-'}
+              </span>
             </div>
 
             ${
               hasNotes
                 ? `
-              <div class="mt-4 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
-                <p class="text-[11px] uppercase tracking-wide text-slate-400 mb-1">Notes</p>
-                <p class="text-sm text-slate-600 break-words">${entry.notes}</p>
-              </div>
+              <p class="mt-3 text-sm text-slate-500 break-words">
+                <span class="font-medium text-slate-600">Notes:</span> ${entry.notes}
+              </p>
             `
                 : ''
             }
@@ -1002,13 +948,21 @@ function populateSavedFoodsDropdown() {
 }
 
 function applyCustomFoodToEntryForm(food) {
-  document.getElementById('foodName').value = food.foodName || '';
-  document.getElementById('calories').value = food.calories ?? '';
-  document.getElementById('protein').value = food.protein ?? '';
-  document.getElementById('carbs').value = food.carbs ?? '';
-  document.getElementById('fats').value = food.fats ?? '';
-  document.getElementById('notes').value = food.notes || '';
-  formMessage.textContent = `Loaded custom food: ${food.foodName}`;
+  const foodName = document.getElementById('foodName');
+  const calories = document.getElementById('calories');
+  const protein = document.getElementById('protein');
+  const carbs = document.getElementById('carbs');
+  const fats = document.getElementById('fats');
+  const notes = document.getElementById('notes');
+
+  if (foodName) foodName.value = food.foodName || '';
+  if (calories) calories.value = food.calories ?? '';
+  if (protein) protein.value = food.protein ?? '';
+  if (carbs) carbs.value = food.carbs ?? '';
+  if (fats) fats.value = food.fats ?? '';
+  if (notes) notes.value = food.notes || '';
+
+  if (formMessage) formMessage.textContent = `Loaded custom food: ${food.foodName}`;
 }
 
 function setProgress(element, value, goal) {
@@ -1092,7 +1046,7 @@ function setLoadButtonLoadingState(isLoading) {
     loadEntriesBtn.textContent = 'Loading...';
   } else {
     loadEntriesBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-    loadEntriesBtn.textContent = 'Load Selected Day';
+    loadEntriesBtn.textContent = 'Refresh Log';
   }
 }
 
