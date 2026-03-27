@@ -131,12 +131,15 @@ button:hover {
 }
 
 .startup-photo {
-  width: 130%;
-  height: 130%;
+  width: 160%;
+  height: 160%;
   object-fit: cover;
 
-  /* 👇 THIS fixes your face position */
-  object-position: center 35%;
+  /* ❌ stop using object-position */
+  object-position: center;
+
+  /* 🔥 THIS is the real fix */
+  transform: translate(-12%, -8%);
 }
 
 .fruit {
