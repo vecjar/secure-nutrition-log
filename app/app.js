@@ -1036,7 +1036,32 @@ function setFormLoadingState(isLoading) {
   }
 }
 
+function hideStartupOverlay() {
+  const overlay = document.getElementById("startupOverlay");
+  if (!overlay) return;
+
+  overlay.classList.add("startup-overlay-hidden");
+
+  setTimeout(() => {
+    overlay.remove();
+  }, 700);
+}
+
+async function initApp() {
+  try {
+    await loadUser();
+    await loadNutritionProfile();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    hideStartupOverlay();
+  }
+}
+
+// 👇 run app startup
+initApp();
+
+// keep your other setup calls
 syncSelectedDateInput();
 setWorkspaceTab('meal');
 updateSavedFoodsSummary();
-loadUser();

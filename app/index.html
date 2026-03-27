@@ -6,8 +6,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Secure Nutrition Log</title>
 </head>
-<body class="bg-gradient-to-br from-green-50 via-lime-50 to-emerald-100 min-h-screen text-slate-800 antialiased">
+<body class="bg-gradient-to-br ...">
 
+  <!-- 🔥 STARTUP LOADING OVERLAY (ADD THIS HERE) -->
+  <div
+    id="startupOverlay"
+    class="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden transition-opacity duration-700"
+  >
+    <div class="absolute inset-0 psychedelic-fruit-bg"></div>
+    <div class="absolute inset-0 bg-black/10 backdrop-blur-[3px]"></div>
+
+    <!-- Floating fruit -->
+    <div class="fruit fruit-1">🍍</div>
+    <div class="fruit fruit-2">🍉</div>
+    <div class="fruit fruit-3">🍓</div>
+    <div class="fruit fruit-4">🍌</div>
+    <div class="fruit fruit-5">🍇</div>
+    <div class="fruit fruit-6">🥝</div>
+    <div class="fruit fruit-7">🍒</div>
+    <div class="fruit fruit-8">🍊</div>
+    <div class="fruit fruit-9">🥑</div>
+    <div class="fruit fruit-10">🍏</div>
+
+    <!-- Center image -->
+    <div class="relative z-10 flex flex-col items-center text-center">
+      <div class="startup-photo-wrap">
+        <img src="/images/funny-loader.jpg" class="startup-photo" />
+      </div>
+
+      <h2 class="mt-6 text-3xl font-bold text-white">
+        Loading the fruit dimension...
+      </h2>
+    </div>
+  </div>
+
+  <!-- 👇 YOUR EXISTING CODE STARTS HERE -->
   <!-- First-time setup modal -->
   <div id="profileSetupModal" class="hidden fixed inset-0 z-50">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
