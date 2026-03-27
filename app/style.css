@@ -131,15 +131,12 @@ button:hover {
 }
 
 .startup-photo {
-  width: 160%;
-  height: 160%;
+  width: 200%;
+  height: 200%;
   object-fit: cover;
 
-  /* ❌ stop using object-position */
-  object-position: center;
-
-  /* 🔥 THIS is the real fix */
-  transform: translate(-12%, -8%);
+  /* 🔥 strong zoom + manual centering */
+  transform: translate(-25%, -18%);
 }
 
 .fruit {
