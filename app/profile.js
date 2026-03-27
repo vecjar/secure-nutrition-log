@@ -28,7 +28,9 @@ let currentCalculatedTargets = null;
 
 function setMessage(message, isError = false) {
   profileMessage.textContent = message;
-  profileMessage.style.color = isError ? "red" : "green";
+  profileMessage.className = isError
+    ? "text-sm font-medium text-red-600 order-2 sm:order-1"
+    : "text-sm font-medium text-green-700 order-2 sm:order-1";
 }
 
 function toggleCustomTargetInputs() {
