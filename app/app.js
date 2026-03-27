@@ -88,7 +88,6 @@ const accountHeading = document.getElementById('accountHeading');
 const focusHeadline = document.getElementById('focusHeadline');
 const focusSubtext = document.getElementById('focusSubtext');
 const focusCaloriesRemaining = document.getElementById('focusCaloriesRemaining');
-const focusProteinRemaining = document.getElementById('focusProteinRemaining');
 const focusMealsLogged = document.getElementById('focusMealsLogged');
 const focusAddMealBtn = document.getElementById('focusAddMealBtn');
 
@@ -682,15 +681,13 @@ function updatePersonalizedCopy() {
 
 function updateTodayFocus(totals, entryCount) {
   const name = getFriendlyName();
-  const caloriesRemaining = Math.max(0, Math.round((currentGoals.calories || 0) - (totals.calories || 0)));
-  const proteinRemaining = Math.max(0, roundToOne((currentGoals.protein || 0) - (totals.protein || 0)));
+  const caloriesRemaining = Math.max(
+    0,
+    Math.round((currentGoals.calories || 0) - (totals.calories || 0))
+  );
 
   if (focusCaloriesRemaining) {
     focusCaloriesRemaining.textContent = caloriesRemaining;
-  }
-
-  if (focusProteinRemaining) {
-    focusProteinRemaining.textContent = `${proteinRemaining}g`;
   }
 
   if (focusMealsLogged) {
@@ -703,9 +700,11 @@ function updateTodayFocus(totals, entryCount) {
     focusHeadline.textContent = nutritionProfile?.displayName
       ? `Welcome back, ${name}`
       : 'Ready to log your day';
+
     focusSubtext.textContent = nutritionProfile?.displayName
       ? `${name}, start by adding your first meal and tracking your progress today.`
       : 'Start by adding your first meal and tracking your progress.';
+
     return;
   }
 
@@ -774,20 +773,51 @@ function sortEntriesByMealOrder(entries) {
 function renderEntriesGroupedByMeal(entries) {
   entriesList.innerHTML = '';
 
-  for (const mealType of MEAL_ORDER) {
-    const mealEntries = entries.filter(entry => (entry.mealType || '').toLowerCase() === mealType);
-
-    if (mealEntries.length === 0) {
-      continue;
+  const mealStyles = {
+    breakfast: {
+      badge: 'bg-blue-100 text-blue-700',
+      border: 'border-blue-100',
+      bg: 'from-blue-50 to-white'
+    },
+    lunch: {
+      badge: 'bg-emerald-100 text-emerald-700',
+      border: 'border-emerald-100',
+      bg: 'from-emerald-50 to-white'
+    },
+    dinner: {
+      badge: 'bg-amber-100 text-amber-700',
+      border: 'border-amber-100',
+      bg: 'from-amber-50 to-white'
+    },
+    snack: {
+      badge: 'bg-rose-100 text-rose-700',
+      border: 'border-rose-100',
+      bg: 'from-rose-50 to-white'
     }
+  };
+
+  for (const mealType of MEAL_ORDER) {
+    const mealEntries = entries.filter(
+      (entry) => (entry.mealType || '').toLowerCase() === mealType
+    );
+
+    if (mealEntries.length === 0) continue;
+
+    const style = mealStyles[mealType] || {
+      badge: 'bg-slate-100 text-slate-700',
+      border: 'border-slate-200',
+      bg: 'from-slate-50 to-white'
+    };
 
     const sectionLi = document.createElement('li');
-    sectionLi.className = 'space-y-3';
+    sectionLi.className = 'space-y-4';
 
     const sectionTitle = document.createElement('div');
     sectionTitle.className = 'flex items-center gap-3';
     sectionTitle.innerHTML = `
-      <h3 class="text-xl font-semibold text-slate-800">${MEAL_LABELS[mealType]}</h3>
+      <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${style.badge}">
+        ${MEAL_LABELS[mealType]}
+      </span>
       <span class="text-sm text-slate-500">${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}</span>
     `;
 
@@ -798,44 +828,47 @@ function renderEntriesGroupedByMeal(entries) {
 
     for (const entry of mealEntries) {
       const entryCard = document.createElement('div');
-      entryCard.className = 'rounded-2xl border border-green-100 bg-gradient-to-r from-white to-green-50 p-4 shadow-sm';
+      entryCard.className = `rounded-2xl border ${style.border} bg-gradient-to-r ${style.bg} p-4 shadow-sm`;
 
       entryCard.innerHTML = `
-        <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p class="text-lg font-semibold text-green-800">${entry.foodName}</p>
-            <p class="text-sm text-slate-500 capitalize">${entry.mealType}</p>
+        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div class="min-w-0">
+            <div class="flex items-start gap-3">
+              <div class="min-w-0">
+                <p class="text-lg font-semibold text-slate-800">${entry.foodName}</p>
+                <p class="text-sm text-slate-500 capitalize mt-1">${entry.mealType}</p>
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="inline-flex items-center rounded-full bg-white px-3 py-1 text-sm font-medium text-slate-700 border border-slate-200">
+                ${entry.calories} cal
+              </span>
+              <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 border border-blue-100">
+                Protein: ${entry.protein ?? '-'}
+              </span>
+              <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 border border-amber-100">
+                Carbs: ${entry.carbs ?? '-'}
+              </span>
+              <span class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700 border border-rose-100">
+                Fats: ${entry.fats ?? '-'}
+              </span>
+            </div>
+
+            <div class="mt-4 text-sm text-slate-600">
+              <span class="font-medium text-slate-700">Notes:</span>
+              <span class="text-slate-500">${entry.notes || '—'}</span>
+            </div>
           </div>
 
-          <button
-            type="button"
-            class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 transition"
-            data-entry-id="${entry.id}">
-            Delete
-          </button>
-        </div>
-
-        <div class="mt-3 grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
-          <div class="rounded-xl bg-white px-3 py-2 border border-green-100">
-            <span class="block text-xs text-slate-500">Calories</span>
-            <span class="font-semibold text-slate-800">${entry.calories}</span>
+          <div class="md:flex-shrink-0">
+            <button
+              type="button"
+              class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 transition"
+              data-entry-id="${entry.id}">
+              Delete
+            </button>
           </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-blue-100">
-            <span class="block text-xs text-slate-500">Protein</span>
-            <span class="font-semibold text-slate-800">${entry.protein ?? '-'}</span>
-          </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-amber-100">
-            <span class="block text-xs text-slate-500">Carbs</span>
-            <span class="font-semibold text-slate-800">${entry.carbs ?? '-'}</span>
-          </div>
-          <div class="rounded-xl bg-white px-3 py-2 border border-rose-100">
-            <span class="block text-xs text-slate-500">Fats</span>
-            <span class="font-semibold text-slate-800">${entry.fats ?? '-'}</span>
-          </div>
-        </div>
-
-        <div class="mt-3 text-sm text-slate-600">
-          <span class="font-medium text-slate-700">Notes:</span> ${entry.notes || '-'}
         </div>
       `;
 
