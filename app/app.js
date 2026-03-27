@@ -69,24 +69,22 @@ function hideStartupOverlay() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    document.documentElement.classList.remove('startup-seen');
+
     setupMealButtons();
     setupModal();
     setWorkspaceTab('meal');
+    hideTopQuickMealCards();
 
     await loadUser();
   } catch (error) {
     console.error('Startup error:', error);
   } finally {
-    const hasSeenStartup = sessionStorage.getItem('hasSeenStartup');
+    sessionStorage.setItem('hasSeenStartup', 'true');
 
-    if (!hasSeenStartup) {
-      sessionStorage.setItem('hasSeenStartup', 'true');
-      setTimeout(() => {
-        hideStartupOverlay();
-      }, 1200);
-    } else {
+    setTimeout(() => {
       hideStartupOverlay();
-    }
+    }, 1200);
   }
 });
 
@@ -132,6 +130,19 @@ function setupModal() {
   mealModal?.addEventListener('click', (e) => {
     if (e.target === mealModal) {
       closeMealModal();
+    }
+  });
+}
+
+// ==========================
+// UI CLEANUP
+// ==========================
+
+function hideTopQuickMealCards() {
+  document.querySelectorAll('[data-open-meal-modal]').forEach((btn) => {
+    const card = btn.closest('.rounded-3xl');
+    if (card) {
+      card.classList.add('hidden');
     }
   });
 }
@@ -205,8 +216,8 @@ async function loadUser() {
       signOutBtn?.classList.add('hidden');
       editProfileBtn?.classList.add('hidden');
 
-      entriesMessage.textContent = 'Please sign in to load your entries.';
-      entriesList.innerHTML = '';
+      if (entriesMessage) entriesMessage.textContent = 'Please sign in to load your entries.';
+      if (entriesList) entriesList.innerHTML = '';
       populateSavedFoods();
 
       return;
@@ -298,10 +309,30 @@ async function loadEntries() {
     const sortedEntries = sortEntriesByMealOrder(entries);
 
     renderEntries(sortedEntries);
-    entriesMessage.textContent = `${data.count ?? entries.length} entries`;
+    entriesMessage.textContent = `${data.count ?? entries.length} entr${(data.count ?? entries.length) === 1 ? 'y' : 'ies'}`;
   } catch (err) {
     console.error('loadEntries error:', err);
     if (entriesMessage) entriesMessage.textContent = 'Could not load entries.';
+  }
+}
+
+// ==========================
+// DELETE ENTRY
+// ==========================
+
+async function deleteEntry(entryId) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/deleteEntry?entryId=${encodeURIComponent(entryId)}`, {
+      method: 'DELETE'
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to delete entry');
+    }
+
+    await loadEntries();
+  } catch (err) {
+    console.error('deleteEntry error:', err);
   }
 }
 
@@ -327,8 +358,7 @@ function renderEntries(entries) {
       <button
         type="button"
         class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-lg font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition"
-        data-inline-add-meal="${meal}"
-      >
+        data-inline-add-meal="${meal}">
         +
       </button>
     `;
@@ -346,16 +376,25 @@ function renderEntries(entries) {
       card.className = 'p-4 bg-white border border-slate-200 rounded-2xl shadow-sm';
 
       card.innerHTML = `
-        <div class="flex justify-between gap-4">
-          <div class="min-w-0">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div class="min-w-0 flex-1">
             <p class="font-semibold text-slate-800 break-words">${entry.foodName}</p>
             <p class="text-sm text-slate-500 mt-1">${entry.calories} cal</p>
-            <div class="mt-2 flex flex-wrap gap-2 text-xs text-slate-500">
+            <div class="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
               <span>Protein: ${Number(entry.protein || 0)}g</span>
               <span>Carbs: ${Number(entry.carbs || 0)}g</span>
               <span>Fats: ${Number(entry.fats || 0)}g</span>
             </div>
-            ${entry.notes ? `<p class="text-sm text-slate-500 mt-2">${entry.notes}</p>` : ''}
+            ${entry.notes ? `<p class="text-sm text-slate-500 mt-3 break-words">${entry.notes}</p>` : ''}
+          </div>
+
+          <div class="sm:flex-shrink-0">
+            <button
+              type="button"
+              class="delete-entry-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+              data-entry-id="${entry.id}">
+              Delete
+            </button>
           </div>
         </div>
       `;
@@ -371,6 +410,18 @@ function renderEntries(entries) {
       const mealType = btn.getAttribute('data-inline-add-meal');
       setWorkspaceTab('meal');
       openMealModal(mealType);
+    });
+  });
+
+  document.querySelectorAll('.delete-entry-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const entryId = btn.getAttribute('data-entry-id');
+      if (!entryId) return;
+
+      const confirmed = window.confirm('Delete this entry?');
+      if (!confirmed) return;
+
+      await deleteEntry(entryId);
     });
   });
 }
@@ -504,5 +555,9 @@ deleteCustomFoodBtn?.addEventListener('click', async () => {
 // ==========================
 
 function getTodayDateString() {
-  return new Date().toISOString().split('T')[0];
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

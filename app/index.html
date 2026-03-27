@@ -7,9 +7,11 @@
   <title>Secure Nutrition Log</title>
   <link rel="stylesheet" href="style.css" />
   <script>
+  const navEntry = performance.getEntriesByType("navigation")[0];
+  const isReload = navEntry && navEntry.type === "reload";
   const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
 
-  if (hasSeenStartup) {
+  if (hasSeenStartup && !isReload) {
     document.documentElement.classList.add("startup-seen");
   }
 </script>
@@ -335,102 +337,39 @@
     </section>
 
     <!-- Today's Log -->
-    <section class="mb-6">
-      <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h2 class="text-2xl font-semibold text-slate-800">Today’s Log</h2>
-            <p class="text-slate-500 text-sm">Meals grouped by breakfast, lunch, dinner, and snacks.</p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-3">
-            <button
-              id="createCustomMealBtn"
-              type="button"
-              class="inline-flex items-center justify-center rounded-2xl border border-lime-300 bg-lime-50 px-4 py-2.5 text-sm font-medium text-lime-700 shadow-sm hover:bg-lime-100 transition"
-            >
-              Create Custom Meal
-            </button>
-          </div>
-        </div>
-
-        <div class="mb-5">
-          <p id="entriesMessage" class="text-sm text-slate-600">Loading entries...</p>
-        </div>
-
-        <div id="loadingSpinner" class="hidden mb-5">
-          <div class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-green-600"></span>
-            Loading...
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-          <div class="rounded-3xl border border-blue-100 bg-blue-50/70 p-4">
-            <button
-              type="button"
-              data-open-meal-modal
-              data-meal-type="breakfast"
-              class="w-full flex items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4 text-left hover:bg-blue-100 transition"
-            >
-              <span>
-                <span class="block text-xs uppercase tracking-wide text-slate-500">Breakfast</span>
-                <span class="block text-sm font-semibold text-slate-800 mt-1">Add breakfast</span>
-              </span>
-              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl font-semibold text-blue-700 border border-blue-200">+</span>
-            </button>
-          </div>
-
-          <div class="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-4">
-            <button
-              type="button"
-              data-open-meal-modal
-              data-meal-type="lunch"
-              class="w-full flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-left hover:bg-emerald-100 transition"
-            >
-              <span>
-                <span class="block text-xs uppercase tracking-wide text-slate-500">Lunch</span>
-                <span class="block text-sm font-semibold text-slate-800 mt-1">Add lunch</span>
-              </span>
-              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl font-semibold text-emerald-700 border border-emerald-200">+</span>
-            </button>
-          </div>
-
-          <div class="rounded-3xl border border-amber-100 bg-amber-50/70 p-4">
-            <button
-              type="button"
-              data-open-meal-modal
-              data-meal-type="dinner"
-              class="w-full flex items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-left hover:bg-amber-100 transition"
-            >
-              <span>
-                <span class="block text-xs uppercase tracking-wide text-slate-500">Dinner</span>
-                <span class="block text-sm font-semibold text-slate-800 mt-1">Add dinner</span>
-              </span>
-              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl font-semibold text-amber-700 border border-amber-200">+</span>
-            </button>
-          </div>
-
-          <div class="rounded-3xl border border-rose-100 bg-rose-50/70 p-4">
-            <button
-              type="button"
-              data-open-meal-modal
-              data-meal-type="snack"
-              class="w-full flex items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-left hover:bg-rose-100 transition"
-            >
-              <span>
-                <span class="block text-xs uppercase tracking-wide text-slate-500">Snack</span>
-                <span class="block text-sm font-semibold text-slate-800 mt-1">Add snack</span>
-              </span>
-              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl font-semibold text-rose-700 border border-rose-200">+</span>
-            </button>
-          </div>
-        </div>
-
-        <div id="entriesList" class="space-y-4"></div>
+<section class="mb-6">
+  <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl font-semibold text-slate-800">Today’s Log</h2>
+        <p class="text-slate-500 text-sm">Meals grouped by breakfast, lunch, dinner, and snacks.</p>
       </div>
-    </section>
-  </main>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button
+          id="createCustomMealBtn"
+          type="button"
+          class="inline-flex items-center justify-center rounded-2xl border border-lime-300 bg-lime-50 px-4 py-2.5 text-sm font-medium text-lime-700 shadow-sm hover:bg-lime-100 transition"
+        >
+          Create Custom Meal
+        </button>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <p id="entriesMessage" class="text-sm text-slate-600">Loading entries...</p>
+    </div>
+
+    <div id="loadingSpinner" class="hidden mb-5">
+      <div class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+        <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-green-600"></span>
+        Loading...
+      </div>
+    </div>
+
+    <div id="entriesList" class="space-y-4"></div>
+  </div>
+</section>
 
   <!-- Meal Entry Modal -->
   <div id="mealEntryModal" class="hidden fixed inset-0 z-[70]">
