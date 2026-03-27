@@ -93,7 +93,8 @@ async function loadNutritionProfile() {
     const response = await fetch("/api/getNutritionProfile");
 
     if (!response.ok) {
-      throw new Error(`Failed to load profile: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to load profile: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -107,7 +108,7 @@ async function loadNutritionProfile() {
     }
   } catch (error) {
     console.error(error);
-    setMessage("Could not load profile.", true);
+    setMessage(error.message || "Could not load profile.", true);
   }
 }
 
@@ -144,7 +145,8 @@ async function calculateTargets() {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to calculate targets: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to calculate targets: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -154,7 +156,7 @@ async function calculateTargets() {
     setMessage("Suggested targets calculated.");
   } catch (error) {
     console.error(error);
-    setMessage("Could not calculate targets.", true);
+    setMessage(error.message || "Could not calculate targets.", true);
   }
 }
 
@@ -216,13 +218,14 @@ async function saveNutritionProfile(event) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to save profile: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to save profile: ${response.status} - ${errorText}`);
     }
 
     setMessage("Profile saved successfully.");
   } catch (error) {
     console.error(error);
-    setMessage("Could not save profile.", true);
+    setMessage(error.message || "Could not save profile.", true);
   }
 }
 

@@ -2,12 +2,15 @@ const { app } = require("@azure/functions");
 const { TableClient } = require("@azure/data-tables");
 
 function getUserId(req) {
-  const principal = req.headers["x-ms-client-principal"];
+  const principal = req.headers.get("x-ms-client-principal");
 
   if (!principal) return null;
 
-  const decoded = JSON.parse(Buffer.from(principal, "base64").toString("utf-8"));
-  return decoded.userId;
+  const decoded = JSON.parse(
+    Buffer.from(principal, "base64").toString("utf-8")
+  );
+
+  return decoded.userId || null;
 }
 
 app.http("getNutritionProfile", {
@@ -24,9 +27,20 @@ app.http("getNutritionProfile", {
         };
       }
 
+      const connectionString = process.env.STORAGE_CONNECTION_STRING;
+      const tableName = process.env.NUTRITION_PROFILES_TABLE_NAME || "NutritionProfiles";
+
+      if (!connectionString) {
+        context.log("Missing STORAGE_CONNECTION_STRING");
+        return {
+          status: 500,
+          jsonBody: { error: "Missing storage connection string" }
+        };
+      }
+
       const tableClient = TableClient.fromConnectionString(
-        process.env.STORAGE_CONNECTION_STRING,
-        "NutritionProfiles"
+        connectionString,
+        tableName
       );
 
       try {
@@ -39,14 +53,22 @@ app.http("getNutritionProfile", {
           }
         };
       } catch (err) {
-        // Not found = first-time user
+        if (err.statusCode === 404) {
+          return {
+            status: 200,
+            jsonBody: { profile: null }
+          };
+        }
+
+        context.log("Error reading nutrition profile", err);
+
         return {
-          status: 200,
-          jsonBody: { profile: null }
+          status: 500,
+          jsonBody: { error: "Failed to read nutrition profile" }
         };
       }
     } catch (error) {
-      context.log(error);
+      context.log("getNutritionProfile failed", error);
 
       return {
         status: 500,
