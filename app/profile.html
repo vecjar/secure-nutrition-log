@@ -1,140 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://cdn.tailwindcss.com"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nutrition Profile</title>
-  <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
-  <div class="container">
-    <header class="page-header">
-      <h1>Nutrition Profile</h1>
-      <p>Complete your profile to calculate your daily calorie and macro targets.</p>
-    </header>
+<body class="bg-gradient-to-br from-green-50 via-lime-50 to-emerald-100 min-h-screen text-slate-800">
 
-    <section class="card">
-      <form id="profileForm" class="form-grid">
-        <div class="form-group">
-          <label for="age">Age</label>
-          <input type="number" id="age" min="1" max="120" required />
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <section class="mb-8">
+      <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg border border-green-100 p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 class="text-4xl font-bold text-green-700 tracking-tight">Nutrition Profile</h1>
+            <p class="text-slate-600 mt-2 text-lg">
+              Complete your profile to calculate your daily calorie and macro targets.
+            </p>
+          </div>
+
+          <a
+            href="/index.html"
+            class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-slate-700 font-medium hover:bg-slate-50 transition">
+            Back to Dashboard
+          </a>
         </div>
-
-        <div class="form-group">
-          <label for="sex">Sex</label>
-          <select id="sex" required>
-            <option value="">Select</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="heightCm">Height (cm)</label>
-          <input type="number" id="heightCm" min="50" max="300" required />
-        </div>
-
-        <div class="form-group">
-          <label for="weightKg">Weight (kg)</label>
-          <input type="number" id="weightKg" min="20" max="500" step="0.1" required />
-        </div>
-
-        <div class="form-group">
-          <label for="activityLevel">Activity Level</label>
-          <select id="activityLevel" required>
-            <option value="">Select</option>
-            <option value="sedentary">Sedentary</option>
-            <option value="light">Lightly Active</option>
-            <option value="moderate">Moderately Active</option>
-            <option value="very">Very Active</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="goal">Goal</label>
-          <select id="goal" required>
-            <option value="">Select</option>
-            <option value="fat_loss">Fat Loss</option>
-            <option value="maintain">Maintain</option>
-            <option value="muscle_gain">Muscle Gain</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="targetWeightKg">Target Weight (kg)</label>
-          <input type="number" id="targetWeightKg" min="20" max="500" step="0.1" />
-        </div>
-
-        <div class="form-group">
-          <label for="weeklyGoalRate">Weekly Goal Rate (kg/week)</label>
-          <input type="number" id="weeklyGoalRate" min="0" max="2" step="0.1" />
-        </div>
-
-        <div class="form-actions full-width">
-          <button type="button" id="calculateTargetsBtn">Calculate Suggested Targets</button>
-        </div>
-
-        <div class="full-width">
-          <h2>Suggested Targets</h2>
-        </div>
-
-        <div class="form-group">
-          <label for="suggestedCalories">Calories</label>
-          <input type="number" id="suggestedCalories" readonly />
-        </div>
-
-        <div class="form-group">
-          <label for="suggestedProtein">Protein (g)</label>
-          <input type="number" id="suggestedProtein" readonly />
-        </div>
-
-        <div class="form-group">
-          <label for="suggestedCarbs">Carbs (g)</label>
-          <input type="number" id="suggestedCarbs" readonly />
-        </div>
-
-        <div class="form-group">
-          <label for="suggestedFat">Fat (g)</label>
-          <input type="number" id="suggestedFat" readonly />
-        </div>
-
-        <div class="full-width">
-          <h2>Final Daily Targets</h2>
-          <label class="checkbox-row">
-            <input type="checkbox" id="useCustomTargets" />
-            Manually adjust my targets
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label for="targetCalories">Calories</label>
-          <input type="number" id="targetCalories" min="0" />
-        </div>
-
-        <div class="form-group">
-          <label for="targetProtein">Protein (g)</label>
-          <input type="number" id="targetProtein" min="0" />
-        </div>
-
-        <div class="form-group">
-          <label for="targetCarbs">Carbs (g)</label>
-          <input type="number" id="targetCarbs" min="0" />
-        </div>
-
-        <div class="form-group">
-          <label for="targetFat">Fat (g)</label>
-          <input type="number" id="targetFat" min="0" />
-        </div>
-
-        <div class="form-actions full-width">
-          <button type="submit">Save Profile</button>
-          <a href="index.html" class="secondary-btn">Back to Dashboard</a>
-        </div>
-
-        <p id="profileMessage" class="status-message full-width"></p>
-      </form>
+      </div>
     </section>
-  </div>
+
+    <section>
+      <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
+        <form id="profileForm" class="space-y-8">
+
+          <div>
+            <h2 class="text-2xl font-semibold text-slate-800 mb-5">Profile Details</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label for="age" class="block text-sm font-medium text-slate-700 mb-2">Age</label>
+                <input type="number" id="age" min="1" max="120" required
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+
+              <div>
+                <label for="sex" class="block text-sm font-medium text-slate-700 mb-2">Sex</label>
+                <select id="sex" required
+                  class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
+                  <option value="">Select</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="heightCm" class="block text-sm font-medium text-slate-700 mb-2">Height (cm)</label>
+                <input type="number" id="heightCm" min="50" max="300" required
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+
+              <div>
+                <label for="weightKg" class="block text-sm font-medium text-slate-700 mb-2">Weight (kg)</label>
+                <input type="number" id="weightKg" min="20" max="500" step="0.1" required
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+
+              <div>
+                <label for="activityLevel" class="block text-sm font-medium text-slate-700 mb-2">Activity Level</label>
+                <select id="activityLevel" required
+                  class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
+                  <option value="">Select</option>
+                  <option value="sedentary">Sedentary</option>
+                  <option value="light">Lightly Active</option>
+                  <option value="moderate">Moderately Active</option>
+                  <option value="very">Very Active</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="goal" class="block text-sm font-medium text-slate-700 mb-2">Goal</label>
+                <select id="goal" required
+                  class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
+                  <option value="">Select</option>
+                  <option value="fat_loss">Fat Loss</option>
+                  <option value="maintain">Maintain</option>
+                  <option value="muscle_gain">Muscle Gain</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="targetWeightKg" class="block text-sm font-medium text-slate-700 mb-2">Target Weight (kg)</label>
+                <input type="number" id="targetWeightKg" min="20" max="500" step="0.1"
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+
+              <div>
+                <label for="weeklyGoalRate" class="block text-sm font-medium text-slate-700 mb-2">Weekly Goal Rate (kg/week)</label>
+                <input type="number" id="weeklyGoalRate" min="0" max="2" step="0.1"
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+            </div>
+
+            <div class="mt-5">
+              <button
+                type="button"
+                id="calculateTargetsBtn"
+                class="inline-flex items-center justify-center rounded-2xl bg-green-600 px-5 py-3 text-white font-semibold shadow hover:bg-green-700 transition">
+                Calculate Suggested Targets
+              </button>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-green-100 bg-green-50/60 p-5">
+            <h2 class="text-2xl font-semibold text-slate-800 mb-5">Suggested Targets</h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label for="suggestedCalories" class="block text-sm font-medium text-slate-700 mb-2">Calories</label>
+                <input type="number" id="suggestedCalories" readonly
+                  class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 shadow-sm" />
+              </div>
+
+              <div>
+                <label for="suggestedProtein" class="block text-sm font-medium text-slate-700 mb-2">Protein (g)</label>
+                <input type="number" id="suggestedProtein" readonly
+                  class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 shadow-sm" />
+              </div>
+
+              <div>
+                <label for="suggestedCarbs" class="block text-sm font-medium text-slate-700 mb-2">Carbs (g)</label>
+                <input type="number" id="suggestedCarbs" readonly
+                  class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 shadow-sm" />
+              </div>
+
+              <div>
+                <label for="suggestedFat" class="block text-sm font-medium text-slate-700 mb-2">Fat (g)</label>
+                <input type="number" id="suggestedFat" readonly
+                  class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 shadow-sm" />
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-lime-100 bg-lime-50/60 p-5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+              <h2 class="text-2xl font-semibold text-slate-800">Final Daily Targets</h2>
+
+              <label class="inline-flex items-center gap-3 text-slate-700 font-medium">
+                <input id="useCustomTargets" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500" />
+                Manually adjust my targets
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label for="targetCalories" class="block text-sm font-medium text-slate-700 mb-2">Calories</label>
+                <input type="number" id="targetCalories" min="0"
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+
+              <div>
+                <label for="targetProtein" class="block text-sm font-medium text-slate-700 mb-2">Protein (g)</label>
+                <input type="number" id="targetProtein" min="0"
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+
+              <div>
+                <label for="targetCarbs" class="block text-sm font-medium text-slate-700 mb-2">Carbs (g)</label>
+                <input type="number" id="targetCarbs" min="0"
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+
+              <div>
+                <label for="targetFat" class="block text-sm font-medium text-slate-700 mb-2">Fat (g)</label>
+                <input type="number" id="targetFat" min="0"
+                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              class="inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-5 py-3 text-white font-semibold shadow hover:bg-emerald-700 transition">
+              Save Profile
+            </button>
+
+            <a
+              href="/index.html"
+              class="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-5 py-3 text-slate-700 font-medium hover:bg-slate-50 transition">
+              Back to Dashboard
+            </a>
+          </div>
+
+          <p id="profileMessage" class="text-sm font-medium"></p>
+        </form>
+      </div>
+    </section>
+  </main>
 
   <script src="profile.js"></script>
 </body>
