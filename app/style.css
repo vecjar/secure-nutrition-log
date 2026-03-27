@@ -208,6 +208,10 @@ button:hover {
   animation-delay: 9s;
 }
 
+.startup-seen #startupOverlay {
+  display: none !important;
+}
+
 @keyframes spinWobble {
   0% {
     transform: rotate(0deg) scale(1);

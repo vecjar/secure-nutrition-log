@@ -6,6 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Secure Nutrition Log</title>
   <link rel="stylesheet" href="style.css" />
+  <script>
+  if (sessionStorage.getItem("hasSeenStartup")) {
+    document.documentElement.classList.add("startup-seen");
+  }
+</script>
 </head>
 <body class="bg-gradient-to-br ...">
 
