@@ -37,10 +37,10 @@
 
           <div class="flex flex-wrap items-center gap-3">
             <a
-               href="/admin.html"
-                id="adminDashboardBtn"
-                class="hidden inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2 text-white font-medium shadow hover:bg-slate-900 transition">
-                Admin Dashboard
+              href="/admin.html"
+              id="adminDashboardBtn"
+              class="hidden inline-flex items-center justify-center rounded-xl bg-slate-800 px-4 py-2 text-white font-medium shadow hover:bg-slate-900 transition">
+              Admin Dashboard
             </a>
 
             <a
@@ -54,58 +54,6 @@
               Sign out
             </a>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Admin Dashboard -->
-    <section id="adminDashboardSection" class="hidden mb-6">
-      <div class="bg-white rounded-3xl shadow-md border border-slate-200 p-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
-          <div>
-            <h2 class="text-2xl font-semibold text-slate-800">Admin Dashboard</h2>
-            <p class="text-slate-500 text-sm">Admin-only tools and role-protected backend data</p>
-          </div>
-
-          <button
-            id="closeAdminDashboardBtn"
-            type="button"
-            class="rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition">
-            Close
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-            <p class="text-sm text-slate-500">Admin User</p>
-            <p id="adminUserLabel" class="text-lg font-semibold text-slate-800 mt-1">-</p>
-          </div>
-
-          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-            <p class="text-sm text-slate-500">Role Check</p>
-            <p id="adminRoleCheckLabel" class="text-lg font-semibold text-slate-800 mt-1">-</p>
-          </div>
-
-          <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-            <p class="text-sm text-slate-500">Assigned Roles</p>
-            <p id="adminRolesLabel" class="text-lg font-semibold text-slate-800 mt-1">-</p>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div class="flex items-center justify-between gap-3 mb-3">
-            <h3 class="text-lg font-semibold text-slate-800">Admin API Response</h3>
-            <button
-              id="refreshAdminDashboardBtn"
-              type="button"
-              class="rounded-xl bg-slate-800 px-4 py-2 text-white text-sm font-medium shadow hover:bg-slate-900 transition">
-              Refresh Admin Data
-            </button>
-          </div>
-
-          <p id="adminDashboardMessage" class="text-sm text-slate-600 mb-3">Admin dashboard not loaded yet.</p>
-
-          <pre id="adminDashboardJson" class="rounded-2xl bg-slate-900 text-green-200 text-sm p-4 overflow-auto whitespace-pre-wrap min-h-[120px]"></pre>
         </div>
       </div>
     </section>
@@ -303,23 +251,14 @@
         </div>
 
         <div id="addMealTabSection">
-          <div class="flex items-center gap-2 mb-5">
-            <button id="manualModeBtn" type="button" class="rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition">
-              Manual Entry
-            </button>
-            <button id="savedModeBtn" type="button" class="rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition">
-              Custom Entry
-            </button>
-          </div>
-
-          <div id="savedFoodSelectorSection" class="hidden mb-5 rounded-2xl border border-lime-200 bg-lime-50 p-4">
-            <label for="savedFoodSelect" class="block text-sm font-medium text-slate-700 mb-2">Choose a Saved Food</label>
+          <div id="savedFoodSelectorSection" class="mb-5 rounded-2xl border border-lime-200 bg-lime-50 p-4">
+            <label for="savedFoodSelect" class="block text-sm font-medium text-slate-700 mb-2">Optional: Load a Saved Custom Entry</label>
 
             <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3">
               <select
                 id="savedFoodSelect"
                 class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200">
-                <option value="">Select a Custom Entry</option>
+                <option value="">Select a saved food</option>
               </select>
 
               <button
@@ -330,7 +269,9 @@
               </button>
             </div>
 
-            <p class="text-xs text-slate-500 mt-2">Selecting a saved food will instantly fill the meal form below.</p>
+            <p class="text-xs text-slate-500 mt-2">
+              Selecting a saved food will instantly fill the meal form below. You can still edit the values before saving.
+            </p>
           </div>
 
           <form id="entryForm" class="space-y-4">

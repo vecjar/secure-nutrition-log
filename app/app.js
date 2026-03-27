@@ -31,8 +31,6 @@ const saveCustomTabBtn = document.getElementById('saveCustomTabBtn');
 const addMealTabSection = document.getElementById('addMealTabSection');
 const saveCustomTabSection = document.getElementById('saveCustomTabSection');
 
-const manualModeBtn = document.getElementById('manualModeBtn');
-const savedModeBtn = document.getElementById('savedModeBtn');
 const savedFoodSelectorSection = document.getElementById('savedFoodSelectorSection');
 const savedFoodSelect = document.getElementById('savedFoodSelect');
 const deleteCustomFoodBtn = document.getElementById('deleteCustomFoodBtn');
@@ -77,14 +75,6 @@ const chartCarbsLabel = document.getElementById('chartCarbsLabel');
 const chartFatsLabel = document.getElementById('chartFatsLabel');
 
 const adminDashboardBtn = document.getElementById('adminDashboardBtn');
-const adminDashboardSection = document.getElementById('adminDashboardSection');
-const closeAdminDashboardBtn = document.getElementById('closeAdminDashboardBtn');
-const refreshAdminDashboardBtn = document.getElementById('refreshAdminDashboardBtn');
-const adminDashboardMessage = document.getElementById('adminDashboardMessage');
-const adminDashboardJson = document.getElementById('adminDashboardJson');
-const adminUserLabel = document.getElementById('adminUserLabel');
-const adminRoleCheckLabel = document.getElementById('adminRoleCheckLabel');
-const adminRolesLabel = document.getElementById('adminRolesLabel');
 
 let currentUser = null;
 let currentGoals = { ...DEFAULT_GOALS };
@@ -240,9 +230,6 @@ loadEntriesBtn.addEventListener('click', loadEntriesForSelectedDate);
 addMealTabBtn.addEventListener('click', () => setWorkspaceTab('meal'));
 saveCustomTabBtn.addEventListener('click', () => setWorkspaceTab('custom'));
 
-manualModeBtn.addEventListener('click', () => setEntryMode('manual'));
-savedModeBtn.addEventListener('click', () => setEntryMode('saved'));
-
 savedFoodSelect.addEventListener('change', () => {
   const selectedFoodId = savedFoodSelect.value;
 
@@ -314,54 +301,6 @@ entriesList.addEventListener('click', async (event) => {
     await deleteEntry(entryId);
   }
 });
-
-adminDashboardBtn?.addEventListener('click', async () => {
-  adminDashboardSection.classList.remove('hidden');
-  await loadAdminDashboard();
-});
-
-closeAdminDashboardBtn?.addEventListener('click', () => {
-  adminDashboardSection.classList.add('hidden');
-});
-
-refreshAdminDashboardBtn?.addEventListener('click', async () => {
-  await loadAdminDashboard();
-});
-
-async function loadAdminDashboard() {
-  if (!currentUser) {
-    adminDashboardMessage.textContent = 'Please sign in first.';
-    adminDashboardJson.textContent = '';
-    return;
-  }
-
-  adminDashboardMessage.textContent = 'Loading admin data...';
-  adminDashboardJson.textContent = '';
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/rolecheck/admin-data`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      adminDashboardMessage.textContent = data.error || 'Failed to load admin dashboard.';
-      adminUserLabel.textContent = '-';
-      adminRoleCheckLabel.textContent = 'Denied';
-      adminRolesLabel.textContent = '-';
-      adminDashboardJson.textContent = JSON.stringify(data, null, 2);
-      return;
-    }
-
-    adminDashboardMessage.textContent = 'Admin dashboard loaded successfully.';
-    adminUserLabel.textContent = data.adminUser || '-';
-    adminRoleCheckLabel.textContent = 'Admin verified';
-    adminRolesLabel.textContent = Array.isArray(data.roles) ? data.roles.join(', ') : '-';
-    adminDashboardJson.textContent = JSON.stringify(data, null, 2);
-  } catch (error) {
-    console.error(error);
-    adminDashboardMessage.textContent = 'Could not load admin dashboard.';
-    adminDashboardJson.textContent = '';
-  }
-}
 
 async function loadEntriesForSelectedDate() {
   if (!currentUser) {
@@ -558,7 +497,6 @@ async function loadUser() {
       userInfo.textContent = 'Not signed in.';
       userRolesInfo.textContent = '';
       adminDashboardBtn?.classList.add('hidden');
-      adminDashboardSection?.classList.add('hidden');
       formMessage.textContent = 'Please sign in to save entries.';
       entriesMessage.textContent = 'Please sign in to load your entries.';
       customFoodsMessage.textContent = 'Please sign in to use custom foods.';
@@ -594,7 +532,6 @@ async function loadUser() {
       adminDashboardBtn?.classList.remove('hidden');
     } else {
       adminDashboardBtn?.classList.add('hidden');
-      adminDashboardSection?.classList.add('hidden');
     }
 
     syncSelectedDateInput();
@@ -607,7 +544,6 @@ async function loadUser() {
     userInfo.textContent = 'User info could not be loaded.';
     userRolesInfo.textContent = '';
     adminDashboardBtn?.classList.add('hidden');
-    adminDashboardSection?.classList.add('hidden');
     customFoodsCache = [];
     populateSavedFoodsDropdown();
     currentGoals = { ...DEFAULT_GOALS };
@@ -820,26 +756,6 @@ function applyCustomFoodToEntryForm(food) {
   formMessage.textContent = `Loaded custom food: ${food.foodName}`;
 }
 
-function setEntryMode(mode) {
-  const isSavedMode = mode === 'saved';
-
-  if (savedFoodSelectorSection) {
-    savedFoodSelectorSection.classList.toggle('hidden', !isSavedMode);
-  }
-
-  if (manualModeBtn) {
-    manualModeBtn.className = isSavedMode
-      ? 'rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition'
-      : 'rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition';
-  }
-
-  if (savedModeBtn) {
-    savedModeBtn.className = isSavedMode
-      ? 'rounded-xl bg-lime-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-lime-700 transition'
-      : 'rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition';
-  }
-}
-
 function setProgress(element, value, goal) {
   if (!element) return;
 
@@ -851,14 +767,21 @@ function roundToOne(value) {
   return Math.round(value * 10) / 10;
 }
 
+function padNumber(value) {
+  return String(value).padStart(2, '0');
+}
+
 function getTodayDateString() {
-  return new Date().toISOString().split('T')[0];
+  const today = new Date();
+  return `${today.getFullYear()}-${padNumber(today.getMonth() + 1)}-${padNumber(today.getDate())}`;
 }
 
 function shiftDateString(dateString, days) {
-  const date = new Date(`${dateString}T00:00:00`);
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
   date.setDate(date.getDate() + days);
-  return date.toISOString().split('T')[0];
+
+  return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
 }
 
 function syncSelectedDateInput() {
@@ -868,7 +791,9 @@ function syncSelectedDateInput() {
 }
 
 function formatDateForDisplay(dateString) {
-  const date = new Date(`${dateString}T00:00:00`);
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+
   return date.toLocaleDateString(undefined, {
     weekday: 'long',
     year: 'numeric',
@@ -918,5 +843,4 @@ function setLoadButtonLoadingState(isLoading) {
 
 syncSelectedDateInput();
 setWorkspaceTab('meal');
-setEntryMode('manual');
 loadUser();
