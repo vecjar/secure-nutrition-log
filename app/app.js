@@ -121,7 +121,7 @@ if (startProfileSetupBtn) {
   });
 }
 
-entryForm.addEventListener('submit', async (event) => {
+entryForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   if (!currentUser) {
@@ -170,7 +170,7 @@ entryForm.addEventListener('submit', async (event) => {
   }
 });
 
-customFoodForm.addEventListener('submit', async (event) => {
+customFoodForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
   if (!currentUser) {
