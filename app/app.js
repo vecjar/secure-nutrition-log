@@ -557,12 +557,12 @@ function setWorkspaceTab(tab) {
   saveCustomTabSection.classList.toggle('hidden', isMealTab);
 
   addMealTabBtn.className = isMealTab
-    ? 'rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition'
-    : 'rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition';
+    ? 'rounded-xl bg-green-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-green-700 transition'
+    : 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition';
 
   saveCustomTabBtn.className = isMealTab
-    ? 'rounded-xl border border-slate-300 px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-50 transition'
-    : 'rounded-xl bg-lime-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-lime-700 transition';
+    ? 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition'
+    : 'rounded-xl bg-lime-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-lime-700 transition';
 }
 
 function sortEntriesByMealOrder(entries) {
