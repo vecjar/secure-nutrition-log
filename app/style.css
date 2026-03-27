@@ -99,3 +99,27 @@ button:hover {
 .delete-btn:hover {
   opacity: 0.95;
 }
+
+.startup-photo-wrap {
+  width: 180px;
+  height: 180px;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 6px solid rgba(255,255,255,0.8);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  animation: spin 3s linear infinite;
+}
+
+.startup-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.fruit {
+  position: absolute;
+  font-size: 3rem;
+  z-index: 1;
+  animation: floaty 10s ease-in-out infinite;
+}
