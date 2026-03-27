@@ -90,7 +90,6 @@ const focusCaloriesRemaining = document.getElementById('focusCaloriesRemaining')
 const focusMealsLogged = document.getElementById('focusMealsLogged');
 
 const savedFoodsCount = document.getElementById('savedFoodsCount');
-const savedFoodsLastUsed = document.getElementById('savedFoodsLastUsed');
 
 const profileSetupModal = document.getElementById('profileSetupModal');
 const startProfileSetupBtn = document.getElementById('startProfileSetupBtn');
@@ -100,7 +99,6 @@ let nutritionProfile = null;
 let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
 let currentSelectedDate = getTodayDateString();
-let lastLoadedSavedFoodName = 'None yet';
 
 startProfileSetupBtn?.addEventListener('click', () => {
   window.location.href = '/profile.html';
@@ -196,7 +194,6 @@ customFoodForm?.addEventListener('submit', async (event) => {
   }
 });
 
-loadEntriesBtn?.addEventListener('click', loadEntriesForSelectedDate);
 addMealTabBtn?.addEventListener('click', () => setWorkspaceTab('meal'));
 saveCustomTabBtn?.addEventListener('click', () => setWorkspaceTab('custom'));
 
@@ -210,8 +207,6 @@ savedFoodSelect?.addEventListener('change', () => {
     return;
   }
 
-  lastLoadedSavedFoodName = selectedFood.foodName || 'Saved food';
-  updateSavedFoodsSummary();
   applyCustomFoodToEntryForm(selectedFood);
 });
 
@@ -379,7 +374,6 @@ async function loadEntriesForSelectedDate() {
   if (entriesMessage) entriesMessage.textContent = 'Loading entries...';
   if (entriesList) entriesList.innerHTML = '';
   showSpinner();
-  setLoadButtonLoadingState(true);
 
   try {
     const response = await fetch(
@@ -420,7 +414,6 @@ async function loadEntriesForSelectedDate() {
     if (entriesMessage) entriesMessage.textContent = 'Could not load entries for the selected day.';
   } finally {
     hideSpinner();
-    setLoadButtonLoadingState(false);
   }
 }
 
@@ -464,7 +457,6 @@ async function loadCustomFoods() {
 
 async function deleteEntry(entryId) {
   showSpinner();
-  setLoadButtonLoadingState(true);
 
   try {
     const response = await fetch(
@@ -486,7 +478,6 @@ async function deleteEntry(entryId) {
     if (entriesMessage) entriesMessage.textContent = 'Could not delete entry.';
   } finally {
     hideSpinner();
-    setLoadButtonLoadingState(false);
   }
 }
 
@@ -507,12 +498,19 @@ async function deleteCustomFood(foodId) {
     if (formMessage) formMessage.textContent = 'Saved food deleted successfully.';
     await loadCustomFoods();
 
-    document.getElementById('foodName').value = '';
-    document.getElementById('calories').value = '';
-    document.getElementById('protein').value = '';
-    document.getElementById('carbs').value = '';
-    document.getElementById('fats').value = '';
-    document.getElementById('notes').value = '';
+    const foodName = document.getElementById('foodName');
+    const calories = document.getElementById('calories');
+    const protein = document.getElementById('protein');
+    const carbs = document.getElementById('carbs');
+    const fats = document.getElementById('fats');
+    const notes = document.getElementById('notes');
+
+    if (foodName) foodName.value = '';
+    if (calories) calories.value = '';
+    if (protein) protein.value = '';
+    if (carbs) carbs.value = '';
+    if (fats) fats.value = '';
+    if (notes) notes.value = '';
   } catch (error) {
     console.error(error);
     if (formMessage) formMessage.textContent = 'Could not delete saved food.';
@@ -689,10 +687,6 @@ function updateSavedFoodsSummary() {
   if (savedFoodsCount) {
     savedFoodsCount.textContent = customFoodsCache.length;
   }
-
-  if (savedFoodsLastUsed) {
-    savedFoodsLastUsed.textContent = lastLoadedSavedFoodName || 'None yet';
-  }
 }
 
 function setWorkspaceTab(tab) {
@@ -791,36 +785,42 @@ function renderEntriesGroupedByMeal(entries) {
       entryCard.className = `rounded-2xl border ${style.border} bg-white p-4 shadow-sm hover:shadow-md transition`;
 
       entryCard.innerHTML = `
-        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          
+        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div class="min-w-0 flex-1">
-            <div class="flex items-start justify-between gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div class="min-w-0">
                 <p class="text-lg font-semibold text-slate-800 break-words">${entry.foodName}</p>
               </div>
+
+              <div class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 w-fit">
+                ${entry.calories} calories
+              </div>
             </div>
 
-            <div class="mt-3 flex flex-wrap items-center gap-2">
-              <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
-                ${entry.calories} cal
-              </span>
-              <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700">
-                P ${entry.protein ?? '-'}
-              </span>
-              <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-sm text-amber-700">
-                C ${entry.carbs ?? '-'}
-              </span>
-              <span class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1 text-sm text-rose-700">
-                F ${entry.fats ?? '-'}
-              </span>
+            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">
+              <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
+                <p class="text-sm font-semibold text-blue-700 mt-1">${entry.protein ?? '-'}</p>
+              </div>
+
+              <div class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
+                <p class="text-sm font-semibold text-amber-700 mt-1">${entry.carbs ?? '-'}</p>
+              </div>
+
+              <div class="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
+                <p class="text-sm font-semibold text-rose-700 mt-1">${entry.fats ?? '-'}</p>
+              </div>
             </div>
 
             ${
               hasNotes
                 ? `
-              <p class="mt-3 text-sm text-slate-500 break-words">
-                <span class="font-medium text-slate-600">Notes:</span> ${entry.notes}
-              </p>
+              <div class="mt-3 rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Notes</p>
+                <p class="mt-1 text-sm text-slate-600 break-words">${entry.notes}</p>
+              </div>
             `
                 : ''
             }
@@ -1033,20 +1033,6 @@ function setFormLoadingState(isLoading) {
   } else {
     submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
     submitButton.textContent = 'Save Meal Entry';
-  }
-}
-
-function setLoadButtonLoadingState(isLoading) {
-  if (!loadEntriesBtn) return;
-
-  loadEntriesBtn.disabled = isLoading;
-
-  if (isLoading) {
-    loadEntriesBtn.classList.add('opacity-70', 'cursor-not-allowed');
-    loadEntriesBtn.textContent = 'Loading...';
-  } else {
-    loadEntriesBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-    loadEntriesBtn.textContent = 'Refresh Log';
   }
 }
 
