@@ -17,11 +17,9 @@ const MEAL_LABELS = {
 };
 
 const entryForm = document.getElementById('entryForm');
-const goalsForm = document.getElementById('goalsForm');
 const customFoodForm = document.getElementById('customFoodForm');
 
 const formMessage = document.getElementById('formMessage');
-const goalsMessage = document.getElementById('goalsMessage');
 const customFoodsMessage = document.getElementById('customFoodsMessage');
 
 const loadEntriesBtn = document.getElementById('loadEntriesBtn');
@@ -77,6 +75,7 @@ const chartFatsLabel = document.getElementById('chartFatsLabel');
 const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 
 let currentUser = null;
+let nutritionProfile = null;
 let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
 let currentSelectedDate = getTodayDateString();
@@ -127,56 +126,6 @@ entryForm.addEventListener('submit', async (event) => {
     formMessage.textContent = 'Could not save entry. Please try again.';
   } finally {
     setFormLoadingState(false);
-  }
-});
-
-goalsForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  if (!currentUser) {
-    goalsMessage.textContent = 'Please sign in before saving goals.';
-    return;
-  }
-
-  goalsMessage.textContent = 'Saving goals...';
-
-  const payload = {
-    calories: Number(document.getElementById('goalCalories').value) || DEFAULT_GOALS.calories,
-    protein: Number(document.getElementById('goalProtein').value) || DEFAULT_GOALS.protein,
-    carbs: Number(document.getElementById('goalCarbs').value) || DEFAULT_GOALS.carbs,
-    fats: Number(document.getElementById('goalFats').value) || DEFAULT_GOALS.fats
-  };
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/saveGoals`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      goalsMessage.textContent = data.error || 'Failed to save goals.';
-      return;
-    }
-
-    currentGoals = {
-      ...currentGoals,
-      calories: payload.calories,
-      protein: payload.protein,
-      carbs: payload.carbs,
-      fats: payload.fats
-    };
-
-    renderGoalLabels();
-    await loadEntriesForSelectedDate();
-    goalsMessage.textContent = 'Goals saved successfully.';
-  } catch (error) {
-    console.error(error);
-    goalsMessage.textContent = 'Could not save goals.';
   }
 });
 
@@ -302,6 +251,84 @@ entriesList.addEventListener('click', async (event) => {
   }
 });
 
+async function fetchNutritionProfile() {
+  const response = await fetch(`${API_BASE_URL}/getNutritionProfile`);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to fetch nutrition profile: ${response.status} - ${errorText}`);
+  }
+
+  return response.json();
+}
+
+function isProfileComplete(profile) {
+  if (!profile) return false;
+
+  const hasCoreFields =
+    profile.age &&
+    profile.sex &&
+    profile.heightCm &&
+    profile.weightKg &&
+    profile.activityLevel &&
+    profile.goal;
+
+  const activeTargets = profile.useCustomTargets
+    ? profile.customTargets
+    : profile.calculatedTargets;
+
+  const hasTargets =
+    activeTargets &&
+    activeTargets.calories &&
+    activeTargets.protein &&
+    activeTargets.carbs &&
+    activeTargets.fat;
+
+  return !!(hasCoreFields && hasTargets);
+}
+
+function getActiveProfileTargets(profile) {
+  if (!profile) return null;
+
+  return profile.useCustomTargets
+    ? profile.customTargets
+    : profile.calculatedTargets;
+}
+
+async function initializeNutritionProfile() {
+  try {
+    const result = await fetchNutritionProfile();
+    nutritionProfile = result.profile ?? null;
+
+    if (!isProfileComplete(nutritionProfile)) {
+      window.location.href = '/profile.html';
+      return false;
+    }
+
+    const targets = getActiveProfileTargets(nutritionProfile);
+
+    if (targets) {
+      currentGoals = {
+        ...DEFAULT_GOALS,
+        calories: Number(targets.calories) || DEFAULT_GOALS.calories,
+        protein: Number(targets.protein) || DEFAULT_GOALS.protein,
+        carbs: Number(targets.carbs) || DEFAULT_GOALS.carbs,
+        fats: Number(targets.fat) || DEFAULT_GOALS.fats
+      };
+    } else {
+      currentGoals = { ...DEFAULT_GOALS };
+    }
+
+    renderGoalLabels();
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize nutrition profile', error);
+    currentGoals = { ...DEFAULT_GOALS };
+    renderGoalLabels();
+    return true;
+  }
+}
+
 async function loadEntriesForSelectedDate() {
   if (!currentUser) {
     entriesMessage.textContent = 'Please sign in to load your entries.';
@@ -352,40 +379,6 @@ async function loadEntriesForSelectedDate() {
   } finally {
     hideSpinner();
     setLoadButtonLoadingState(false);
-  }
-}
-
-async function loadGoals() {
-  if (!currentUser) {
-    currentGoals = { ...DEFAULT_GOALS };
-    populateGoalsForm();
-    renderGoalLabels();
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/getGoals`);
-    const data = await response.json();
-
-    if (!response.ok || !data.goals) {
-      currentGoals = { ...DEFAULT_GOALS };
-    } else {
-      currentGoals = {
-        ...DEFAULT_GOALS,
-        calories: Number(data.goals.calories) || DEFAULT_GOALS.calories,
-        protein: Number(data.goals.protein) || DEFAULT_GOALS.protein,
-        carbs: Number(data.goals.carbs) || DEFAULT_GOALS.carbs,
-        fats: Number(data.goals.fats) || DEFAULT_GOALS.fats
-      };
-    }
-
-    populateGoalsForm();
-    renderGoalLabels();
-  } catch (error) {
-    console.error(error);
-    currentGoals = { ...DEFAULT_GOALS };
-    populateGoalsForm();
-    renderGoalLabels();
   }
 }
 
@@ -494,17 +487,16 @@ async function loadUser() {
 
     if (!clientPrincipal) {
       currentUser = null;
+      nutritionProfile = null;
       userInfo.textContent = 'Not signed in.';
       userRolesInfo.textContent = '';
       adminDashboardBtn?.classList.add('hidden');
       formMessage.textContent = 'Please sign in to save entries.';
       entriesMessage.textContent = 'Please sign in to load your entries.';
       customFoodsMessage.textContent = 'Please sign in to use custom foods.';
-      goalsMessage.textContent = 'Please sign in to save goals.';
       customFoodsCache = [];
       populateSavedFoodsDropdown();
       currentGoals = { ...DEFAULT_GOALS };
-      populateGoalsForm();
       renderGoalLabels();
       resetSummary();
       renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
@@ -535,19 +527,22 @@ async function loadUser() {
     }
 
     syncSelectedDateInput();
-    await loadGoals();
+
+    const canContinue = await initializeNutritionProfile();
+    if (!canContinue) return;
+
     await loadCustomFoods();
     await loadEntriesForSelectedDate();
   } catch (error) {
     console.error(error);
     currentUser = null;
+    nutritionProfile = null;
     userInfo.textContent = 'User info could not be loaded.';
     userRolesInfo.textContent = '';
     adminDashboardBtn?.classList.add('hidden');
     customFoodsCache = [];
     populateSavedFoodsDropdown();
     currentGoals = { ...DEFAULT_GOALS };
-    populateGoalsForm();
     renderGoalLabels();
     resetSummary();
     renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
@@ -717,13 +712,6 @@ function resetSummary() {
   setProgress(progressCarbs, 0, currentGoals.carbs);
   setProgress(progressFats, 0, currentGoals.fats);
   setProgress(progressEntries, 0, DEFAULT_GOALS.entries);
-}
-
-function populateGoalsForm() {
-  document.getElementById('goalCalories').value = currentGoals.calories;
-  document.getElementById('goalProtein').value = currentGoals.protein;
-  document.getElementById('goalCarbs').value = currentGoals.carbs;
-  document.getElementById('goalFats').value = currentGoals.fats;
 }
 
 function renderGoalLabels() {
