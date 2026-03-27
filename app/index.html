@@ -7,14 +7,12 @@
   <title>Secure Nutrition Log</title>
   <link rel="stylesheet" href="style.css" />
   <script>
-    const navEntry = performance.getEntriesByType("navigation")[0];
-    const isReload = navEntry && navEntry.type === "reload";
-    const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
+  const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
 
-    if (hasSeenStartup && !isReload) {
-      document.documentElement.classList.add("startup-seen");
-    }
-  </script>
+  if (hasSeenStartup) {
+    document.documentElement.classList.add("startup-seen");
+  }
+</script>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 text-slate-800">
 
