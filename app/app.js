@@ -1097,7 +1097,7 @@ function renderEntriesGroupedByMeal(entries) {
       `;
 
     sectionLi.innerHTML = `
-      <div class="rounded-3xl border-2 border-slate-300 bg-white overflow-hidden shadow-sm">
+      <div class="rounded-2xl bg-white border-2 border-slate-300 shadow-sm p-5">
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between px-5 py-4 ${style.headerBg}">
           <div class="flex items-center gap-3 min-w-0">
             <button
