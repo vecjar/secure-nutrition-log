@@ -1101,11 +1101,10 @@ function renderEntriesGroupedByMeal(entries) {
               </span>
               <span class="text-sm font-medium text-slate-500">${countLabel}</span>
             </div>
-            <p class="mt-1 text-sm text-slate-500">
-  ${mealEntries.length === 0
-    ? `No ${MEAL_LABELS[mealType].toLowerCase()} logged yet.`
-    : `${mealEntries.length} item${mealEntries.length === 1 ? '' : 's'} logged.`}
-</p>
+            ${mealEntries.length === 0
+  ? `<p class="mt-1 text-sm text-slate-500">No ${MEAL_LABELS[mealType].toLowerCase()} logged yet.</p>`
+  : ''
+}
           </div>
         </div>
 
@@ -1130,21 +1129,28 @@ function renderEntryCard(entry, borderClass = 'border-slate-200') {
   const detailsParts = [];
 
   if (entry.notes && String(entry.notes).trim() !== '') {
-    detailsParts.push(...String(entry.notes).split('|').map(part => part.trim()).filter(Boolean));
+    detailsParts.push(
+      ...String(entry.notes)
+        .split('|')
+        .map(part => part.trim())
+        .filter(Boolean)
+    );
   }
 
   const detailsMarkup = detailsParts.length
     ? `
-      <div class="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
+      <div class="mt-4 flex flex-wrap gap-2">
         ${detailsParts.map(part => `
-          <span class="rounded-full bg-slate-100 px-3 py-1">${escapeHtml(part)}</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">
+            ${escapeHtml(part)}
+          </span>
         `).join('')}
       </div>
     `
     : '';
 
   return `
-    <div class="rounded-2xl border ${borderClass} bg-white px-4 py-4 shadow-sm">
+    <div class="rounded-2xl border ${borderClass} bg-white px-5 py-5 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0 flex-1">
           <p class="text-2xl font-bold text-slate-800 break-words">${escapeHtml(entry.foodName)}</p>
@@ -1152,30 +1158,30 @@ function renderEntryCard(entry, borderClass = 'border-slate-200') {
 
         <button
           type="button"
-          class="delete-btn text-sm font-medium text-slate-400 hover:text-red-600 transition"
+          class="delete-btn inline-flex items-center justify-center rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
           data-entry-id="${entry.id}">
           Delete
         </button>
       </div>
 
-      <div class="mt-4 flex flex-wrap items-end gap-x-6 gap-y-3">
+      <div class="mt-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
-          <p class="mt-1 text-4xl font-bold text-slate-800">
+          <p class="mt-1 text-5xl font-bold leading-none text-slate-800">
             ${escapeHtml(entry.calories)}
-            <span class="text-lg font-medium text-slate-500">kcal</span>
+            <span class="text-2xl font-medium text-slate-500">kcal</span>
           </p>
         </div>
 
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2 lg:justify-end">
           <span class="rounded-full bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700">
-            P ${formatMacroValue(entry.protein)}g
+            Protein ${formatMacroValue(entry.protein)}g
           </span>
           <span class="rounded-full bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
-            C ${formatMacroValue(entry.carbs)}g
+            Carbs ${formatMacroValue(entry.carbs)}g
           </span>
           <span class="rounded-full bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">
-            F ${formatMacroValue(entry.fats)}g
+            Fats ${formatMacroValue(entry.fats)}g
           </span>
         </div>
       </div>
