@@ -550,65 +550,64 @@ function renderFoodSearchResults(results) {
 
   if (!results.length) {
     foodSearchResults.innerHTML = `
-      <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
-        No foods found. Try a broader search like banana, oats, tofu, rice, or almond milk.
-      </div>
+      <div class="text-sm text-slate-500">No results found.</div>
     `;
     return;
   }
 
-  foodSearchResults.innerHTML = results.map((food, index) => `
-    <button
-      type="button"
-      class="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-blue-300 hover:bg-blue-50/50 hover:shadow transition"
-      data-search-result-index="${index}">
-      <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div class="min-w-0">
-          <p class="text-base font-semibold text-slate-800 break-words">${escapeHtml(food.foodName)}</p>
-          <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <span class="rounded-full bg-slate-100 px-2.5 py-1">${escapeHtml(food.serving || '100 g')}</span>
-            ${food.dataType ? `<span class="rounded-full bg-blue-100 px-2.5 py-1 text-blue-700">${escapeHtml(food.dataType)}</span>` : ''}
-            ${food.brandName ? `<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">${escapeHtml(food.brandName)}</span>` : ''}
-          </div>
+  foodSearchResults.innerHTML = results.map(food => `
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
+
+      <!-- Header -->
+      <div class="flex justify-between items-start mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🍏</span>
+          <h3 class="text-base font-semibold text-slate-800 leading-tight">
+            ${food.description}
+          </h3>
         </div>
 
-        <div class="text-sm font-semibold text-blue-700 md:text-right">
-          Use this food
+        <button
+          onclick='useFood(${JSON.stringify(food)})'
+          class="text-sm font-semibold text-blue-600 hover:text-blue-800"
+        >
+          Use
+        </button>
+      </div>
+
+      <!-- Calories -->
+      <div class="text-sm text-slate-400 uppercase tracking-wide">Calories</div>
+      <div class="text-2xl font-bold text-slate-800 mb-4">
+        ${food.calories}
+        <span class="text-sm font-medium text-slate-500">kcal</span>
+      </div>
+
+      <!-- Macros -->
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div class="bg-slate-50 rounded-xl p-3">
+          <div class="text-xs text-slate-400 uppercase">Protein</div>
+          <div class="font-semibold text-slate-700">${food.protein ?? 0}g</div>
+        </div>
+
+        <div class="bg-amber-50 rounded-xl p-3">
+          <div class="text-xs text-slate-400 uppercase">Carbs</div>
+          <div class="font-semibold text-amber-700">${food.carbs ?? 0}g</div>
+        </div>
+
+        <div class="bg-rose-50 rounded-xl p-3">
+          <div class="text-xs text-slate-400 uppercase">Fats</div>
+          <div class="font-semibold text-rose-700">${food.fats ?? 0}g</div>
         </div>
       </div>
 
-      <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
-          <p class="mt-1 text-base font-semibold text-emerald-700">${formatMacroValue(food.calories)}</p>
-        </div>
-
-        <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-3">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
-          <p class="mt-1 text-base font-semibold text-blue-700">${formatMacroValue(food.protein)}</p>
-        </div>
-
-        <div class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-3">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
-          <p class="mt-1 text-base font-semibold text-amber-700">${formatMacroValue(food.carbs)}</p>
-        </div>
-
-        <div class="rounded-xl border border-rose-100 bg-rose-50 px-3 py-3">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
-          <p class="mt-1 text-base font-semibold text-rose-700">${formatMacroValue(food.fats)}</p>
-        </div>
+      <!-- Tags -->
+      <div class="flex flex-wrap gap-2 mt-4 text-xs text-slate-500">
+        ${food.servingSize ? `<span class="bg-slate-100 px-2 py-1 rounded-full">${food.servingSize}</span>` : ''}
+        ${food.brandOwner ? `<span class="bg-slate-100 px-2 py-1 rounded-full">${food.brandOwner}</span>` : ''}
       </div>
-    </button>
+
+    </div>
   `).join('');
-
-  document.querySelectorAll('[data-search-result-index]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const index = Number(button.getAttribute('data-search-result-index'));
-      const selectedFood = results[index];
-      if (!selectedFood) return;
-      applyFoodSearchResultToEntryForm(selectedFood);
-    });
-  });
 }
 
 function applyFoodSearchResultToEntryForm(food) {
