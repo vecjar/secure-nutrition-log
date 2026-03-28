@@ -545,6 +545,63 @@ async function searchFoods() {
   }
 }
 
+function getFoodEmoji(food) {
+  const text = `${food.foodName || ''} ${food.brandName || ''} ${food.dataType || ''}`.toLowerCase();
+
+  if (text.includes('apple')) return '🍎';
+  if (text.includes('banana')) return '🍌';
+  if (text.includes('orange')) return '🍊';
+  if (text.includes('lemon')) return '🍋';
+  if (text.includes('grape')) return '🍇';
+  if (text.includes('berry') || text.includes('strawberry') || text.includes('blueberry')) return '🫐';
+  if (text.includes('pineapple')) return '🍍';
+  if (text.includes('avocado')) return '🥑';
+  if (text.includes('peach')) return '🍑';
+  if (text.includes('pear')) return '🍐';
+  if (text.includes('melon') || text.includes('watermelon')) return '🍉';
+
+  if (text.includes('broccoli') || text.includes('lettuce') || text.includes('salad') || text.includes('cabbage')) return '🥬';
+  if (text.includes('carrot')) return '🥕';
+  if (text.includes('corn')) return '🌽';
+  if (text.includes('potato') || text.includes('chips') || text.includes('fries')) return '🥔';
+  if (text.includes('tomato')) return '🍅';
+  if (text.includes('pepper')) return '🫑';
+  if (text.includes('cucumber')) return '🥒';
+  if (text.includes('mushroom')) return '🍄';
+
+  if (text.includes('bread') || text.includes('toast') || text.includes('bagel')) return '🍞';
+  if (text.includes('rice')) return '🍚';
+  if (text.includes('pasta') || text.includes('spaghetti') || text.includes('noodle')) return '🍝';
+  if (text.includes('oat') || text.includes('granola') || text.includes('cereal')) return '🥣';
+
+  if (text.includes('chicken')) return '🍗';
+  if (text.includes('beef') || text.includes('steak') || text.includes('burger')) return '🥩';
+  if (text.includes('fish') || text.includes('salmon') || text.includes('tuna')) return '🐟';
+  if (text.includes('egg')) return '🥚';
+  if (text.includes('tofu')) return '🧈';
+  if (text.includes('bean') || text.includes('lentil') || text.includes('chickpea')) return '🫘';
+
+  if (text.includes('milk')) return '🥛';
+  if (text.includes('juice')) return '🧃';
+  if (text.includes('coffee')) return '☕';
+  if (text.includes('tea')) return '🍵';
+  if (text.includes('soda') || text.includes('cola') || text.includes('soft drink')) return '🥤';
+
+  if (text.includes('cookie') || text.includes('biscuit')) return '🍪';
+  if (text.includes('cake') || text.includes('muffin') || text.includes('brownie')) return '🧁';
+  if (text.includes('chocolate')) return '🍫';
+  if (text.includes('ice cream')) return '🍨';
+  if (text.includes('candy') || text.includes('lolly')) return '🍬';
+
+  if (text.includes('pizza')) return '🍕';
+  if (text.includes('sandwich')) return '🥪';
+  if (text.includes('soup')) return '🍲';
+  if (text.includes('taco')) return '🌮';
+  if (text.includes('burrito')) return '🌯';
+
+  return '🍽️';
+}
+
 function renderFoodSearchResults(results) {
   if (!foodSearchResults) return;
 
@@ -563,7 +620,7 @@ function renderFoodSearchResults(results) {
     >
       <div class="flex items-start justify-between gap-4">
         <div class="flex items-center gap-3 min-w-0">
-          <span class="text-2xl">🍏</span>
+          <span class="text-2xl">${getFoodEmoji(food)}</span>
           <div class="min-w-0">
             <h3 class="text-xl font-semibold text-slate-800 leading-tight break-words">
               ${escapeHtml(food.foodName || 'Food result')}
@@ -576,7 +633,7 @@ function renderFoodSearchResults(results) {
           </div>
         </div>
 
-        <span class="text-sm font-semibold text-blue-600 whitespace-nowrap">Use</span>
+        <span class="text-sm font-semibold text-blue-600 whitespace-nowrap">Tap to use</span>
       </div>
 
       <div class="mt-5">
