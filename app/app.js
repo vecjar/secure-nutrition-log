@@ -1038,31 +1038,31 @@ function renderEntriesGroupedByMeal(entries) {
   const mealStyles = {
     breakfast: {
       badge: 'bg-blue-100 text-blue-700',
-      sectionBorder: 'border-slate-200',
-      sectionBg: 'bg-white',
-      button: 'text-blue-600 hover:text-blue-700',
-      emptyIcon: '+'
+      sectionBorder: 'border-blue-100',
+      headerBg: 'bg-blue-50',
+      button: 'bg-blue-600 hover:bg-blue-700 text-white',
+      entryAccent: 'border-l-blue-400'
     },
     lunch: {
       badge: 'bg-emerald-100 text-emerald-700',
-      sectionBorder: 'border-slate-200',
-      sectionBg: 'bg-white',
-      button: 'text-emerald-600 hover:text-emerald-700',
-      emptyIcon: '+'
+      sectionBorder: 'border-emerald-100',
+      headerBg: 'bg-emerald-50',
+      button: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+      entryAccent: 'border-l-emerald-400'
     },
     dinner: {
       badge: 'bg-amber-100 text-amber-700',
-      sectionBorder: 'border-slate-200',
-      sectionBg: 'bg-white',
-      button: 'text-amber-600 hover:text-amber-700',
-      emptyIcon: '+'
+      sectionBorder: 'border-amber-100',
+      headerBg: 'bg-amber-50',
+      button: 'bg-amber-600 hover:bg-amber-700 text-white',
+      entryAccent: 'border-l-amber-400'
     },
     snack: {
       badge: 'bg-rose-100 text-rose-700',
-      sectionBorder: 'border-slate-200',
-      sectionBg: 'bg-white',
-      button: 'text-rose-600 hover:text-rose-700',
-      emptyIcon: '+'
+      sectionBorder: 'border-rose-100',
+      headerBg: 'bg-rose-50',
+      button: 'bg-rose-600 hover:bg-rose-700 text-white',
+      entryAccent: 'border-l-rose-400'
     }
   };
 
@@ -1074,36 +1074,36 @@ function renderEntriesGroupedByMeal(entries) {
     const style = mealStyles[mealType] || {
       badge: 'bg-slate-100 text-slate-700',
       sectionBorder: 'border-slate-200',
-      sectionBg: 'bg-white',
-      button: 'text-slate-600 hover:text-slate-700',
-      emptyIcon: '+'
+      headerBg: 'bg-slate-50',
+      button: 'bg-slate-700 hover:bg-slate-800 text-white',
+      entryAccent: 'border-l-slate-400'
     };
 
     const isExpanded = mealSectionState[mealType] !== false;
     const countLabel = `${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}`;
 
     const sectionLi = document.createElement('li');
-    sectionLi.className = 'mb-5';
+    sectionLi.className = 'mb-6';
 
     const entriesMarkup = mealEntries.length
       ? mealEntries.map((entry, index) => `
-          ${renderEntryCard(entry)}
-          ${index < mealEntries.length - 1 ? '<div class="mx-4 border-t border-slate-100"></div>' : ''}
+          ${renderEntryCard(entry, style.entryAccent)}
+          ${index < mealEntries.length - 1 ? '<div class="mx-5 border-t border-slate-100"></div>' : ''}
         `).join('')
       : `
-          <div class="px-5 pb-5 text-sm text-slate-500">
-            No ${MEAL_LABELS[mealType].toLowerCase()} entries yet for ${formatDateForDisplay(currentSelectedDate)}.
-          </div>
-        `;
+        <div class="px-5 py-5 text-sm text-slate-500">
+          No ${MEAL_LABELS[mealType].toLowerCase()} entries yet for ${formatDateForDisplay(currentSelectedDate)}.
+        </div>
+      `;
 
     sectionLi.innerHTML = `
-      <div class="rounded-3xl border ${style.sectionBorder} ${style.sectionBg} overflow-hidden shadow-sm">
-        <div class="flex items-center justify-between gap-4 px-5 py-4">
+      <div class="rounded-3xl border-2 border-slate-300 bg-white overflow-hidden shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between px-5 py-4 ${style.headerBg}">
           <div class="flex items-center gap-3 min-w-0">
             <button
               type="button"
               data-toggle-meal-type="${mealType}"
-              class="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition"
+              class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white bg-white text-slate-700 shadow-sm hover:bg-slate-50 transition"
               aria-expanded="${isExpanded}">
               <span class="text-lg font-semibold">${isExpanded ? '−' : '+'}</span>
             </button>
@@ -1113,21 +1113,25 @@ function renderEntriesGroupedByMeal(entries) {
                 <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${style.badge}">
                   ${MEAL_LABELS[mealType]}
                 </span>
-                <span class="text-sm text-slate-500">${countLabel}</span>
+                <span class="text-sm font-medium text-slate-600">${countLabel}</span>
               </div>
+              ${
+                mealEntries.length === 0
+                  ? `<p class="mt-1 text-sm text-slate-500">No ${MEAL_LABELS[mealType].toLowerCase()} logged yet.</p>`
+                  : ''
+              }
             </div>
           </div>
 
           <button
             type="button"
             data-add-meal-type="${mealType}"
-            class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ${style.button} transition">
-            <span class="text-xl leading-none">+</span>
-            <span>Add</span>
+            class="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold shadow ${style.button} transition">
+            + Add ${MEAL_LABELS[mealType]}
           </button>
         </div>
 
-        <div class="${isExpanded ? '' : 'hidden'}" data-meal-panel="${mealType}">
+        <div class="${isExpanded ? 'block' : 'hidden'}" data-meal-panel="${mealType}">
           ${entriesMarkup}
         </div>
       </div>
@@ -1137,7 +1141,7 @@ function renderEntriesGroupedByMeal(entries) {
   }
 }
 
-function renderEntryCard(entry) {
+function renderEntryCard(entry, accentClass = 'border-l-slate-400') {
   const detailsParts = [];
 
   if (entry.notes && String(entry.notes).trim() !== '') {
@@ -1153,49 +1157,64 @@ function renderEntryCard(entry) {
   const macroParts = [];
 
   if (entry.protein !== null && entry.protein !== undefined && entry.protein !== '') {
-    macroParts.push(`Protein ${formatMacroValue(entry.protein)}g`);
+    macroParts.push(`P ${formatMacroValue(entry.protein)}g`);
   }
 
   if (entry.carbs !== null && entry.carbs !== undefined && entry.carbs !== '') {
-    macroParts.push(`Carbs ${formatMacroValue(entry.carbs)}g`);
+    macroParts.push(`C ${formatMacroValue(entry.carbs)}g`);
   }
 
   if (entry.fats !== null && entry.fats !== undefined && entry.fats !== '') {
-    macroParts.push(`Fats ${formatMacroValue(entry.fats)}g`);
+    macroParts.push(`F ${formatMacroValue(entry.fats)}g`);
   }
 
   return `
     <div class="px-5 py-4">
-      <div class="flex items-start justify-between gap-4">
-        <div class="min-w-0 flex-1">
-          <p class="text-xl font-semibold text-slate-800 break-words">
-            ${escapeHtml(entry.foodName)}
-          </p>
-
-          ${firstDetail ? `
-            <p class="mt-1 text-sm text-slate-500 break-words">
-              ${escapeHtml(firstDetail)}
+      <div class="rounded-2xl border border-slate-100 border-l-4 ${accentClass} bg-white px-4 py-4">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0 flex-1">
+            <p class="text-xl font-bold text-slate-800 break-words">
+              ${escapeHtml(entry.foodName)}
             </p>
-          ` : ''}
 
-          ${macroParts.length ? `
-            <p class="mt-2 text-sm text-slate-500 break-words">
-              ${escapeHtml(macroParts.join(' • '))}
-            </p>
-          ` : ''}
-        </div>
+            <div class="mt-3 flex flex-wrap items-end gap-x-5 gap-y-2">
+              <div>
+                <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
+                <p class="mt-1 text-3xl font-bold text-slate-800 leading-none">
+                  ${escapeHtml(entry.calories)}
+                  <span class="text-lg font-medium text-slate-500">kcal</span>
+                </p>
+              </div>
 
-        <div class="flex flex-col items-end gap-2 flex-shrink-0">
-          <div class="text-right">
-            <p class="text-2xl font-bold text-slate-800 leading-none">
-              ${escapeHtml(entry.calories)}
-            </p>
-            <p class="text-sm text-slate-500 mt-1">kcal</p>
+              ${
+                macroParts.length
+                  ? `
+                  <div class="flex flex-wrap gap-2">
+                    ${macroParts.map(part => `
+                      <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600">
+                        ${escapeHtml(part)}
+                      </span>
+                    `).join('')}
+                  </div>
+                `
+                  : ''
+              }
+            </div>
+
+            ${
+              firstDetail
+                ? `
+                <p class="mt-3 text-sm text-slate-500 break-words">
+                  ${escapeHtml(firstDetail)}
+                </p>
+              `
+                : ''
+            }
           </div>
 
           <button
             type="button"
-            class="delete-btn text-xs font-medium text-slate-400 hover:text-red-600 transition"
+            class="delete-btn inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition"
             data-entry-id="${entry.id}">
             Delete
           </button>
