@@ -1,4 +1,4 @@
-const CACHE_NAME = "secure-nutrition-log-v5";
+const CACHE_NAME = "secure-nutrition-log-v6";
 const APP_SHELL = [
   "/",
   "/index.html",

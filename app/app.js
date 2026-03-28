@@ -982,21 +982,33 @@ function openMealEntryModal(mealType = '') {
   if (mealType) {
     const mealLabel = MEAL_LABELS[mealType] || 'Meal';
     if (mealModalHeading) mealModalHeading.textContent = `Add ${mealLabel}`;
-    if (mealModalSubtext) mealModalSubtext.textContent = `Log a ${mealLabel.toLowerCase()} entry for ${formatDateForDisplay(currentSelectedDate)}.`;
+    if (mealModalSubtext) {
+      mealModalSubtext.textContent = `Log a ${mealLabel.toLowerCase()} entry for ${formatDateForDisplay(currentSelectedDate)}.`;
+    }
 
     const mealTypeSelect = document.getElementById('mealType');
     if (mealTypeSelect) mealTypeSelect.value = mealType;
   } else {
     if (mealModalHeading) mealModalHeading.textContent = 'Add Meal';
-    if (mealModalSubtext) mealModalSubtext.textContent = 'Log a meal fast or reuse one of your saved foods.';
+    if (mealModalSubtext) {
+      mealModalSubtext.textContent = 'Log a meal fast or reuse one of your saved foods.';
+    }
   }
 
   setWorkspaceTab('meal');
   mealEntryModal?.classList.remove('hidden');
   document.body.classList.add('modal-open');
-  window.setTimeout(() => document.getElementById('foodName')?.focus(), 50);
-}
 
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+
+  window.setTimeout(() => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  }, 50);
+}
 function closeMealEntryModal() {
   mealEntryModal?.classList.add('hidden');
   document.body.classList.remove('modal-open');
@@ -1066,7 +1078,7 @@ function renderEntriesGroupedByMeal(entries) {
     }
   };
 
-  for (const mealType of MEAL_ORDER) {
+  const sectionsMarkup = MEAL_ORDER.map((mealType) => {
     const mealEntries = entries.filter(
       (entry) => (entry.mealType || '').toLowerCase() === mealType
     );
@@ -1082,63 +1094,71 @@ function renderEntriesGroupedByMeal(entries) {
     const isExpanded = mealSectionState[mealType] !== false;
     const countLabel = `${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}`;
 
-    const sectionLi = document.createElement('li');
-    sectionLi.className = 'mb-6';
-
     const entriesMarkup = mealEntries.length
       ? mealEntries.map((entry, index) => `
           ${renderEntryCard(entry, style.entryAccent)}
-          ${index < mealEntries.length - 1 ? '<div class="mx-5 border-t border-slate-100"></div>' : ''}
+          ${index < mealEntries.length - 1 ? '<div class="mx-3 sm:mx-5 border-t border-slate-100"></div>' : ''}
         `).join('')
       : `
-        <div class="px-5 py-5 text-sm text-slate-500">
+        <div class="px-3 sm:px-5 py-4 sm:py-5 text-sm text-slate-500">
           No ${MEAL_LABELS[mealType].toLowerCase()} entries yet for ${formatDateForDisplay(currentSelectedDate)}.
         </div>
       `;
 
-    sectionLi.innerHTML = `
-      <div class="rounded-2xl bg-white border-2 border-slate-300 shadow-sm p-5">
-        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between px-5 py-4 ${style.headerBg}">
-          <div class="flex items-center gap-3 min-w-0">
-            <button
-              type="button"
-              data-toggle-meal-type="${mealType}"
-              class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white bg-white text-slate-700 shadow-sm hover:bg-slate-50 transition"
-              aria-expanded="${isExpanded}">
-              <span class="text-lg font-semibold">${isExpanded ? '−' : '+'}</span>
-            </button>
+    return `
+      <div class="min-w-0">
+        <div class="rounded-2xl bg-white border-2 border-slate-300 shadow-sm p-3 sm:p-5 h-full">
+          <div class="flex flex-col gap-3 px-3 sm:px-5 py-3 sm:py-4 ${style.headerBg} rounded-xl">
+            <div class="flex items-center justify-between gap-2 min-w-0">
+              <div class="flex items-center gap-2 min-w-0">
+                <button
+                  type="button"
+                  data-toggle-meal-type="${mealType}"
+                  class="inline-flex h-9 w-9 sm:h-11 sm:w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white bg-white text-slate-700 shadow-sm hover:bg-slate-50 transition"
+                  aria-expanded="${isExpanded}">
+                  <span class="text-base sm:text-lg font-semibold">${isExpanded ? '−' : '+'}</span>
+                </button>
 
-            <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${style.badge}">
-                  ${MEAL_LABELS[mealType]}
-                </span>
-                <span class="text-sm font-medium text-slate-600">${countLabel}</span>
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${style.badge}">
+                      ${MEAL_LABELS[mealType]}
+                    </span>
+                    <span class="text-xs sm:text-sm font-medium text-slate-600">${countLabel}</span>
+                  </div>
+                </div>
               </div>
-              ${
-                mealEntries.length === 0
-                  ? `<p class="mt-1 text-sm text-slate-500">No ${MEAL_LABELS[mealType].toLowerCase()} logged yet.</p>`
-                  : ''
-              }
+
+              <button
+                type="button"
+                data-add-meal-type="${mealType}"
+                class="inline-flex h-9 w-9 sm:h-10 sm:w-auto sm:px-4 items-center justify-center rounded-xl sm:rounded-2xl text-sm font-semibold shadow ${style.button} transition flex-shrink-0"
+                aria-label="Add ${MEAL_LABELS[mealType]}">
+                <span class="sm:hidden">+</span>
+                <span class="hidden sm:inline">+ Add ${MEAL_LABELS[mealType]}</span>
+              </button>
             </div>
+
+            ${
+              mealEntries.length === 0
+                ? `<p class="text-xs sm:text-sm text-slate-500">No ${MEAL_LABELS[mealType].toLowerCase()} logged yet.</p>`
+                : ''
+            }
           </div>
 
-          <button
-            type="button"
-            data-add-meal-type="${mealType}"
-            class="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold shadow ${style.button} transition">
-            + Add ${MEAL_LABELS[mealType]}
-          </button>
-        </div>
-
-        <div class="${isExpanded ? 'block' : 'hidden'}" data-meal-panel="${mealType}">
-          ${entriesMarkup}
+          <div class="${isExpanded ? 'block' : 'hidden'} mt-3" data-meal-panel="${mealType}">
+            ${entriesMarkup}
+          </div>
         </div>
       </div>
     `;
+  }).join('');
 
-    entriesList.appendChild(sectionLi);
-  }
+  entriesList.innerHTML = `
+    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+      ${sectionsMarkup}
+    </div>
+  `;
 }
 
 function renderEntryCard(entry, accentClass = 'border-l-slate-400') {
@@ -1169,42 +1189,40 @@ function renderEntryCard(entry, accentClass = 'border-l-slate-400') {
   }
 
   return `
-    <div class="px-5 py-4">
-      <div class="rounded-2xl border border-slate-100 border-l-4 ${accentClass} bg-white px-4 py-4">
-        <div class="flex items-start justify-between gap-4">
+    <div class="px-3 sm:px-5 py-3 sm:py-4">
+      <div class="rounded-2xl border border-slate-100 border-l-4 ${accentClass} bg-white px-3 sm:px-4 py-3 sm:py-4">
+        <div class="flex flex-col gap-3">
           <div class="min-w-0 flex-1">
-            <p class="text-xl font-bold text-slate-800 break-words">
+            <p class="text-sm sm:text-xl font-bold text-slate-800 break-words">
               ${escapeHtml(entry.foodName)}
             </p>
 
-            <div class="mt-3 flex flex-wrap items-end gap-x-5 gap-y-2">
-              <div>
-                <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
-                <p class="mt-1 text-3xl font-bold text-slate-800 leading-none">
-                  ${escapeHtml(entry.calories)}
-                  <span class="text-lg font-medium text-slate-500">kcal</span>
-                </p>
-              </div>
-
-              ${
-                macroParts.length
-                  ? `
-                  <div class="flex flex-wrap gap-2">
-                    ${macroParts.map(part => `
-                      <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600">
-                        ${escapeHtml(part)}
-                      </span>
-                    `).join('')}
-                  </div>
-                `
-                  : ''
-              }
+            <div class="mt-3">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
+              <p class="mt-1 text-2xl sm:text-3xl font-bold text-slate-800 leading-none">
+                ${escapeHtml(entry.calories)}
+                <span class="text-sm sm:text-lg font-medium text-slate-500">kcal</span>
+              </p>
             </div>
+
+            ${
+              macroParts.length
+                ? `
+                <div class="mt-3 flex flex-wrap gap-2">
+                  ${macroParts.map(part => `
+                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                      ${escapeHtml(part)}
+                    </span>
+                  `).join('')}
+                </div>
+              `
+                : ''
+            }
 
             ${
               firstDetail
                 ? `
-                <p class="mt-3 text-sm text-slate-500 break-words">
+                <p class="mt-3 text-xs sm:text-sm text-slate-500 break-words">
                   ${escapeHtml(firstDetail)}
                 </p>
               `
@@ -1214,7 +1232,7 @@ function renderEntryCard(entry, accentClass = 'border-l-slate-400') {
 
           <button
             type="button"
-            class="delete-btn inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition"
+            class="delete-btn inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-medium text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition self-start"
             data-entry-id="${entry.id}">
             Delete
           </button>
