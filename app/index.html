@@ -217,10 +217,13 @@
             <p class="text-slate-500 text-sm">Your totals, targets, and progress for the selected day.</p>
           </div>
 
-         <div class="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
+       <div class="flex flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
 
-  <!-- BUTTONS -->
-  <div class="flex justify-center lg:flex-1">
+  <!-- LEFT SPACER -->
+  <div class="hidden lg:block"></div>
+
+  <!-- BUTTONS (CENTERED) -->
+  <div class="flex justify-center">
     <div class="flex flex-wrap items-center justify-center gap-3">
       <button
         id="prevDayBtn"
@@ -245,8 +248,8 @@
     </div>
   </div>
 
-  <!-- DATE (RIGHT SIDE) -->
-  <div class="flex justify-center lg:justify-end lg:flex-1">
+  <!-- DATE (RIGHT) -->
+  <div class="flex justify-center lg:justify-end">
     <input
       id="selectedDate"
       type="date"
