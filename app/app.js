@@ -1488,3 +1488,17 @@ initApp();
 syncSelectedDateInput();
 setWorkspaceTab('meal');
 updateSavedFoodsSummary();
+
+// all your existing app logic above...
+
+// ✅ ADD THIS AT THE VERY END
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      await navigator.serviceWorker.register("/sw.js");
+      console.log("Service worker registered");
+    } catch (error) {
+      console.error("Service worker registration failed:", error);
+    }
+  });
+}
