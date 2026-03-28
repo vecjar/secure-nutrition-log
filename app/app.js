@@ -1179,17 +1179,17 @@ function renderEntryCard(entry, accentClass = 'border-slate-300') {
   const firstDetail = detailsParts.length ? detailsParts[0] : '';
   const macroParts = [];
 
-  if (entry.protein !== null && entry.protein !== undefined && entry.protein !== '') {
-    macroParts.push(`P ${formatMacroValue(entry.protein)}g`);
-  }
+ if (entry.protein !== null && entry.protein !== undefined && entry.protein !== '') {
+  macroParts.push(`Protein ${formatMacroValue(entry.protein)}g`);
+}
 
-  if (entry.carbs !== null && entry.carbs !== undefined && entry.carbs !== '') {
-    macroParts.push(`C ${formatMacroValue(entry.carbs)}g`);
-  }
+if (entry.carbs !== null && entry.carbs !== undefined && entry.carbs !== '') {
+  macroParts.push(`Carbs ${formatMacroValue(entry.carbs)}g`);
+}
 
-  if (entry.fats !== null && entry.fats !== undefined && entry.fats !== '') {
-    macroParts.push(`F ${formatMacroValue(entry.fats)}g`);
-  }
+if (entry.fats !== null && entry.fats !== undefined && entry.fats !== '') {
+  macroParts.push(`Fats ${formatMacroValue(entry.fats)}g`);
+}
 
   return `
     <div class="px-3 sm:px-5 py-3 sm:py-4">
