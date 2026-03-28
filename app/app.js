@@ -1078,7 +1078,7 @@ function renderEntriesGroupedByMeal(entries) {
     }
   };
 
-  const sectionsMarkup = MEAL_ORDER.map((mealType) => {
+  for (const mealType of MEAL_ORDER) {
     const mealEntries = entries.filter(
       (entry) => (entry.mealType || '').toLowerCase() === mealType
     );
@@ -1094,71 +1094,63 @@ function renderEntriesGroupedByMeal(entries) {
     const isExpanded = mealSectionState[mealType] !== false;
     const countLabel = `${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}`;
 
+    const sectionLi = document.createElement('li');
+    sectionLi.className = 'mb-5 sm:mb-6';
+
     const entriesMarkup = mealEntries.length
       ? mealEntries.map((entry, index) => `
           ${renderEntryCard(entry, style.entryAccent)}
-          ${index < mealEntries.length - 1 ? '<div class="mx-3 sm:mx-5 border-t border-slate-100"></div>' : ''}
+          ${index < mealEntries.length - 1 ? '<div class="mx-4 sm:mx-5 border-t border-slate-100"></div>' : ''}
         `).join('')
       : `
-        <div class="px-3 sm:px-5 py-4 sm:py-5 text-sm text-slate-500">
+        <div class="px-4 sm:px-5 py-4 sm:py-5 text-sm text-slate-500">
           No ${MEAL_LABELS[mealType].toLowerCase()} entries yet for ${formatDateForDisplay(currentSelectedDate)}.
         </div>
       `;
 
-    return `
-      <div class="min-w-0">
-        <div class="rounded-2xl bg-white border-2 border-slate-300 shadow-sm p-3 sm:p-5 h-full">
-          <div class="flex flex-col gap-3 px-3 sm:px-5 py-3 sm:py-4 ${style.headerBg} rounded-xl">
-            <div class="flex items-center justify-between gap-2 min-w-0">
-              <div class="flex items-center gap-2 min-w-0">
-                <button
-                  type="button"
-                  data-toggle-meal-type="${mealType}"
-                  class="inline-flex h-9 w-9 sm:h-11 sm:w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white bg-white text-slate-700 shadow-sm hover:bg-slate-50 transition"
-                  aria-expanded="${isExpanded}">
-                  <span class="text-base sm:text-lg font-semibold">${isExpanded ? '−' : '+'}</span>
-                </button>
+    sectionLi.innerHTML = `
+      <div class="rounded-2xl bg-white border-2 border-slate-300 shadow-sm p-4 sm:p-5">
+        <div class="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between px-4 sm:px-5 py-4 ${style.headerBg} rounded-xl">
+          <div class="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              data-toggle-meal-type="${mealType}"
+              class="inline-flex h-10 w-10 sm:h-11 sm:w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white bg-white text-slate-700 shadow-sm hover:bg-slate-50 transition"
+              aria-expanded="${isExpanded}">
+              <span class="text-base sm:text-lg font-semibold">${isExpanded ? '−' : '+'}</span>
+            </button>
 
-                <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${style.badge}">
-                      ${MEAL_LABELS[mealType]}
-                    </span>
-                    <span class="text-xs sm:text-sm font-medium text-slate-600">${countLabel}</span>
-                  </div>
-                </div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${style.badge}">
+                  ${MEAL_LABELS[mealType]}
+                </span>
+                <span class="text-sm font-medium text-slate-600">${countLabel}</span>
               </div>
-
-              <button
-                type="button"
-                data-add-meal-type="${mealType}"
-                class="inline-flex h-9 w-9 sm:h-10 sm:w-auto sm:px-4 items-center justify-center rounded-xl sm:rounded-2xl text-sm font-semibold shadow ${style.button} transition flex-shrink-0"
-                aria-label="Add ${MEAL_LABELS[mealType]}">
-                <span class="sm:hidden">+</span>
-                <span class="hidden sm:inline">+ Add ${MEAL_LABELS[mealType]}</span>
-              </button>
+              ${
+                mealEntries.length === 0
+                  ? `<p class="mt-1 text-sm text-slate-500">No ${MEAL_LABELS[mealType].toLowerCase()} logged yet.</p>`
+                  : ''
+              }
             </div>
-
-            ${
-              mealEntries.length === 0
-                ? `<p class="text-xs sm:text-sm text-slate-500">No ${MEAL_LABELS[mealType].toLowerCase()} logged yet.</p>`
-                : ''
-            }
           </div>
 
-          <div class="${isExpanded ? 'block' : 'hidden'} mt-3" data-meal-panel="${mealType}">
-            ${entriesMarkup}
-          </div>
+          <button
+            type="button"
+            data-add-meal-type="${mealType}"
+            class="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold shadow ${style.button} transition w-full md:w-auto">
+            + Add ${MEAL_LABELS[mealType]}
+          </button>
+        </div>
+
+        <div class="${isExpanded ? 'block' : 'hidden'} mt-3" data-meal-panel="${mealType}">
+          ${entriesMarkup}
         </div>
       </div>
     `;
-  }).join('');
 
-  entriesList.innerHTML = `
-    <div class="grid grid-cols-2 gap-3 sm:gap-4">
-      ${sectionsMarkup}
-    </div>
-  `;
+    entriesList.appendChild(sectionLi);
+  }
 }
 
 function renderEntryCard(entry, accentClass = 'border-l-slate-400') {
