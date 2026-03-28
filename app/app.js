@@ -1064,28 +1064,28 @@ function renderEntriesGroupedByMeal(entries) {
       sectionBorder: 'border-blue-100',
       headerBg: 'bg-blue-50',
       button: 'bg-blue-600 hover:bg-blue-700 text-white',
-      entryAccent: 'border-l-blue-400'
+      entryAccent: 'border-blue-300'
     },
     lunch: {
       badge: 'bg-emerald-100 text-emerald-700',
       sectionBorder: 'border-emerald-100',
       headerBg: 'bg-emerald-50',
       button: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-      entryAccent: 'border-l-emerald-400'
+      entryAccent: 'border-emerald-300'
     },
     dinner: {
       badge: 'bg-amber-100 text-amber-700',
       sectionBorder: 'border-amber-100',
       headerBg: 'bg-amber-50',
       button: 'bg-amber-600 hover:bg-amber-700 text-white',
-      entryAccent: 'border-l-amber-400'
+      entryAccent: 'border-amber-300'
     },
     snack: {
       badge: 'bg-rose-100 text-rose-700',
       sectionBorder: 'border-rose-100',
       headerBg: 'bg-rose-50',
       button: 'bg-rose-600 hover:bg-rose-700 text-white',
-      entryAccent: 'border-l-rose-400'
+      entryAccent: 'border-rose-300'
     }
   };
 
@@ -1099,7 +1099,7 @@ function renderEntriesGroupedByMeal(entries) {
       sectionBorder: 'border-slate-200',
       headerBg: 'bg-slate-50',
       button: 'bg-slate-700 hover:bg-slate-800 text-white',
-      entryAccent: 'border-l-slate-400'
+      entryAccent: 'border-slate-300'
     };
 
     const isExpanded = mealSectionState[mealType] !== false;
@@ -1164,7 +1164,7 @@ function renderEntriesGroupedByMeal(entries) {
   }
 }
 
-function renderEntryCard(entry, accentClass = 'border-l-slate-400') {
+function renderEntryCard(entry, accentClass = 'border-slate-300') {
   const detailsParts = [];
 
   if (entry.notes && String(entry.notes).trim() !== '') {
@@ -1193,7 +1193,7 @@ function renderEntryCard(entry, accentClass = 'border-l-slate-400') {
 
   return `
     <div class="px-3 sm:px-5 py-3 sm:py-4">
-      <div class="rounded-2xl border border-slate-100 border-l-4 ${accentClass} bg-white px-3 sm:px-4 py-3 sm:py-4">
+      <div class="rounded-2xl border-2 ${accentClass} bg-white px-3 sm:px-4 py-3 sm:py-4">
         <div class="flex flex-col gap-3">
           <div class="min-w-0 flex-1">
             <p class="text-sm sm:text-xl font-bold text-slate-800 break-words">
