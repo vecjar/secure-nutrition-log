@@ -1,9 +1,10 @@
-const CACHE_NAME = "secure-nutrition-log-v8";
+const CACHE_NAME = "secure-nutrition-log";
 const APP_SHELL = [
   "/",
   "/index.html",
   "/app.js",
-  "/manifest.webmanifest"
+  "/manifest.webmanifest",
+  "/style.css"
 ];
 
 self.addEventListener("install", (event) => {
@@ -28,6 +29,30 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+
+  const isAppShellRequest =
+    url.pathname === "/" ||
+    url.pathname === "/index.html" ||
+    url.pathname === "/app.js" ||
+    url.pathname === "/style.css" ||
+    url.pathname === "/manifest.webmanifest";
+
+  if (isAppShellRequest) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
