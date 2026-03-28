@@ -794,25 +794,25 @@ function renderEntriesGroupedByMeal(entries) {
     breakfast: {
       badge: 'bg-blue-100 text-blue-700',
       border: 'border-blue-100',
-      panel: 'bg-blue-50/40',
+      panel: 'bg-blue-50/30',
       button: 'bg-blue-600 hover:bg-blue-700'
     },
     lunch: {
       badge: 'bg-emerald-100 text-emerald-700',
       border: 'border-emerald-100',
-      panel: 'bg-emerald-50/40',
+      panel: 'bg-emerald-50/30',
       button: 'bg-emerald-600 hover:bg-emerald-700'
     },
     dinner: {
       badge: 'bg-amber-100 text-amber-700',
       border: 'border-amber-100',
-      panel: 'bg-amber-50/40',
+      panel: 'bg-amber-50/30',
       button: 'bg-amber-600 hover:bg-amber-700'
     },
     snack: {
       badge: 'bg-rose-100 text-rose-700',
       border: 'border-rose-100',
-      panel: 'bg-rose-50/40',
+      panel: 'bg-rose-50/30',
       button: 'bg-rose-600 hover:bg-rose-700'
     }
   };
@@ -831,37 +831,41 @@ function renderEntriesGroupedByMeal(entries) {
 
     const isExpanded = mealSectionState[mealType] !== false;
     const sectionLi = document.createElement('li');
-    sectionLi.className = `rounded-3xl border ${style.border} ${style.panel} p-4 md:p-5`;
+    sectionLi.className = `rounded-3xl border ${style.border} bg-white p-4 md:p-5 shadow-sm`;
 
     const countLabel = `${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}`;
 
     const cardsMarkup = mealEntries.length
       ? mealEntries.map((entry) => renderEntryCard(entry, style.border)).join('')
       : `
-        <div class="rounded-2xl border border-dashed border-slate-200 bg-white/80 px-4 py-4 text-sm text-slate-500">
+        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
           No ${MEAL_LABELS[mealType].toLowerCase()} entries yet for ${formatDateForDisplay(currentSelectedDate)}.
         </div>
       `;
 
     sectionLi.innerHTML = `
-      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div class="flex min-w-0 flex-1 items-center gap-3">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center gap-3 min-w-0">
           <button
             type="button"
             data-toggle-meal-type="${mealType}"
-            class="meal-log-header-button inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/90 text-slate-600 shadow-sm hover:bg-white transition"
+            class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 shadow-sm hover:bg-slate-100 transition"
             aria-expanded="${isExpanded}">
-            <span class="text-lg">${isExpanded ? '−' : '+'}</span>
+            <span class="text-lg font-semibold">${isExpanded ? '−' : '+'}</span>
           </button>
 
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${style.badge}">
+              <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${style.badge}">
                 ${MEAL_LABELS[mealType]}
               </span>
-              <span class="text-sm text-slate-500">${countLabel}</span>
+              <span class="text-sm font-medium text-slate-500">${countLabel}</span>
             </div>
-            <p class="mt-1 text-sm text-slate-500">Click the left button to ${isExpanded ? 'collapse' : 'expand'} this section.</p>
+            <p class="mt-1 text-sm text-slate-500">
+              ${mealEntries.length === 0
+                ? `No ${MEAL_LABELS[mealType].toLowerCase()} logged yet.`
+                : `${mealEntries.length} item${mealEntries.length === 1 ? '' : 's'} logged.`}
+            </p>
           </div>
         </div>
 
@@ -886,49 +890,13 @@ function renderEntryCard(entry, borderClass = 'border-slate-200') {
   const hasNotes = entry.notes && String(entry.notes).trim() !== '';
 
   return `
-    <div class="rounded-2xl border ${borderClass} bg-white p-4 shadow-sm hover:shadow-md transition">
-      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div class="rounded-2xl border ${borderClass} bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between gap-4">
         <div class="min-w-0 flex-1">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div class="min-w-0">
-              <p class="text-lg font-semibold text-slate-800 break-words">${entry.foodName}</p>
-            </div>
-
-            <div class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 w-fit">
-              ${entry.calories} calories
-            </div>
-          </div>
-
-          <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">
-            <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
-              <p class="text-sm font-semibold text-blue-700 mt-1">${formatMacroValue(entry.protein)}</p>
-            </div>
-
-            <div class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
-              <p class="text-sm font-semibold text-amber-700 mt-1">${formatMacroValue(entry.carbs)}</p>
-            </div>
-
-            <div class="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
-              <p class="text-sm font-semibold text-rose-700 mt-1">${formatMacroValue(entry.fats)}</p>
-            </div>
-          </div>
-
-          ${
-            hasNotes
-              ? `
-            <div class="mt-3 rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
-              <p class="text-xs uppercase tracking-wide text-slate-400">Notes</p>
-              <p class="mt-1 text-sm text-slate-600 break-words">${escapeHtml(entry.notes)}</p>
-            </div>
-          `
-              : ''
-          }
+          <p class="text-xl font-semibold text-slate-800 break-words">${escapeHtml(entry.foodName)}</p>
         </div>
 
-        <div class="md:flex-shrink-0">
+        <div class="flex-shrink-0">
           <button
             type="button"
             class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
@@ -937,6 +905,39 @@ function renderEntryCard(entry, borderClass = 'border-slate-200') {
           </button>
         </div>
       </div>
+
+      <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
+          <p class="mt-1 text-base font-semibold text-emerald-700">${escapeHtml(entry.calories)}</p>
+        </div>
+
+        <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
+          <p class="mt-1 text-base font-semibold text-blue-700">${formatMacroValue(entry.protein)}</p>
+        </div>
+
+        <div class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
+          <p class="mt-1 text-base font-semibold text-amber-700">${formatMacroValue(entry.carbs)}</p>
+        </div>
+
+        <div class="rounded-xl border border-rose-100 bg-rose-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
+          <p class="mt-1 text-base font-semibold text-rose-700">${formatMacroValue(entry.fats)}</p>
+        </div>
+      </div>
+
+      ${
+        hasNotes
+          ? `
+        <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Notes</p>
+          <p class="mt-1 text-sm text-slate-600 break-words">${escapeHtml(entry.notes)}</p>
+        </div>
+      `
+          : ''
+      }
     </div>
   `;
 }
