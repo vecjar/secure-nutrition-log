@@ -22,8 +22,6 @@ const customFoodForm = document.getElementById('customFoodForm');
 const formMessage = document.getElementById('formMessage');
 const customFoodsMessage = document.getElementById('customFoodsMessage');
 
-const loadEntriesBtn = document.getElementById('loadEntriesBtn');
-
 const addMealTabBtn = document.getElementById('addMealTabBtn');
 const saveCustomTabBtn = document.getElementById('saveCustomTabBtn');
 const addMealTabSection = document.getElementById('addMealTabSection');
@@ -91,6 +89,12 @@ const focusMealsLogged = document.getElementById('focusMealsLogged');
 
 const savedFoodsCount = document.getElementById('savedFoodsCount');
 
+const mealEntryModal = document.getElementById('mealEntryModal');
+const mealEntryModalBackdrop = document.getElementById('mealEntryModalBackdrop');
+const closeMealModalBtn = document.getElementById('closeMealModalBtn');
+const mealModalHeading = document.getElementById('mealModalHeading');
+const mealModalSubtext = document.getElementById('mealModalSubtext');
+
 const profileSetupModal = document.getElementById('profileSetupModal');
 const startProfileSetupBtn = document.getElementById('startProfileSetupBtn');
 
@@ -99,9 +103,20 @@ let nutritionProfile = null;
 let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
 let currentSelectedDate = getTodayDateString();
+let currentModalMealType = '';
+const mealSectionState = { breakfast: true, lunch: true, dinner: true, snack: true };
 
 startProfileSetupBtn?.addEventListener('click', () => {
   window.location.href = '/profile.html';
+});
+
+closeMealModalBtn?.addEventListener('click', closeMealEntryModal);
+mealEntryModalBackdrop?.addEventListener('click', closeMealEntryModal);
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && mealEntryModal && !mealEntryModal.classList.contains('hidden')) {
+    closeMealEntryModal();
+  }
 });
 
 entryForm?.addEventListener('submit', async (event) => {
@@ -142,7 +157,12 @@ entryForm?.addEventListener('submit', async (event) => {
 
     if (formMessage) formMessage.textContent = `Saved: ${data.entry.foodName} for ${currentSelectedDate}`;
     entryForm.reset();
+    savedFoodSelect && (savedFoodSelect.value = '');
     await loadEntriesForSelectedDate();
+    window.setTimeout(() => {
+      closeMealEntryModal();
+      if (formMessage) formMessage.textContent = '';
+    }, 400);
   } catch (error) {
     console.error(error);
     if (formMessage) formMessage.textContent = 'Could not save entry. Please try again.';
@@ -254,14 +274,30 @@ selectedDateInput?.addEventListener('change', async (event) => {
 });
 
 entriesList?.addEventListener('click', async (event) => {
-  if (event.target.classList.contains('delete-btn')) {
-    const entryId = event.target.getAttribute('data-entry-id');
+  const deleteButton = event.target.closest('.delete-btn');
+  if (deleteButton) {
+    const entryId = deleteButton.getAttribute('data-entry-id');
     if (!entryId) return;
 
     const confirmed = window.confirm('Delete this entry?');
     if (!confirmed) return;
 
     await deleteEntry(entryId);
+    return;
+  }
+
+  const addButton = event.target.closest('[data-add-meal-type]');
+  if (addButton) {
+    openMealEntryModal(addButton.getAttribute('data-add-meal-type'));
+    return;
+  }
+
+  const toggleButton = event.target.closest('[data-toggle-meal-type]');
+  if (toggleButton) {
+    const mealType = toggleButton.getAttribute('data-toggle-meal-type');
+    if (!mealType) return;
+    mealSectionState[mealType] = !mealSectionState[mealType];
+    await loadEntriesForSelectedDate();
   }
 });
 
@@ -396,17 +432,6 @@ async function loadEntriesForSelectedDate() {
     updateSummaryFromTotals(totals, sortedEntries.length);
     renderMacroChart(totals, data.date);
     updateTodayFocus(totals, sortedEntries.length);
-
-    if (sortedEntries.length === 0) {
-      if (entriesList) {
-        entriesList.innerHTML = `
-          <li class="rounded-2xl border border-dashed border-green-200 bg-green-50/60 p-4 text-sm text-slate-600">
-            No entries yet for ${formatDateForDisplay(data.date)}.
-          </li>
-        `;
-      }
-      return;
-    }
 
     renderEntriesGroupedByMeal(sortedEntries);
   } catch (error) {
@@ -708,6 +733,40 @@ function setWorkspaceTab(tab) {
   }
 }
 
+function openMealEntryModal(mealType = '') {
+  currentModalMealType = mealType || '';
+
+  if (mealType && mealSectionState[mealType] === false) {
+    mealSectionState[mealType] = true;
+  }
+
+  if (mealType) {
+    const mealLabel = MEAL_LABELS[mealType] || 'Meal';
+    if (mealModalHeading) mealModalHeading.textContent = `Add ${mealLabel}`;
+    if (mealModalSubtext) mealModalSubtext.textContent = `Log a ${mealLabel.toLowerCase()} entry for ${formatDateForDisplay(currentSelectedDate)}.`;
+    const mealTypeSelect = document.getElementById('mealType');
+    if (mealTypeSelect) mealTypeSelect.value = mealType;
+  } else {
+    if (mealModalHeading) mealModalHeading.textContent = 'Add Meal';
+    if (mealModalSubtext) mealModalSubtext.textContent = 'Log a meal fast or reuse one of your saved foods.';
+  }
+
+  setWorkspaceTab('meal');
+  mealEntryModal?.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  window.setTimeout(() => document.getElementById('foodName')?.focus(), 50);
+}
+
+function closeMealEntryModal() {
+  mealEntryModal?.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+  currentModalMealType = '';
+  if (formMessage) formMessage.textContent = '';
+  if (customFoodsMessage) customFoodsMessage.textContent = '';
+  entryForm?.reset();
+  savedFoodSelect && (savedFoodSelect.value = '');
+}
+
 function sortEntriesByMealOrder(entries) {
   return [...entries].sort((a, b) => {
     const mealIndexA = MEAL_ORDER.indexOf((a.mealType || '').toLowerCase());
@@ -722,7 +781,7 @@ function sortEntriesByMealOrder(entries) {
 
     const createdAtA = a.createdAt || '';
     const createdAtB = b.createdAt || '';
-    return createdAtA.localeCompare(createdAtB);
+    return createdAtB.localeCompare(createdAtA);
   });
 }
 
@@ -734,19 +793,27 @@ function renderEntriesGroupedByMeal(entries) {
   const mealStyles = {
     breakfast: {
       badge: 'bg-blue-100 text-blue-700',
-      border: 'border-blue-100'
+      border: 'border-blue-100',
+      panel: 'bg-blue-50/40',
+      button: 'bg-blue-600 hover:bg-blue-700'
     },
     lunch: {
       badge: 'bg-emerald-100 text-emerald-700',
-      border: 'border-emerald-100'
+      border: 'border-emerald-100',
+      panel: 'bg-emerald-50/40',
+      button: 'bg-emerald-600 hover:bg-emerald-700'
     },
     dinner: {
       badge: 'bg-amber-100 text-amber-700',
-      border: 'border-amber-100'
+      border: 'border-amber-100',
+      panel: 'bg-amber-50/40',
+      button: 'bg-amber-600 hover:bg-amber-700'
     },
     snack: {
       badge: 'bg-rose-100 text-rose-700',
-      border: 'border-rose-100'
+      border: 'border-rose-100',
+      panel: 'bg-rose-50/40',
+      button: 'bg-rose-600 hover:bg-rose-700'
     }
   };
 
@@ -755,94 +822,123 @@ function renderEntriesGroupedByMeal(entries) {
       (entry) => (entry.mealType || '').toLowerCase() === mealType
     );
 
-    if (mealEntries.length === 0) continue;
-
     const style = mealStyles[mealType] || {
       badge: 'bg-slate-100 text-slate-700',
-      border: 'border-slate-200'
+      border: 'border-slate-200',
+      panel: 'bg-slate-50',
+      button: 'bg-slate-700 hover:bg-slate-800'
     };
 
+    const isExpanded = mealSectionState[mealType] !== false;
     const sectionLi = document.createElement('li');
-    sectionLi.className = 'space-y-3';
+    sectionLi.className = `rounded-3xl border ${style.border} ${style.panel} p-4 md:p-5`;
 
-    const sectionTitle = document.createElement('div');
-    sectionTitle.className = 'flex items-center gap-3';
-    sectionTitle.innerHTML = `
-      <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${style.badge}">
-        ${MEAL_LABELS[mealType]}
-      </span>
-      <span class="text-sm text-slate-500">${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}</span>
-    `;
-    sectionLi.appendChild(sectionTitle);
+    const countLabel = `${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}`;
 
-    const innerList = document.createElement('div');
-    innerList.className = 'space-y-3';
-
-    for (const entry of mealEntries) {
-      const hasNotes = entry.notes && String(entry.notes).trim() !== '';
-
-      const entryCard = document.createElement('div');
-      entryCard.className = `rounded-2xl border ${style.border} bg-white p-4 shadow-sm hover:shadow-md transition`;
-
-      entryCard.innerHTML = `
-        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div class="min-w-0 flex-1">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div class="min-w-0">
-                <p class="text-lg font-semibold text-slate-800 break-words">${entry.foodName}</p>
-              </div>
-
-              <div class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 w-fit">
-                ${entry.calories} calories
-              </div>
-            </div>
-
-            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">
-              <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
-                <p class="text-sm font-semibold text-blue-700 mt-1">${entry.protein ?? '-'}</p>
-              </div>
-
-              <div class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
-                <p class="text-sm font-semibold text-amber-700 mt-1">${entry.carbs ?? '-'}</p>
-              </div>
-
-              <div class="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
-                <p class="text-sm font-semibold text-rose-700 mt-1">${entry.fats ?? '-'}</p>
-              </div>
-            </div>
-
-            ${
-              hasNotes
-                ? `
-              <div class="mt-3 rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Notes</p>
-                <p class="mt-1 text-sm text-slate-600 break-words">${entry.notes}</p>
-              </div>
-            `
-                : ''
-            }
-          </div>
-
-          <div class="md:flex-shrink-0">
-            <button
-              type="button"
-              class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
-              data-entry-id="${entry.id}">
-              Delete
-            </button>
-          </div>
+    const cardsMarkup = mealEntries.length
+      ? mealEntries.map((entry) => renderEntryCard(entry, style.border)).join('')
+      : `
+        <div class="rounded-2xl border border-dashed border-slate-200 bg-white/80 px-4 py-4 text-sm text-slate-500">
+          No ${MEAL_LABELS[mealType].toLowerCase()} entries yet for ${formatDateForDisplay(currentSelectedDate)}.
         </div>
       `;
 
-      innerList.appendChild(entryCard);
-    }
+    sectionLi.innerHTML = `
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div class="flex min-w-0 flex-1 items-center gap-3">
+          <button
+            type="button"
+            data-toggle-meal-type="${mealType}"
+            class="meal-log-header-button inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-white/80 bg-white/90 text-slate-600 shadow-sm hover:bg-white transition"
+            aria-expanded="${isExpanded}">
+            <span class="text-lg">${isExpanded ? '−' : '+'}</span>
+          </button>
 
-    sectionLi.appendChild(innerList);
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${style.badge}">
+                ${MEAL_LABELS[mealType]}
+              </span>
+              <span class="text-sm text-slate-500">${countLabel}</span>
+            </div>
+            <p class="mt-1 text-sm text-slate-500">Click the left button to ${isExpanded ? 'collapse' : 'expand'} this section.</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          data-add-meal-type="${mealType}"
+          class="inline-flex items-center justify-center rounded-2xl ${style.button} px-4 py-2.5 text-sm font-semibold text-white shadow transition">
+          + Add ${MEAL_LABELS[mealType]}
+        </button>
+      </div>
+
+      <div class="${isExpanded ? 'mt-4 space-y-3' : 'hidden'}" data-meal-panel="${mealType}">
+        ${cardsMarkup}
+      </div>
+    `;
+
     entriesList.appendChild(sectionLi);
   }
+}
+
+function renderEntryCard(entry, borderClass = 'border-slate-200') {
+  const hasNotes = entry.notes && String(entry.notes).trim() !== '';
+
+  return `
+    <div class="rounded-2xl border ${borderClass} bg-white p-4 shadow-sm hover:shadow-md transition">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-lg font-semibold text-slate-800 break-words">${entry.foodName}</p>
+            </div>
+
+            <div class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 w-fit">
+              ${entry.calories} calories
+            </div>
+          </div>
+
+          <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">
+            <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
+              <p class="text-sm font-semibold text-blue-700 mt-1">${formatMacroValue(entry.protein)}</p>
+            </div>
+
+            <div class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
+              <p class="text-sm font-semibold text-amber-700 mt-1">${formatMacroValue(entry.carbs)}</p>
+            </div>
+
+            <div class="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
+              <p class="text-sm font-semibold text-rose-700 mt-1">${formatMacroValue(entry.fats)}</p>
+            </div>
+          </div>
+
+          ${
+            hasNotes
+              ? `
+            <div class="mt-3 rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
+              <p class="text-xs uppercase tracking-wide text-slate-400">Notes</p>
+              <p class="mt-1 text-sm text-slate-600 break-words">${escapeHtml(entry.notes)}</p>
+            </div>
+          `
+              : ''
+          }
+        </div>
+
+        <div class="md:flex-shrink-0">
+          <button
+            type="button"
+            class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+            data-entry-id="${entry.id}">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function calculateTotals(entries) {
@@ -965,6 +1061,19 @@ function applyCustomFoodToEntryForm(food) {
   if (formMessage) formMessage.textContent = `Loaded custom food: ${food.foodName}`;
 }
 
+function formatMacroValue(value) {
+  return value === null || value === undefined || value === '' ? '-' : roundToOne(Number(value));
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function setProgress(element, value, goal) {
   if (!element) return;
 
@@ -1032,7 +1141,7 @@ function setFormLoadingState(isLoading) {
     submitButton.textContent = 'Saving...';
   } else {
     submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
-    submitButton.textContent = 'Save Meal Entry';
+    submitButton.textContent = currentModalMealType ? `Save ${MEAL_LABELS[currentModalMealType]}` : 'Save Meal Entry';
   }
 }
 
@@ -1054,7 +1163,6 @@ async function initApp() {
 
   try {
     await loadUser();
-    await loadNutritionProfile();
   } catch (e) {
     console.error(e);
   } finally {

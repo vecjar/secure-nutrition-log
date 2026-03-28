@@ -16,7 +16,7 @@
   }
 </script>
 </head>
-<body class="bg-gradient-to-br ...">
+<body class="bg-gradient-to-br from-slate-50 via-emerald-50 to-white">
 
   <!-- 🔥 STARTUP LOADING OVERLAY (ADD THIS HERE) -->
   <div
@@ -331,170 +331,194 @@
       </div>
     </section>
 
-    <!-- Quick Add -->
-    <section class="mb-6">
-      <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h2 class="text-2xl font-semibold text-slate-800">Quick Add</h2>
-            <p class="text-slate-500 text-sm">Log a meal fast or reuse one of your saved foods.</p>
-          </div>
+    <!-- Meal Entry Modal -->
+    <div id="mealEntryModal" class="hidden fixed inset-0 z-[70]">
+      <div id="mealEntryModalBackdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
 
-          <div class="flex flex-wrap items-center gap-3">
-            <button id="addMealTabBtn" type="button" class="rounded-xl bg-green-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-green-700 transition">
-              Add Meal
-            </button>
-            <button id="saveCustomTabBtn" type="button" class="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
-              Create Custom Meal
-            </button>
-          </div>
-        </div>
-
-        <div id="addMealTabSection">
-          <div id="savedFoodSelectorSection" class="mb-5 rounded-2xl border border-lime-200 bg-lime-50 p-4">
-            <label for="savedFoodSelect" class="block text-sm font-medium text-slate-700 mb-2">Use a saved food</label>
-
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-center">
-              <select
-                id="savedFoodSelect"
-                class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200">
-                <option value="">Select a saved food</option>
-              </select>
-
-              <button
-                id="deleteCustomFoodBtn"
-                type="button"
-                class="inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 hover:border-red-300 transition">
-                Delete
-              </button>
-            </div>
-
-            <p class="text-xs text-slate-500 mt-2">
-              Selecting a saved food will instantly fill the meal form below. You can still edit the values before saving.
-            </p>
-          </div>
-
-          <form id="entryForm" class="space-y-4">
+      <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-3xl rounded-3xl bg-white shadow-2xl border border-green-100 overflow-hidden">
+          <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
             <div>
-              <label for="mealType" class="block text-sm font-medium text-slate-700 mb-2">Meal Type</label>
-              <select
-                id="mealType"
-                required
-                class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
-                <option value="">Select a meal</option>
-                <option value="breakfast">Breakfast</option>
-                <option value="lunch">Lunch</option>
-                <option value="dinner">Dinner</option>
-                <option value="snack">Snack</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="foodName" class="block text-sm font-medium text-slate-700 mb-2">Food Name</label>
-              <input
-                type="text"
-                id="foodName"
-                required
-                class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
-                placeholder="e.g. Falafel Salad" />
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label for="calories" class="block text-sm font-medium text-slate-700 mb-2">Calories</label>
-                <input
-                  type="number"
-                  id="calories"
-                  required
-                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
-                  placeholder="e.g. 450" />
-              </div>
-
-              <div>
-                <label for="protein" class="block text-sm font-medium text-slate-700 mb-2">Protein</label>
-                <input
-                  type="number"
-                  id="protein"
-                  step="0.1"
-                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
-                  placeholder="e.g. 25" />
-              </div>
-
-              <div>
-                <label for="carbs" class="block text-sm font-medium text-slate-700 mb-2">Carbs</label>
-                <input
-                  type="number"
-                  id="carbs"
-                  step="0.1"
-                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
-                  placeholder="e.g. 40" />
-              </div>
-
-              <div>
-                <label for="fats" class="block text-sm font-medium text-slate-700 mb-2">Fats</label>
-                <input
-                  type="number"
-                  id="fats"
-                  step="0.1"
-                  class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
-                  placeholder="e.g. 12" />
-              </div>
-            </div>
-
-            <div>
-              <label for="notes" class="block text-sm font-medium text-slate-700 mb-2">Notes</label>
-              <textarea
-                id="notes"
-                rows="4"
-                class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
-                placeholder="Add notes about your meal..."></textarea>
+              <p class="text-xs uppercase tracking-wide text-slate-400">Quick Add</p>
+              <h2 id="mealModalHeading" class="text-2xl font-semibold text-slate-800 mt-1">Add Meal</h2>
+              <p id="mealModalSubtext" class="text-sm text-slate-500 mt-1">Log a meal fast or reuse one of your saved foods.</p>
             </div>
 
             <button
-              type="submit"
-              class="w-full rounded-2xl bg-green-600 px-4 py-3 text-white text-lg font-semibold shadow hover:bg-green-700 transition duration-200">
-              Save Meal Entry
+              id="closeMealModalBtn"
+              type="button"
+              class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-300 bg-white text-slate-600 shadow-sm hover:bg-slate-50 transition">
+              ✕
             </button>
-          </form>
+          </div>
 
-          <p id="formMessage" class="mt-4 text-sm text-slate-600"></p>
-        </div>
-
-        <div id="saveCustomTabSection" class="hidden">
-          <form id="customFoodForm" class="space-y-4">
-            <div>
-              <label for="customFoodName" class="block text-sm font-medium text-slate-700 mb-2">Food Name</label>
-              <input type="text" id="customFoodName" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" placeholder="e.g. Homemade Protein Oats" />
+          <div class="p-6">
+            <div class="flex flex-wrap items-center gap-3 mb-6">
+              <button id="addMealTabBtn" type="button" class="rounded-xl bg-green-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-green-700 transition">
+                Add Meal
+              </button>
+              <button id="saveCustomTabBtn" type="button" class="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
+                Create Custom Meal
+              </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input type="number" id="customFoodCalories" placeholder="Calories" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
-              <input type="number" id="customFoodProtein" step="0.1" placeholder="Protein" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
-              <input type="number" id="customFoodCarbs" step="0.1" placeholder="Carbs" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
-              <input type="number" id="customFoodFats" step="0.1" placeholder="Fats" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+            <div id="addMealTabSection">
+              <div id="savedFoodSelectorSection" class="mb-5 rounded-2xl border border-lime-200 bg-lime-50 p-4">
+                <label for="savedFoodSelect" class="block text-sm font-medium text-slate-700 mb-2">Use a saved food</label>
+
+                <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-center">
+                  <select
+                    id="savedFoodSelect"
+                    class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200">
+                    <option value="">Select a saved food</option>
+                  </select>
+
+                  <button
+                    id="deleteCustomFoodBtn"
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 hover:border-red-300 transition">
+                    Delete
+                  </button>
+                </div>
+
+                <p class="text-xs text-slate-500 mt-2">
+                  Selecting a saved food will instantly fill the meal form below. You can still edit the values before saving.
+                </p>
+              </div>
+
+              <form id="entryForm" class="space-y-4">
+                <div>
+                  <label for="mealType" class="block text-sm font-medium text-slate-700 mb-2">Meal Type</label>
+                  <select
+                    id="mealType"
+                    required
+                    class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
+                    <option value="">Select a meal</option>
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snack">Snack</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="foodName" class="block text-sm font-medium text-slate-700 mb-2">Food Name</label>
+                  <input
+                    type="text"
+                    id="foodName"
+                    required
+                    class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    placeholder="e.g. Falafel Salad" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="calories" class="block text-sm font-medium text-slate-700 mb-2">Calories</label>
+                    <input
+                      type="number"
+                      id="calories"
+                      required
+                      class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                      placeholder="e.g. 450" />
+                  </div>
+
+                  <div>
+                    <label for="protein" class="block text-sm font-medium text-slate-700 mb-2">Protein (g)</label>
+                    <input
+                      type="number"
+                      id="protein"
+                      step="0.1"
+                      class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                      placeholder="e.g. 25" />
+                  </div>
+
+                  <div>
+                    <label for="carbs" class="block text-sm font-medium text-slate-700 mb-2">Carbs (g)</label>
+                    <input
+                      type="number"
+                      id="carbs"
+                      step="0.1"
+                      class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                      placeholder="e.g. 40" />
+                  </div>
+
+                  <div>
+                    <label for="fats" class="block text-sm font-medium text-slate-700 mb-2">Fats (g)</label>
+                    <input
+                      type="number"
+                      id="fats"
+                      step="0.1"
+                      class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                      placeholder="e.g. 12" />
+                  </div>
+                </div>
+
+                <div>
+                  <label for="notes" class="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+                  <textarea
+                    id="notes"
+                    rows="4"
+                    class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200"
+                    placeholder="Add notes about your meal..."></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  class="w-full rounded-2xl bg-green-600 px-4 py-3 text-white text-lg font-semibold shadow hover:bg-green-700 transition duration-200">
+                  Save Meal Entry
+                </button>
+              </form>
+
+              <p id="formMessage" class="mt-4 text-sm text-slate-600"></p>
             </div>
 
-            <div>
-              <label for="customFoodNotes" class="block text-sm font-medium text-slate-700 mb-2">Notes</label>
-              <textarea id="customFoodNotes" rows="4" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" placeholder="Optional notes..."></textarea>
+            <div id="saveCustomTabSection" class="hidden">
+              <div class="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                Save foods you use often so they can be loaded straight into the meal popup later.
+              </div>
+
+              <form id="customFoodForm" class="space-y-4">
+                <div>
+                  <label for="customFoodName" class="block text-sm font-medium text-slate-700 mb-2">Food Name</label>
+                  <input type="text" id="customFoodName" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" placeholder="e.g. Homemade Protein Oats" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="number" id="customFoodCalories" placeholder="Calories" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+                  <input type="number" id="customFoodProtein" step="0.1" placeholder="Protein" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+                  <input type="number" id="customFoodCarbs" step="0.1" placeholder="Carbs" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+                  <input type="number" id="customFoodFats" step="0.1" placeholder="Fats" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+                </div>
+
+                <div>
+                  <label for="customFoodNotes" class="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+                  <textarea id="customFoodNotes" rows="4" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" placeholder="Optional notes..."></textarea>
+                </div>
+
+                <button type="submit" class="w-full rounded-2xl bg-lime-600 px-4 py-3 text-white text-lg font-semibold shadow hover:bg-lime-700 transition">
+                  Save Custom Food
+                </button>
+              </form>
+
+              <p id="customFoodsMessage" class="mt-4 text-sm text-slate-600"></p>
             </div>
-
-            <button type="submit" class="w-full rounded-2xl bg-lime-600 px-4 py-3 text-white text-lg font-semibold shadow hover:bg-lime-700 transition">
-              Save Custom Food
-            </button>
-          </form>
-
-          <p id="customFoodsMessage" class="mt-4 text-sm text-slate-600"></p>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
 
     <!-- Today's Log -->
     <section>
       <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
-        <div class="mb-4">
-          <h2 class="text-2xl font-semibold text-slate-800">Today’s Log</h2>
-          <p class="text-slate-500 text-sm">Meals grouped by breakfast, lunch, dinner, and snacks.</p>
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-2xl font-semibold text-slate-800">Today’s Log</h2>
+            <p class="text-slate-500 text-sm">Meal sections stay in breakfast, lunch, dinner, then snack order. Use the + button on each section to add meals.</p>
+          </div>
+
+          <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            Saved foods available: <span id="savedFoodsCount" class="font-semibold">0</span>
+          </div>
         </div>
 
         <div id="loadingSpinner" class="hidden text-center my-4">
@@ -503,7 +527,7 @@
         </div>
 
         <p id="entriesMessage" class="text-sm text-slate-600 mb-4"></p>
-        <ul id="entriesList" class="space-y-6"></ul>
+        <ul id="entriesList" class="space-y-4"></ul>
       </div>
     </section>
   </main>
