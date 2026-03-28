@@ -132,6 +132,12 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
+window.addEventListener('popstate', () => {
+  if (mealEntryModal && !mealEntryModal.classList.contains('hidden')) {
+    closeMealEntryModal(true);
+  }
+});
+
 entryForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -979,14 +985,16 @@ function openMealEntryModal(mealType = '') {
     mealSectionState[mealType] = true;
   }
 
+  const mealTypeSelect = document.getElementById('mealType');
+
   if (mealType) {
     const mealLabel = MEAL_LABELS[mealType] || 'Meal';
+
     if (mealModalHeading) mealModalHeading.textContent = `Add ${mealLabel}`;
     if (mealModalSubtext) {
       mealModalSubtext.textContent = `Log a ${mealLabel.toLowerCase()} entry for ${formatDateForDisplay(currentSelectedDate)}.`;
     }
 
-    const mealTypeSelect = document.getElementById('mealType');
     if (mealTypeSelect) mealTypeSelect.value = mealType;
   } else {
     if (mealModalHeading) mealModalHeading.textContent = 'Add Meal';
@@ -996,20 +1004,19 @@ function openMealEntryModal(mealType = '') {
   }
 
   setWorkspaceTab('meal');
+
   mealEntryModal?.classList.remove('hidden');
   document.body.classList.add('modal-open');
+
+  if (!history.state || history.state.modal !== 'meal') {
+    history.pushState({ modal: 'meal' }, '');
+  }
 
   if (document.activeElement instanceof HTMLElement) {
     document.activeElement.blur();
   }
-
-  window.setTimeout(() => {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-  }, 50);
 }
-function closeMealEntryModal() {
+function closeMealEntryModal(skipHistoryBack = false) {
   mealEntryModal?.classList.add('hidden');
   document.body.classList.remove('modal-open');
   currentModalMealType = '';
@@ -1022,6 +1029,10 @@ function closeMealEntryModal() {
 
   entryForm?.reset();
   if (savedFoodSelect) savedFoodSelect.value = '';
+
+  if (!skipHistoryBack && history.state && history.state.modal === 'meal') {
+    history.back();
+  }
 }
 
 function sortEntriesByMealOrder(entries) {
