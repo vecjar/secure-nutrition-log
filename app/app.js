@@ -708,26 +708,6 @@ function setWorkspaceTab(tab) {
   }
 }
 
-function openQuickAddForMeal(mealType) {
-  const mealTypeSelect = document.getElementById('mealType');
-  const quickAddSection = document.getElementById('addMealTabSection');
-
-  setWorkspaceTab('meal');
-
-  if (mealTypeSelect) {
-    mealTypeSelect.value = mealType;
-  }
-
-  if (quickAddSection) {
-    quickAddSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  const foodNameInput = document.getElementById('foodName');
-  if (foodNameInput) {
-    setTimeout(() => foodNameInput.focus(), 250);
-  }
-}
-
 function sortEntriesByMealOrder(entries) {
   return [...entries].sort((a, b) => {
     const mealIndexA = MEAL_ORDER.indexOf((a.mealType || '').toLowerCase());
@@ -753,24 +733,20 @@ function renderEntriesGroupedByMeal(entries) {
 
   const mealStyles = {
     breakfast: {
-      section: 'border-blue-100 bg-blue-50/40',
-      button: 'border-blue-200 text-blue-700 hover:bg-blue-100',
-      macro: 'text-blue-700'
+      badge: 'bg-blue-100 text-blue-700',
+      border: 'border-blue-100'
     },
     lunch: {
-      section: 'border-emerald-100 bg-emerald-50/40',
-      button: 'border-emerald-200 text-emerald-700 hover:bg-emerald-100',
-      macro: 'text-emerald-700'
+      badge: 'bg-emerald-100 text-emerald-700',
+      border: 'border-emerald-100'
     },
     dinner: {
-      section: 'border-amber-100 bg-amber-50/40',
-      button: 'border-amber-200 text-amber-700 hover:bg-amber-100',
-      macro: 'text-amber-700'
+      badge: 'bg-amber-100 text-amber-700',
+      border: 'border-amber-100'
     },
     snack: {
-      section: 'border-rose-100 bg-rose-50/40',
-      button: 'border-rose-200 text-rose-700 hover:bg-rose-100',
-      macro: 'text-rose-700'
+      badge: 'bg-rose-100 text-rose-700',
+      border: 'border-rose-100'
     }
   };
 
@@ -779,108 +755,94 @@ function renderEntriesGroupedByMeal(entries) {
       (entry) => (entry.mealType || '').toLowerCase() === mealType
     );
 
+    if (mealEntries.length === 0) continue;
+
     const style = mealStyles[mealType] || {
-      section: 'border-slate-200 bg-slate-50/40',
-      button: 'border-slate-200 text-slate-700 hover:bg-slate-100',
-      macro: 'text-slate-700'
+      badge: 'bg-slate-100 text-slate-700',
+      border: 'border-slate-200'
     };
 
     const sectionLi = document.createElement('li');
-    sectionLi.className = `rounded-3xl border p-4 md:p-5 space-y-4 ${style.section}`;
+    sectionLi.className = 'space-y-3';
 
-    sectionLi.innerHTML = `
-      <div class="flex items-center justify-between gap-4">
-        <div>
-          <h3 class="text-2xl font-semibold text-slate-800">${MEAL_LABELS[mealType]}</h3>
-          <p class="text-sm text-slate-500 mt-1">
-            ${mealEntries.length === 0
-              ? 'No entries'
-              : `${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}`}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          class="meal-add-btn inline-flex h-11 w-11 items-center justify-center rounded-full border bg-white text-xl font-semibold shadow-sm transition ${style.button}"
-          data-meal-type="${mealType}">
-          +
-        </button>
-      </div>
+    const sectionTitle = document.createElement('div');
+    sectionTitle.className = 'flex items-center gap-3';
+    sectionTitle.innerHTML = `
+      <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${style.badge}">
+        ${MEAL_LABELS[mealType]}
+      </span>
+      <span class="text-sm text-slate-500">${mealEntries.length} entr${mealEntries.length === 1 ? 'y' : 'ies'}</span>
     `;
+    sectionLi.appendChild(sectionTitle);
 
-    if (mealEntries.length === 0) {
-      const emptyState = document.createElement('div');
-      emptyState.className = 'rounded-2xl border border-dashed border-slate-200 bg-white/70 p-4 text-sm text-slate-500';
-      emptyState.textContent = `No ${MEAL_LABELS[mealType].toLowerCase()} entries yet.`;
-      sectionLi.appendChild(emptyState);
-    } else {
-      const innerList = document.createElement('div');
-      innerList.className = 'space-y-3';
+    const innerList = document.createElement('div');
+    innerList.className = 'space-y-3';
 
-      for (const entry of mealEntries) {
-        const hasNotes = entry.notes && String(entry.notes).trim() !== '';
+    for (const entry of mealEntries) {
+      const hasNotes = entry.notes && String(entry.notes).trim() !== '';
 
-        const entryCard = document.createElement('div');
-        entryCard.className = 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm';
+      const entryCard = document.createElement('div');
+      entryCard.className = `rounded-2xl border ${style.border} bg-white p-4 shadow-sm hover:shadow-md transition`;
 
-        entryCard.innerHTML = `
-          <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div class="min-w-0">
-                  <p class="text-lg font-semibold text-slate-800 break-words">${entry.foodName}</p>
-                </div>
-
-                <div class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 w-fit">
-                  ${entry.calories} calories
-                </div>
+      entryCard.innerHTML = `
+        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-lg font-semibold text-slate-800 break-words">${entry.foodName}</p>
               </div>
 
-              <div class="mt-3 flex flex-wrap gap-4 text-sm">
-                <span class="${style.macro} font-medium">Protein: ${entry.protein ?? 0}g</span>
-                <span class="${style.macro} font-medium">Carbs: ${entry.carbs ?? 0}g</span>
-                <span class="${style.macro} font-medium">Fats: ${entry.fats ?? 0}g</span>
+              <div class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 w-fit">
+                ${entry.calories} calories
+              </div>
+            </div>
+
+            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">
+              <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
+                <p class="text-sm font-semibold text-blue-700 mt-1">${entry.protein ?? '-'}</p>
               </div>
 
-              ${
-                hasNotes
-                  ? `
-                <div class="mt-3 rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
-                  <p class="text-xs uppercase tracking-wide text-slate-400">Notes</p>
-                  <p class="mt-1 text-sm text-slate-600 break-words">${entry.notes}</p>
-                </div>
-              `
-                  : ''
-              }
+              <div class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
+                <p class="text-sm font-semibold text-amber-700 mt-1">${entry.carbs ?? '-'}</p>
+              </div>
+
+              <div class="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
+                <p class="text-sm font-semibold text-rose-700 mt-1">${entry.fats ?? '-'}</p>
+              </div>
             </div>
 
-            <div class="md:flex-shrink-0">
-              <button
-                type="button"
-                class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
-                data-entry-id="${entry.id}">
-                Delete
-              </button>
-            </div>
+            ${
+              hasNotes
+                ? `
+              <div class="mt-3 rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
+                <p class="text-xs uppercase tracking-wide text-slate-400">Notes</p>
+                <p class="mt-1 text-sm text-slate-600 break-words">${entry.notes}</p>
+              </div>
+            `
+                : ''
+            }
           </div>
-        `;
 
-        innerList.appendChild(entryCard);
-      }
+          <div class="md:flex-shrink-0">
+            <button
+              type="button"
+              class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+              data-entry-id="${entry.id}">
+              Delete
+            </button>
+          </div>
+        </div>
+      `;
 
-      sectionLi.appendChild(innerList);
+      innerList.appendChild(entryCard);
     }
 
+    sectionLi.appendChild(innerList);
     entriesList.appendChild(sectionLi);
   }
-
-  document.querySelectorAll('.meal-add-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      const mealType = button.getAttribute('data-meal-type');
-      if (!mealType) return;
-      openQuickAddForMeal(mealType);
-    });
-  });
 }
 
 function calculateTotals(entries) {
@@ -946,15 +908,30 @@ function renderMacroChart(totals, dateString) {
   setProgress(chartFatsBar, totals.fats, currentGoals.fats);
 }
 
-function renderGoalLabels() {
-  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${Math.round(currentGoals.calories)}`;
-  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${roundToOne(currentGoals.protein)}g`;
-  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${roundToOne(currentGoals.carbs)}g`;
-  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${roundToOne(currentGoals.fats)}g`;
+function resetSummary() {
+  if (summaryCalories) summaryCalories.textContent = '0';
+  if (summaryProtein) summaryProtein.textContent = '0g';
+  if (summaryCarbs) summaryCarbs.textContent = '0g';
+  if (summaryFats) summaryFats.textContent = '0g';
+  if (summaryEntries) summaryEntries.textContent = '0';
+  if (summaryCaloriesRemaining) summaryCaloriesRemaining.textContent = `Remaining: ${currentGoals.calories}`;
+  if (summaryProteinRemaining) summaryProteinRemaining.textContent = `Remaining: ${currentGoals.protein}g`;
+  if (summaryCarbsRemaining) summaryCarbsRemaining.textContent = `Remaining: ${currentGoals.carbs}g`;
+  if (summaryFatsRemaining) summaryFatsRemaining.textContent = `Remaining: ${currentGoals.fats}g`;
+  if (summaryEntriesHint) summaryEntriesHint.textContent = 'No meals logged yet';
+
+  setProgress(progressCalories, 0, currentGoals.calories);
+  setProgress(progressProtein, 0, currentGoals.protein);
+  setProgress(progressCarbs, 0, currentGoals.carbs);
+  setProgress(progressFats, 0, currentGoals.fats);
+  setProgress(progressEntries, 0, DEFAULT_GOALS.entries);
 }
 
-function resetSummary() {
-  updateSummaryFromTotals({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
+function renderGoalLabels() {
+  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${currentGoals.calories}`;
+  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${currentGoals.protein}g`;
+  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${currentGoals.carbs}g`;
+  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${currentGoals.fats}g`;
 }
 
 function populateSavedFoodsDropdown() {
@@ -965,7 +942,7 @@ function populateSavedFoodsDropdown() {
   for (const food of customFoodsCache) {
     const option = document.createElement('option');
     option.value = food.id;
-    option.textContent = food.foodName;
+    option.textContent = `${food.foodName} (${food.calories} cal)`;
     savedFoodSelect.appendChild(option);
   }
 }
@@ -984,34 +961,36 @@ function applyCustomFoodToEntryForm(food) {
   if (carbs) carbs.value = food.carbs ?? '';
   if (fats) fats.value = food.fats ?? '';
   if (notes) notes.value = food.notes || '';
+
+  if (formMessage) formMessage.textContent = `Loaded custom food: ${food.foodName}`;
 }
 
 function setProgress(element, value, goal) {
   if (!element) return;
-  const safeGoal = Number(goal) || 0;
-  const safeValue = Number(value) || 0;
-  const percent = safeGoal > 0 ? Math.min((safeValue / safeGoal) * 100, 100) : 0;
-  element.style.width = `${percent}%`;
+
+  const percentage = goal > 0 ? Math.min((value / goal) * 100, 100) : 0;
+  element.style.width = `${percentage}%`;
 }
 
 function roundToOne(value) {
-  return Math.round((Number(value) || 0) * 10) / 10;
+  return Math.round(value * 10) / 10;
 }
 
-function showSpinner() {
-  loadingSpinner?.classList.remove('hidden');
+function padNumber(value) {
+  return String(value).padStart(2, '0');
 }
 
-function hideSpinner() {
-  loadingSpinner?.classList.add('hidden');
+function getTodayDateString() {
+  const today = new Date();
+  return `${today.getFullYear()}-${padNumber(today.getMonth() + 1)}-${padNumber(today.getDate())}`;
 }
 
-function setFormLoadingState(isLoading) {
-  const submitButton = entryForm?.querySelector('button[type="submit"]');
-  if (!submitButton) return;
-  submitButton.disabled = isLoading;
-  submitButton.classList.toggle('opacity-70', isLoading);
-  submitButton.classList.toggle('cursor-not-allowed', isLoading);
+function shiftDateString(dateString, days) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + days);
+
+  return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
 }
 
 function syncSelectedDateInput() {
@@ -1020,34 +999,80 @@ function syncSelectedDateInput() {
   }
 }
 
-function shiftDateString(dateString, dayDelta) {
-  const [year, month, day] = dateString.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  date.setDate(date.getDate() + dayDelta);
-  return getDateStringFromDate(date);
-}
-
-function getTodayDateString() {
-  return getDateStringFromDate(new Date());
-}
-
-function getDateStringFromDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
 function formatDateForDisplay(dateString) {
   const [year, month, day] = dateString.split('-').map(Number);
   const date = new Date(year, month - 1, day);
-  return date.toLocaleDateString('en-AU', {
+
+  return date.toLocaleDateString(undefined, {
     weekday: 'long',
-    day: 'numeric',
+    year: 'numeric',
     month: 'long',
-    year: 'numeric'
+    day: 'numeric'
   });
 }
 
+function showSpinner() {
+  if (!loadingSpinner) return;
+  loadingSpinner.classList.remove('hidden');
+}
+
+function hideSpinner() {
+  if (!loadingSpinner) return;
+  loadingSpinner.classList.add('hidden');
+}
+
+function setFormLoadingState(isLoading) {
+  const submitButton = entryForm?.querySelector('button[type="submit"]');
+  if (!submitButton) return;
+
+  submitButton.disabled = isLoading;
+
+  if (isLoading) {
+    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+    submitButton.textContent = 'Saving...';
+  } else {
+    submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+    submitButton.textContent = 'Save Meal Entry';
+  }
+}
+
+function hideStartupOverlay() {
+  const overlay = document.getElementById("startupOverlay");
+  if (!overlay) return;
+
+  overlay.classList.add("startup-overlay-hidden");
+
+  setTimeout(() => {
+    overlay.remove();
+  }, 700);
+}
+
+async function initApp() {
+  const navEntry = performance.getEntriesByType("navigation")[0];
+  const isReload = navEntry && navEntry.type === "reload";
+  const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
+
+  try {
+    await loadUser();
+    await loadNutritionProfile();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    if (!hasSeenStartup || isReload) {
+      sessionStorage.setItem("hasSeenStartup", "true");
+
+      setTimeout(() => {
+        hideStartupOverlay();
+      }, 1500);
+    } else {
+      hideStartupOverlay();
+    }
+  }
+}
+
+initApp();
+
+// keep your other setup calls
 syncSelectedDateInput();
 setWorkspaceTab('meal');
+updateSavedFoodsSummary();
