@@ -6,49 +6,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Secure Nutrition Log</title>
   <link rel="stylesheet" href="style.css" />
- <script>
-  const navEntry = performance.getEntriesByType("navigation")[0];
-  const isReload = navEntry && navEntry.type === "reload";
-  const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
+  <script>
+    const navEntry = performance.getEntriesByType("navigation")[0];
+    const isReload = navEntry && navEntry.type === "reload";
+    const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
 
-  if (hasSeenStartup && !isReload) {
-    document.documentElement.classList.add("startup-seen");
-  }
-</script>
+    if (hasSeenStartup && !isReload) {
+      document.documentElement.classList.add("startup-seen");
+    }
+  </script>
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-emerald-50 to-white">
 
-  <!-- 🔥 STARTUP LOADING OVERLAY (ADD THIS HERE) -->
+  <!-- Startup overlay -->
   <div
-  id="startupOverlay"
-  class="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden transition-opacity duration-700"
->
-  <div class="absolute inset-0 psychedelic-fruit-bg"></div>
-  <div class="absolute inset-0 bg-black/10 backdrop-blur-[3px]"></div>
+    id="startupOverlay"
+    class="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden transition-opacity duration-700"
+  >
+    <div class="absolute inset-0 psychedelic-fruit-bg"></div>
+    <div class="absolute inset-0 bg-black/10 backdrop-blur-[3px]"></div>
 
-  <div class="fruit fruit-1">🍍</div>
-  <div class="fruit fruit-2">🍉</div>
-  <div class="fruit fruit-3">🍓</div>
-  <div class="fruit fruit-4">🍌</div>
-  <div class="fruit fruit-5">🍇</div>
-  <div class="fruit fruit-6">🥝</div>
-  <div class="fruit fruit-7">🍒</div>
-  <div class="fruit fruit-8">🍊</div>
-  <div class="fruit fruit-9">🥑</div>
-  <div class="fruit fruit-10">🍏</div>
+    <div class="fruit fruit-1">🍍</div>
+    <div class="fruit fruit-2">🍉</div>
+    <div class="fruit fruit-3">🍓</div>
+    <div class="fruit fruit-4">🍌</div>
+    <div class="fruit fruit-5">🍇</div>
+    <div class="fruit fruit-6">🥝</div>
+    <div class="fruit fruit-7">🍒</div>
+    <div class="fruit fruit-8">🍊</div>
+    <div class="fruit fruit-9">🥑</div>
+    <div class="fruit fruit-10">🍏</div>
 
-  <div class="relative z-10 flex flex-col items-center text-center px-6">
-    <div class="startup-photo-wrap">
-      <img src="images/jarrodfruit.png" alt="Loading" class="startup-photo" />
+    <div class="relative z-10 flex flex-col items-center text-center px-6">
+      <div class="startup-photo-wrap">
+        <img src="images/jarrodfruit.png" alt="Loading" class="startup-photo" />
+      </div>
+
+      <h2 class="mt-6 text-3xl font-bold text-white drop-shadow-lg">
+        Loading...
+      </h2>
     </div>
-
-    <h2 class="mt-6 text-3xl font-bold text-white drop-shadow-lg">
-      Loading...
-    </h2>
   </div>
-</div>
 
-  <!-- 👇 YOUR EXISTING CODE STARTS HERE -->
   <!-- First-time setup modal -->
   <div id="profileSetupModal" class="hidden fixed inset-0 z-50">
     <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
@@ -108,7 +107,6 @@
     <section class="mb-6">
       <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-
           <div class="min-w-0">
             <div class="flex items-center gap-3">
               <div id="userAvatar" class="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-green-700 text-lg font-bold shadow-sm">
@@ -154,7 +152,6 @@
               </a>
             </div>
           </div>
-
         </div>
       </div>
     </section>
@@ -163,7 +160,6 @@
     <section class="mb-6">
       <div class="bg-white rounded-3xl shadow-md border border-green-100 p-6">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
           <div class="max-w-2xl">
             <p class="text-xs uppercase tracking-wide text-slate-400">Today Focus</p>
             <h2 id="focusHeadline" class="text-3xl font-bold text-slate-800 mt-2">Ready to log your day</h2>
@@ -185,7 +181,6 @@
               <p class="text-xs text-slate-500 mt-1">Entries for selected day</p>
             </div>
           </div>
-
         </div>
       </div>
     </section>
@@ -357,11 +352,15 @@
               <button id="addMealTabBtn" type="button" class="rounded-xl bg-green-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-green-700 transition">
                 Add Meal
               </button>
+              <button id="searchFoodTabBtn" type="button" class="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
+                Search Food
+              </button>
               <button id="saveCustomTabBtn" type="button" class="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
                 Create Custom Meal
               </button>
             </div>
 
+            <!-- Add Meal -->
             <div id="addMealTabSection">
               <div id="savedFoodSelectorSection" class="mb-5 rounded-2xl border border-lime-200 bg-lime-50 p-4">
                 <label for="savedFoodSelect" class="block text-sm font-medium text-slate-700 mb-2">Use a saved food</label>
@@ -472,27 +471,98 @@
               <p id="formMessage" class="mt-4 text-sm text-slate-600"></p>
             </div>
 
-            <div id="saveCustomTabSection" class="hidden">
-              <div class="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                Save foods you use often so they can be loaded straight into the meal popup later.
+            <!-- Search Food -->
+            <div id="searchFoodTabSection" class="hidden">
+              <div class="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <label for="foodSearchInput" class="block text-sm font-medium text-slate-700 mb-2">Search USDA foods</label>
+
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+                  <input
+                    type="text"
+                    id="foodSearchInput"
+                    class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="Search for a food, e.g. banana, oats, tofu" />
+
+                  <button
+                    id="foodSearchBtn"
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-2xl bg-blue-600 px-5 py-3 text-white text-sm font-semibold shadow hover:bg-blue-700 transition">
+                    Search
+                  </button>
+                </div>
+
+                <p class="text-xs text-slate-500 mt-2">
+                  Choose a USDA result below to auto-fill your meal entry form.
+                </p>
               </div>
 
+              <div id="foodSearchMessage" class="mt-4 text-sm text-slate-600"></div>
+
+              <div id="foodSearchResults" class="mt-4 space-y-3"></div>
+            </div>
+
+            <!-- Create Custom Meal -->
+            <div id="saveCustomTabSection" class="hidden">
               <form id="customFoodForm" class="space-y-4">
                 <div>
                   <label for="customFoodName" class="block text-sm font-medium text-slate-700 mb-2">Food Name</label>
-                  <input type="text" id="customFoodName" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" placeholder="e.g. Homemade Protein Oats" />
+                  <input
+                    type="text"
+                    id="customFoodName"
+                    required
+                    class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200"
+                    placeholder="e.g. Homemade tofu scramble" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="number" id="customFoodCalories" placeholder="Calories" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
-                  <input type="number" id="customFoodProtein" step="0.1" placeholder="Protein" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
-                  <input type="number" id="customFoodCarbs" step="0.1" placeholder="Carbs" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
-                  <input type="number" id="customFoodFats" step="0.1" placeholder="Fats" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" />
+                  <div>
+                    <label for="customFoodCalories" class="block text-sm font-medium text-slate-700 mb-2">Calories</label>
+                    <input
+                      type="number"
+                      id="customFoodCalories"
+                      required
+                      class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200"
+                      placeholder="e.g. 320" />
+                  </div>
+
+                  <div>
+                    <label for="customFoodProtein" class="block text-sm font-medium text-slate-700 mb-2">Protein (g)</label>
+                    <input
+                      type="number"
+                      id="customFoodProtein"
+                      step="0.1"
+                      class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200"
+                      placeholder="e.g. 22" />
+                  </div>
+
+                  <div>
+                    <label for="customFoodCarbs" class="block text-sm font-medium text-slate-700 mb-2">Carbs (g)</label>
+                    <input
+                      type="number"
+                      id="customFoodCarbs"
+                      step="0.1"
+                      class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200"
+                      placeholder="e.g. 18" />
+                  </div>
+
+                  <div>
+                    <label for="customFoodFats" class="block text-sm font-medium text-slate-700 mb-2">Fats (g)</label>
+                    <input
+                      type="number"
+                      id="customFoodFats"
+                      step="0.1"
+                      class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200"
+                      placeholder="e.g. 12" />
+                  </div>
                 </div>
 
                 <div>
                   <label for="customFoodNotes" class="block text-sm font-medium text-slate-700 mb-2">Notes</label>
-                  <textarea id="customFoodNotes" rows="4" class="w-full rounded-2xl border border-slate-300 px-4 py-3 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200" placeholder="Optional notes..."></textarea>
+                  <textarea
+                    id="customFoodNotes"
+                    rows="4"
+                    class="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-800 shadow-sm focus:border-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-200"
+                    placeholder="Add notes about this saved food..."></textarea>
                 </div>
 
                 <button type="submit" class="w-full rounded-2xl bg-lime-600 px-4 py-3 text-white text-lg font-semibold shadow hover:bg-lime-700 transition">

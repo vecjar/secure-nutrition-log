@@ -23,12 +23,20 @@ const formMessage = document.getElementById('formMessage');
 const customFoodsMessage = document.getElementById('customFoodsMessage');
 
 const addMealTabBtn = document.getElementById('addMealTabBtn');
+const searchFoodTabBtn = document.getElementById('searchFoodTabBtn');
 const saveCustomTabBtn = document.getElementById('saveCustomTabBtn');
+
 const addMealTabSection = document.getElementById('addMealTabSection');
+const searchFoodTabSection = document.getElementById('searchFoodTabSection');
 const saveCustomTabSection = document.getElementById('saveCustomTabSection');
 
 const savedFoodSelect = document.getElementById('savedFoodSelect');
 const deleteCustomFoodBtn = document.getElementById('deleteCustomFoodBtn');
+
+const foodSearchInput = document.getElementById('foodSearchInput');
+const foodSearchBtn = document.getElementById('foodSearchBtn');
+const foodSearchResults = document.getElementById('foodSearchResults');
+const foodSearchMessage = document.getElementById('foodSearchMessage');
 
 const prevDayBtn = document.getElementById('prevDayBtn');
 const nextDayBtn = document.getElementById('nextDayBtn');
@@ -157,8 +165,9 @@ entryForm?.addEventListener('submit', async (event) => {
 
     if (formMessage) formMessage.textContent = `Saved: ${data.entry.foodName} for ${currentSelectedDate}`;
     entryForm.reset();
-    savedFoodSelect && (savedFoodSelect.value = '');
+    if (savedFoodSelect) savedFoodSelect.value = '';
     await loadEntriesForSelectedDate();
+
     window.setTimeout(() => {
       closeMealEntryModal();
       if (formMessage) formMessage.textContent = '';
@@ -215,6 +224,7 @@ customFoodForm?.addEventListener('submit', async (event) => {
 });
 
 addMealTabBtn?.addEventListener('click', () => setWorkspaceTab('meal'));
+searchFoodTabBtn?.addEventListener('click', () => setWorkspaceTab('search'));
 saveCustomTabBtn?.addEventListener('click', () => setWorkspaceTab('custom'));
 
 savedFoodSelect?.addEventListener('change', () => {
@@ -247,6 +257,17 @@ deleteCustomFoodBtn?.addEventListener('click', async () => {
   if (!confirmed) return;
 
   await deleteCustomFood(selectedFood.id);
+});
+
+foodSearchBtn?.addEventListener('click', async () => {
+  await searchFoods();
+});
+
+foodSearchInput?.addEventListener('keydown', async (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    await searchFoods();
+  }
 });
 
 prevDayBtn?.addEventListener('click', async () => {
@@ -480,6 +501,130 @@ async function loadCustomFoods() {
   }
 }
 
+async function searchFoods() {
+  const query = foodSearchInput?.value?.trim() || '';
+
+  if (!query) {
+    if (foodSearchMessage) foodSearchMessage.textContent = 'Enter a food to search.';
+    if (foodSearchResults) foodSearchResults.innerHTML = '';
+    return;
+  }
+
+  if (foodSearchMessage) foodSearchMessage.textContent = `Searching for "${query}"...`;
+  if (foodSearchResults) foodSearchResults.innerHTML = '';
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/searchFood?query=${encodeURIComponent(query)}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (foodSearchMessage) foodSearchMessage.textContent = data.error || 'Search failed.';
+      return;
+    }
+
+    if (foodSearchMessage) {
+      foodSearchMessage.textContent = `Found ${data.count} result${data.count === 1 ? '' : 's'} for "${query}".`;
+    }
+
+    renderFoodSearchResults(data.results || []);
+  } catch (error) {
+    console.error(error);
+    if (foodSearchMessage) foodSearchMessage.textContent = 'Could not search foods right now.';
+  }
+}
+
+function renderFoodSearchResults(results) {
+  if (!foodSearchResults) return;
+
+  if (!results.length) {
+    foodSearchResults.innerHTML = `
+      <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+        No foods found. Try a broader search like banana, oats, tofu, rice, or almond milk.
+      </div>
+    `;
+    return;
+  }
+
+  foodSearchResults.innerHTML = results.map((food, index) => `
+    <button
+      type="button"
+      class="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm hover:border-blue-300 hover:bg-blue-50/50 hover:shadow transition"
+      data-search-result-index="${index}">
+      <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div class="min-w-0">
+          <p class="text-base font-semibold text-slate-800 break-words">${escapeHtml(food.foodName)}</p>
+          <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span class="rounded-full bg-slate-100 px-2.5 py-1">${escapeHtml(food.serving || '100 g')}</span>
+            ${food.dataType ? `<span class="rounded-full bg-blue-100 px-2.5 py-1 text-blue-700">${escapeHtml(food.dataType)}</span>` : ''}
+            ${food.brandName ? `<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-emerald-700">${escapeHtml(food.brandName)}</span>` : ''}
+          </div>
+        </div>
+
+        <div class="text-sm font-semibold text-blue-700 md:text-right">
+          Use this food
+        </div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
+          <p class="mt-1 text-base font-semibold text-emerald-700">${formatMacroValue(food.calories)}</p>
+        </div>
+
+        <div class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
+          <p class="mt-1 text-base font-semibold text-blue-700">${formatMacroValue(food.protein)}</p>
+        </div>
+
+        <div class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
+          <p class="mt-1 text-base font-semibold text-amber-700">${formatMacroValue(food.carbs)}</p>
+        </div>
+
+        <div class="rounded-xl border border-rose-100 bg-rose-50 px-3 py-3">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
+          <p class="mt-1 text-base font-semibold text-rose-700">${formatMacroValue(food.fats)}</p>
+        </div>
+      </div>
+    </button>
+  `).join('');
+
+  document.querySelectorAll('[data-search-result-index]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const index = Number(button.getAttribute('data-search-result-index'));
+      const selectedFood = results[index];
+      if (!selectedFood) return;
+      applyFoodSearchResultToEntryForm(selectedFood);
+    });
+  });
+}
+
+function applyFoodSearchResultToEntryForm(food) {
+  const foodName = document.getElementById('foodName');
+  const calories = document.getElementById('calories');
+  const protein = document.getElementById('protein');
+  const carbs = document.getElementById('carbs');
+  const fats = document.getElementById('fats');
+  const notes = document.getElementById('notes');
+
+  if (foodName) foodName.value = food.foodName || '';
+  if (calories) calories.value = food.calories ?? '';
+  if (protein) protein.value = food.protein ?? '';
+  if (carbs) carbs.value = food.carbs ?? '';
+  if (fats) fats.value = food.fats ?? '';
+
+  if (notes) {
+    const serving = food.serving ? `USDA serving: ${food.serving}` : '';
+    const dataType = food.dataType ? `Type: ${food.dataType}` : '';
+    const brand = food.brandName ? `Brand: ${food.brandName}` : '';
+    const noteParts = [serving, dataType, brand].filter(Boolean);
+    notes.value = noteParts.join(' | ');
+  }
+
+  if (formMessage) formMessage.textContent = `Loaded USDA food: ${food.foodName}`;
+  setWorkspaceTab('meal');
+}
+
 async function deleteEntry(entryId) {
   showSpinner();
 
@@ -562,12 +707,16 @@ async function loadUser() {
       signOutBtn?.classList.add('hidden');
       editProfileBtn?.classList.add('hidden');
       hideProfileSetupModal();
+
       if (formMessage) formMessage.textContent = 'Please sign in to save entries.';
       if (entriesMessage) entriesMessage.textContent = 'Please sign in to load your entries.';
       if (customFoodsMessage) customFoodsMessage.textContent = 'Please sign in to use custom foods.';
+      if (foodSearchMessage) foodSearchMessage.textContent = 'Please sign in to search foods.';
+
       customFoodsCache = [];
       populateSavedFoodsDropdown();
       updateSavedFoodsSummary();
+
       currentGoals = { ...DEFAULT_GOALS };
       renderGoalLabels();
       resetSummary();
@@ -624,9 +773,11 @@ async function loadUser() {
     signInBtn?.classList.remove('hidden');
     signOutBtn?.classList.add('hidden');
     editProfileBtn?.classList.add('hidden');
+
     customFoodsCache = [];
     populateSavedFoodsDropdown();
     updateSavedFoodsSummary();
+
     currentGoals = { ...DEFAULT_GOALS };
     renderGoalLabels();
     resetSummary();
@@ -716,9 +867,12 @@ function updateSavedFoodsSummary() {
 
 function setWorkspaceTab(tab) {
   const isMealTab = tab === 'meal';
+  const isSearchTab = tab === 'search';
+  const isCustomTab = tab === 'custom';
 
   if (addMealTabSection) addMealTabSection.classList.toggle('hidden', !isMealTab);
-  if (saveCustomTabSection) saveCustomTabSection.classList.toggle('hidden', isMealTab);
+  if (searchFoodTabSection) searchFoodTabSection.classList.toggle('hidden', !isSearchTab);
+  if (saveCustomTabSection) saveCustomTabSection.classList.toggle('hidden', !isCustomTab);
 
   if (addMealTabBtn) {
     addMealTabBtn.className = isMealTab
@@ -726,10 +880,16 @@ function setWorkspaceTab(tab) {
       : 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition';
   }
 
+  if (searchFoodTabBtn) {
+    searchFoodTabBtn.className = isSearchTab
+      ? 'rounded-xl bg-blue-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-blue-700 transition'
+      : 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition';
+  }
+
   if (saveCustomTabBtn) {
-    saveCustomTabBtn.className = isMealTab
-      ? 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition'
-      : 'rounded-xl bg-lime-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-lime-700 transition';
+    saveCustomTabBtn.className = isCustomTab
+      ? 'rounded-xl bg-lime-600 px-5 py-2.5 text-white text-sm font-medium shadow hover:bg-lime-700 transition'
+      : 'rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition';
   }
 }
 
@@ -744,6 +904,7 @@ function openMealEntryModal(mealType = '') {
     const mealLabel = MEAL_LABELS[mealType] || 'Meal';
     if (mealModalHeading) mealModalHeading.textContent = `Add ${mealLabel}`;
     if (mealModalSubtext) mealModalSubtext.textContent = `Log a ${mealLabel.toLowerCase()} entry for ${formatDateForDisplay(currentSelectedDate)}.`;
+
     const mealTypeSelect = document.getElementById('mealType');
     if (mealTypeSelect) mealTypeSelect.value = mealType;
   } else {
@@ -761,10 +922,15 @@ function closeMealEntryModal() {
   mealEntryModal?.classList.add('hidden');
   document.body.classList.remove('modal-open');
   currentModalMealType = '';
+
   if (formMessage) formMessage.textContent = '';
   if (customFoodsMessage) customFoodsMessage.textContent = '';
+  if (foodSearchMessage) foodSearchMessage.textContent = '';
+  if (foodSearchResults) foodSearchResults.innerHTML = '';
+  if (foodSearchInput) foodSearchInput.value = '';
+
   entryForm?.reset();
-  savedFoodSelect && (savedFoodSelect.value = '');
+  if (savedFoodSelect) savedFoodSelect.value = '';
 }
 
 function sortEntriesByMealOrder(entries) {
@@ -1147,10 +1313,10 @@ function setFormLoadingState(isLoading) {
 }
 
 function hideStartupOverlay() {
-  const overlay = document.getElementById("startupOverlay");
+  const overlay = document.getElementById('startupOverlay');
   if (!overlay) return;
 
-  overlay.classList.add("startup-overlay-hidden");
+  overlay.classList.add('startup-overlay-hidden');
 
   setTimeout(() => {
     overlay.remove();
@@ -1158,9 +1324,9 @@ function hideStartupOverlay() {
 }
 
 async function initApp() {
-  const navEntry = performance.getEntriesByType("navigation")[0];
-  const isReload = navEntry && navEntry.type === "reload";
-  const hasSeenStartup = sessionStorage.getItem("hasSeenStartup");
+  const navEntry = performance.getEntriesByType('navigation')[0];
+  const isReload = navEntry && navEntry.type === 'reload';
+  const hasSeenStartup = sessionStorage.getItem('hasSeenStartup');
 
   try {
     await loadUser();
@@ -1168,7 +1334,7 @@ async function initApp() {
     console.error(e);
   } finally {
     if (!hasSeenStartup || isReload) {
-      sessionStorage.setItem("hasSeenStartup", "true");
+      sessionStorage.setItem('hasSeenStartup', 'true');
 
       setTimeout(() => {
         hideStartupOverlay();
@@ -1180,8 +1346,6 @@ async function initApp() {
 }
 
 initApp();
-
-// keep your other setup calls
 syncSelectedDateInput();
 setWorkspaceTab('meal');
 updateSavedFoodsSummary();
