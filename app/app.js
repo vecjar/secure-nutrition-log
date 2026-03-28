@@ -555,59 +555,65 @@ function renderFoodSearchResults(results) {
     return;
   }
 
-  foodSearchResults.innerHTML = results.map(food => `
-    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
-
-      <!-- Header -->
-      <div class="flex justify-between items-start mb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">🍏</span>
-          <h3 class="text-base font-semibold text-slate-800 leading-tight">
-            ${food.description}
-          </h3>
+  foodSearchResults.innerHTML = results.map((food, index) => `
+    <button
+      type="button"
+      class="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:shadow-md transition"
+      data-search-result-index="${index}"
+    >
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="text-2xl">🍏</span>
+          <div class="min-w-0">
+            <h3 class="text-xl font-semibold text-slate-800 leading-tight break-words">
+              ${escapeHtml(food.foodName || 'Food result')}
+            </h3>
+            <div class="mt-2 flex flex-wrap gap-2">
+              ${food.serving ? `<span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">${escapeHtml(food.serving)}</span>` : ''}
+              ${food.dataType ? `<span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs text-blue-700">${escapeHtml(food.dataType)}</span>` : ''}
+              ${food.brandName ? `<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs text-emerald-700">${escapeHtml(food.brandName)}</span>` : ''}
+            </div>
+          </div>
         </div>
 
-        <button
-          onclick='useFood(${JSON.stringify(food)})'
-          class="text-sm font-semibold text-blue-600 hover:text-blue-800"
-        >
-          Use
-        </button>
+        <span class="text-sm font-semibold text-blue-600 whitespace-nowrap">Use</span>
       </div>
 
-      <!-- Calories -->
-      <div class="text-sm text-slate-400 uppercase tracking-wide">Calories</div>
-      <div class="text-2xl font-bold text-slate-800 mb-4">
-        ${food.calories}
-        <span class="text-sm font-medium text-slate-500">kcal</span>
+      <div class="mt-5">
+        <p class="text-xs uppercase tracking-wide text-slate-400">Calories</p>
+        <p class="mt-1 text-4xl font-bold text-slate-800">
+          ${formatMacroValue(food.calories)}
+          <span class="text-lg font-medium text-slate-500">kcal</span>
+        </p>
       </div>
 
-      <!-- Macros -->
-      <div class="grid grid-cols-3 gap-3 text-center">
-        <div class="bg-slate-50 rounded-xl p-3">
-          <div class="text-xs text-slate-400 uppercase">Protein</div>
-          <div class="font-semibold text-slate-700">${food.protein ?? 0}g</div>
+      <div class="mt-5 grid grid-cols-3 gap-3">
+        <div class="rounded-2xl bg-slate-50 px-4 py-3 text-center">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Protein</p>
+          <p class="mt-1 text-2xl font-semibold text-slate-700">${formatMacroValue(food.protein)}g</p>
         </div>
 
-        <div class="bg-amber-50 rounded-xl p-3">
-          <div class="text-xs text-slate-400 uppercase">Carbs</div>
-          <div class="font-semibold text-amber-700">${food.carbs ?? 0}g</div>
+        <div class="rounded-2xl bg-amber-50 px-4 py-3 text-center">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Carbs</p>
+          <p class="mt-1 text-2xl font-semibold text-amber-700">${formatMacroValue(food.carbs)}g</p>
         </div>
 
-        <div class="bg-rose-50 rounded-xl p-3">
-          <div class="text-xs text-slate-400 uppercase">Fats</div>
-          <div class="font-semibold text-rose-700">${food.fats ?? 0}g</div>
+        <div class="rounded-2xl bg-rose-50 px-4 py-3 text-center">
+          <p class="text-xs uppercase tracking-wide text-slate-400">Fats</p>
+          <p class="mt-1 text-2xl font-semibold text-rose-700">${formatMacroValue(food.fats)}g</p>
         </div>
       </div>
-
-      <!-- Tags -->
-      <div class="flex flex-wrap gap-2 mt-4 text-xs text-slate-500">
-        ${food.servingSize ? `<span class="bg-slate-100 px-2 py-1 rounded-full">${food.servingSize}</span>` : ''}
-        ${food.brandOwner ? `<span class="bg-slate-100 px-2 py-1 rounded-full">${food.brandOwner}</span>` : ''}
-      </div>
-
-    </div>
+    </button>
   `).join('');
+
+  document.querySelectorAll('[data-search-result-index]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const index = Number(button.getAttribute('data-search-result-index'));
+      const selectedFood = results[index];
+      if (!selectedFood) return;
+      applyFoodSearchResultToEntryForm(selectedFood);
+    });
+  });
 }
 
 function applyFoodSearchResultToEntryForm(food) {
