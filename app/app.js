@@ -83,6 +83,11 @@ const chartProteinLabel = document.getElementById('chartProteinLabel');
 const chartCarbsLabel = document.getElementById('chartCarbsLabel');
 const chartFatsLabel = document.getElementById('chartFatsLabel');
 
+const chartCaloriesPercent = document.getElementById('chartCaloriesPercent');
+const chartProteinPercent = document.getElementById('chartProteinPercent');
+const chartCarbsPercent = document.getElementById('chartCarbsPercent');
+const chartFatsPercent = document.getElementById('chartFatsPercent');
+
 const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 const signInBtn = document.getElementById('signInBtn');
 const signOutBtn = document.getElementById('signOutBtn');
@@ -1243,15 +1248,38 @@ function updateSummaryFromTotals(totals, entryCount) {
 function renderMacroChart(totals, dateString) {
   if (chartDateLabel) chartDateLabel.textContent = formatDateForDisplay(dateString);
 
-  if (chartCaloriesLabel) chartCaloriesLabel.textContent = `${Math.round(totals.calories)}`;
-  if (chartProteinLabel) chartProteinLabel.textContent = `${roundToOne(totals.protein)}g`;
-  if (chartCarbsLabel) chartCarbsLabel.textContent = `${roundToOne(totals.carbs)}g`;
-  if (chartFatsLabel) chartFatsLabel.textContent = `${roundToOne(totals.fats)}g`;
+  const caloriesValue = Math.round(totals.calories || 0);
+  const proteinValue = roundToOne(totals.protein || 0);
+  const carbsValue = roundToOne(totals.carbs || 0);
+  const fatsValue = roundToOne(totals.fats || 0);
 
-  setProgress(chartCaloriesBar, totals.calories, currentGoals.calories);
-  setProgress(chartProteinBar, totals.protein, currentGoals.protein);
-  setProgress(chartCarbsBar, totals.carbs, currentGoals.carbs);
-  setProgress(chartFatsBar, totals.fats, currentGoals.fats);
+  const caloriesPercent = currentGoals.calories > 0
+    ? Math.round((caloriesValue / currentGoals.calories) * 100)
+    : 0;
+  const proteinPercent = currentGoals.protein > 0
+    ? Math.round((proteinValue / currentGoals.protein) * 100)
+    : 0;
+  const carbsPercent = currentGoals.carbs > 0
+    ? Math.round((carbsValue / currentGoals.carbs) * 100)
+    : 0;
+  const fatsPercent = currentGoals.fats > 0
+    ? Math.round((fatsValue / currentGoals.fats) * 100)
+    : 0;
+
+  if (chartCaloriesLabel) chartCaloriesLabel.textContent = `${caloriesValue}`;
+  if (chartProteinLabel) chartProteinLabel.textContent = `${proteinValue}g`;
+  if (chartCarbsLabel) chartCarbsLabel.textContent = `${carbsValue}g`;
+  if (chartFatsLabel) chartFatsLabel.textContent = `${fatsValue}g`;
+
+  if (chartCaloriesPercent) chartCaloriesPercent.textContent = `${caloriesPercent}%`;
+  if (chartProteinPercent) chartProteinPercent.textContent = `${proteinPercent}%`;
+  if (chartCarbsPercent) chartCarbsPercent.textContent = `${carbsPercent}%`;
+  if (chartFatsPercent) chartFatsPercent.textContent = `${fatsPercent}%`;
+
+  setProgress(chartCaloriesBar, caloriesValue, currentGoals.calories);
+  setProgress(chartProteinBar, proteinValue, currentGoals.protein);
+  setProgress(chartCarbsBar, carbsValue, currentGoals.carbs);
+  setProgress(chartFatsBar, fatsValue, currentGoals.fats);
 }
 
 function resetSummary() {

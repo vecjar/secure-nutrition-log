@@ -283,44 +283,56 @@
 
           <div class="space-y-5">
             <div>
-              <div class="flex justify-between text-sm mb-2">
-                <span class="text-slate-500">Calories</span>
-                <span id="chartCaloriesLabel" class="font-semibold text-slate-800">0</span>
-              </div>
-              <div class="h-3 bg-green-100 rounded-full overflow-hidden">
-                <div id="chartCaloriesBar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
-              </div>
-            </div>
+  <div class="flex justify-between text-sm mb-2">
+    <span class="text-slate-500">
+      Calories
+      <span id="chartCaloriesLabel" class="ml-2 font-semibold text-slate-800">0</span>
+    </span>
+    <span id="chartCaloriesPercent" class="font-semibold text-slate-500">0%</span>
+  </div>
+  <div class="h-3 bg-green-100 rounded-full overflow-hidden">
+    <div id="chartCaloriesBar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+  </div>
+</div>
 
             <div>
-              <div class="flex justify-between text-sm mb-2">
-                <span class="text-slate-500">Protein</span>
-                <span id="chartProteinLabel" class="font-semibold text-slate-800">0g</span>
-              </div>
-              <div class="h-3 bg-blue-100 rounded-full overflow-hidden">
-                <div id="chartProteinBar" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
-              </div>
-            </div>
+  <div class="flex justify-between text-sm mb-2">
+    <span class="text-slate-500">
+      Protein
+      <span id="chartProteinLabel" class="ml-2 font-semibold text-slate-800">0g</span>
+    </span>
+    <span id="chartProteinPercent" class="font-semibold text-slate-500">0%</span>
+  </div>
+  <div class="h-3 bg-blue-100 rounded-full overflow-hidden">
+    <div id="chartProteinBar" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+  </div>
+</div>
+
+            <<div>
+  <div class="flex justify-between text-sm mb-2">
+    <span class="text-slate-500">
+      Carbs
+      <span id="chartCarbsLabel" class="ml-2 font-semibold text-slate-800">0g</span>
+    </span>
+    <span id="chartCarbsPercent" class="font-semibold text-slate-500">0%</span>
+  </div>
+  <div class="h-3 bg-amber-100 rounded-full overflow-hidden">
+    <div id="chartCarbsBar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+  </div>
+</div>
 
             <div>
-              <div class="flex justify-between text-sm mb-2">
-                <span class="text-slate-500">Carbs</span>
-                <span id="chartCarbsLabel" class="font-semibold text-slate-800">0g</span>
-              </div>
-              <div class="h-3 bg-amber-100 rounded-full overflow-hidden">
-                <div id="chartCarbsBar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between text-sm mb-2">
-                <span class="text-slate-500">Fats</span>
-                <span id="chartFatsLabel" class="font-semibold text-slate-800">0g</span>
-              </div>
-              <div class="h-3 bg-rose-100 rounded-full overflow-hidden">
-                <div id="chartFatsBar" class="h-full bg-rose-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
-              </div>
-            </div>
+  <div class="flex justify-between text-sm mb-2">
+    <span class="text-slate-500">
+      Fats
+      <span id="chartFatsLabel" class="ml-2 font-semibold text-slate-800">0g</span>
+    </span>
+    <span id="chartFatsPercent" class="font-semibold text-slate-500">0%</span>
+  </div>
+  <div class="h-3 bg-rose-100 rounded-full overflow-hidden">
+    <div id="chartFatsBar" class="h-full bg-rose-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+  </div>
+</div>
           </div>
         </div>
       </div>
