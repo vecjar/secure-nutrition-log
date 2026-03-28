@@ -515,10 +515,20 @@ async function searchFoods() {
 
   try {
     const response = await fetch(`${API_BASE_URL}/searchFood?query=${encodeURIComponent(query)}`);
-    const data = await response.json();
+    const rawText = await response.text();
+
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (parseError) {
+      console.error('Failed to parse searchFood response:', parseError, rawText);
+    }
 
     if (!response.ok) {
-      if (foodSearchMessage) foodSearchMessage.textContent = data.error || 'Search failed.';
+      if (foodSearchMessage) {
+        foodSearchMessage.textContent =
+          data.error || `Search failed (${response.status}). Check Azure function logs.`;
+      }
       return;
     }
 
@@ -529,7 +539,9 @@ async function searchFoods() {
     renderFoodSearchResults(data.results || []);
   } catch (error) {
     console.error(error);
-    if (foodSearchMessage) foodSearchMessage.textContent = 'Could not search foods right now.';
+    if (foodSearchMessage) {
+      foodSearchMessage.textContent = 'Could not search foods right now.';
+    }
   }
 }
 
