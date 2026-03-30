@@ -1620,7 +1620,22 @@ function setFormLoadingState(isLoading) {
   submitButton.classList.toggle('cursor-not-allowed', isLoading);
 }
 
-function initializeApp() {
+function hideStartupOverlay() {
+  const overlay = document.getElementById('startupOverlay');
+  if (!overlay) return;
+
+  overlay.classList.add('startup-overlay-hidden');
+
+  setTimeout(() => {
+    overlay.remove();
+  }, 700);
+}
+
+async function initApp() {
+  const navEntry = performance.getEntriesByType('navigation')[0];
+  const isReload = navEntry && navEntry.type === 'reload';
+  const hasSeenStartup = sessionStorage.getItem('hasSeenStartup');
+
   syncSelectedDateInput();
   renderGoalLabels();
   resetSummary();
@@ -1628,7 +1643,22 @@ function initializeApp() {
   updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
   updateSavedFoodsSummary();
   setWorkspaceTab('meal');
-  loadUser();
+
+  try {
+    await loadUser();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    if (!hasSeenStartup || isReload) {
+      sessionStorage.setItem('hasSeenStartup', 'true');
+
+      setTimeout(() => {
+        hideStartupOverlay();
+      }, 1500);
+    } else {
+      hideStartupOverlay();
+    }
+  }
 }
 
-initializeApp();
+initApp();
