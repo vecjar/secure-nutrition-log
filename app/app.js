@@ -834,6 +834,7 @@ function applyFoodSearchResultToEntryForm(food) {
 }
 
 async function deleteEntry(entryId) {
+  const currentScrollY = window.scrollY;
   showSpinner();
 
   try {
@@ -851,6 +852,13 @@ async function deleteEntry(entryId) {
 
     if (entriesMessage) entriesMessage.textContent = 'Entry deleted successfully.';
     await loadEntriesForSelectedDate();
+
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        top: currentScrollY,
+        behavior: 'auto'
+      });
+    });
   } catch (error) {
     console.error(error);
     if (entriesMessage) entriesMessage.textContent = 'Could not delete entry.';
@@ -860,6 +868,8 @@ async function deleteEntry(entryId) {
 }
 
 async function deleteCustomFood(foodId) {
+  const currentScrollY = window.scrollY;
+
   try {
     const response = await fetch(
       `${API_BASE_URL}/deleteCustomFood?foodId=${encodeURIComponent(foodId)}`,
@@ -892,6 +902,13 @@ async function deleteCustomFood(foodId) {
 
     if (savedFoodTriggerText) savedFoodTriggerText.textContent = 'Choose a saved food';
     if (savedFoodDropdown) savedFoodDropdown.classList.add('hidden');
+
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        top: currentScrollY,
+        behavior: 'auto'
+      });
+    });
   } catch (error) {
     console.error(error);
     if (formMessage) formMessage.textContent = 'Could not delete saved food.';
