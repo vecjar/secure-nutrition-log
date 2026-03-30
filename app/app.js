@@ -30,7 +30,9 @@ const addMealTabSection = document.getElementById('addMealTabSection');
 const searchFoodTabSection = document.getElementById('searchFoodTabSection');
 const saveCustomTabSection = document.getElementById('saveCustomTabSection');
 
-const savedFoodSelect = document.getElementById('savedFoodSelect');
+const savedFoodTrigger = document.getElementById('savedFoodTrigger');
+const savedFoodTriggerText = document.getElementById('savedFoodTriggerText');
+const savedFoodDropdown = document.getElementById('savedFoodDropdown');
 const deleteCustomFoodBtn = document.getElementById('deleteCustomFoodBtn');
 
 const foodSearchInput = document.getElementById('foodSearchInput');
@@ -138,6 +140,22 @@ window.addEventListener('popstate', () => {
   }
 });
 
+savedFoodTrigger?.addEventListener('click', (event) => {
+  event.stopPropagation();
+  savedFoodDropdown?.classList.toggle('hidden');
+});
+
+document.addEventListener('click', (event) => {
+  if (!savedFoodTrigger || !savedFoodDropdown) return;
+
+  const clickedInsideTrigger = savedFoodTrigger.contains(event.target);
+  const clickedInsideDropdown = savedFoodDropdown.contains(event.target);
+
+  if (!clickedInsideTrigger && !clickedInsideDropdown) {
+    savedFoodDropdown.classList.add('hidden');
+  }
+});
+
 entryForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -176,7 +194,8 @@ entryForm?.addEventListener('submit', async (event) => {
 
     if (formMessage) formMessage.textContent = `Saved: ${data.entry.foodName} for ${currentSelectedDate}`;
     entryForm.reset();
-    if (savedFoodSelect) savedFoodSelect.value = '';
+    if (savedFoodTriggerText) savedFoodTriggerText.textContent = 'Choose a saved food';
+    if (savedFoodDropdown) savedFoodDropdown.classList.add('hidden');
     await loadEntriesForSelectedDate();
 
     window.setTimeout(() => {
@@ -238,27 +257,15 @@ addMealTabBtn?.addEventListener('click', () => setWorkspaceTab('meal'));
 searchFoodTabBtn?.addEventListener('click', () => setWorkspaceTab('search'));
 saveCustomTabBtn?.addEventListener('click', () => setWorkspaceTab('custom'));
 
-savedFoodSelect?.addEventListener('change', () => {
-  const selectedFoodId = savedFoodSelect.value;
-  if (!selectedFoodId) return;
-
-  const selectedFood = customFoodsCache.find(food => food.id === selectedFoodId);
-  if (!selectedFood) {
-    if (formMessage) formMessage.textContent = 'Saved food could not be found.';
-    return;
-  }
-
-  applyCustomFoodToEntryForm(selectedFood);
-});
-
 deleteCustomFoodBtn?.addEventListener('click', async () => {
-  const selectedFoodId = savedFoodSelect?.value;
-  if (!selectedFoodId) {
+  const selectedFoodName = savedFoodTriggerText?.textContent?.trim();
+
+  if (!selectedFoodName || selectedFoodName === 'Choose a saved food') {
     if (formMessage) formMessage.textContent = 'Please choose a saved food to delete.';
     return;
   }
 
-  const selectedFood = customFoodsCache.find(food => food.id === selectedFoodId);
+  const selectedFood = customFoodsCache.find(food => food.foodName === selectedFoodName);
   if (!selectedFood) {
     if (formMessage) formMessage.textContent = 'Saved food could not be found.';
     return;
@@ -268,6 +275,8 @@ deleteCustomFoodBtn?.addEventListener('click', async () => {
   if (!confirmed) return;
 
   await deleteCustomFood(selectedFood.id);
+  if (savedFoodTriggerText) savedFoodTriggerText.textContent = 'Choose a saved food';
+  if (savedFoodDropdown) savedFoodDropdown.classList.add('hidden');
 });
 
 foodSearchBtn?.addEventListener('click', async () => {
@@ -766,6 +775,9 @@ async function deleteCustomFood(foodId) {
     if (carbs) carbs.value = '';
     if (fats) fats.value = '';
     if (notes) notes.value = '';
+
+    if (savedFoodTriggerText) savedFoodTriggerText.textContent = 'Choose a saved food';
+    if (savedFoodDropdown) savedFoodDropdown.classList.add('hidden');
   } catch (error) {
     console.error(error);
     if (formMessage) formMessage.textContent = 'Could not delete saved food.';
@@ -1016,6 +1028,7 @@ function openMealEntryModal(mealType = '') {
     document.activeElement.blur();
   }
 }
+
 function closeMealEntryModal(skipHistoryBack = false) {
   mealEntryModal?.classList.add('hidden');
   document.body.classList.remove('modal-open');
@@ -1028,7 +1041,8 @@ function closeMealEntryModal(skipHistoryBack = false) {
   if (foodSearchInput) foodSearchInput.value = '';
 
   entryForm?.reset();
-  if (savedFoodSelect) savedFoodSelect.value = '';
+  if (savedFoodTriggerText) savedFoodTriggerText.textContent = 'Choose a saved food';
+  if (savedFoodDropdown) savedFoodDropdown.classList.add('hidden');
 
   if (!skipHistoryBack && history.state && history.state.modal === 'meal') {
     history.back();
@@ -1179,17 +1193,17 @@ function renderEntryCard(entry, accentClass = 'border-slate-300') {
   const firstDetail = detailsParts.length ? detailsParts[0] : '';
   const macroParts = [];
 
- if (entry.protein !== null && entry.protein !== undefined && entry.protein !== '') {
-  macroParts.push(`Protein ${formatMacroValue(entry.protein)}g`);
-}
+  if (entry.protein !== null && entry.protein !== undefined && entry.protein !== '') {
+    macroParts.push(`Protein ${formatMacroValue(entry.protein)}g`);
+  }
 
-if (entry.carbs !== null && entry.carbs !== undefined && entry.carbs !== '') {
-  macroParts.push(`Carbs ${formatMacroValue(entry.carbs)}g`);
-}
+  if (entry.carbs !== null && entry.carbs !== undefined && entry.carbs !== '') {
+    macroParts.push(`Carbs ${formatMacroValue(entry.carbs)}g`);
+  }
 
-if (entry.fats !== null && entry.fats !== undefined && entry.fats !== '') {
-  macroParts.push(`Fats ${formatMacroValue(entry.fats)}g`);
-}
+  if (entry.fats !== null && entry.fats !== undefined && entry.fats !== '') {
+    macroParts.push(`Fats ${formatMacroValue(entry.fats)}g`);
+  }
 
   return `
     <div class="px-3 sm:px-5 py-3 sm:py-4">
@@ -1358,16 +1372,46 @@ function renderGoalLabels() {
 }
 
 function populateSavedFoodsDropdown() {
-  if (!savedFoodSelect) return;
+  if (!savedFoodDropdown || !savedFoodTriggerText) return;
 
-  savedFoodSelect.innerHTML = '<option value="">Select a saved food</option>';
-
-  for (const food of customFoodsCache) {
-    const option = document.createElement('option');
-    option.value = food.id;
-    option.textContent = `${food.foodName} (${food.calories} cal)`;
-    savedFoodSelect.appendChild(option);
+  if (!customFoodsCache.length) {
+    savedFoodTriggerText.textContent = 'Choose a saved food';
+    savedFoodDropdown.innerHTML = `
+      <div class="p-4 text-sm text-slate-500">
+        No saved foods yet
+      </div>
+    `;
+    return;
   }
+
+  savedFoodDropdown.innerHTML = customFoodsCache.map(food => `
+    <button
+      type="button"
+      class="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition"
+      data-food-id="${food.id}"
+    >
+      <div class="flex items-center justify-between gap-3">
+        <span class="font-medium text-slate-800 break-words">${escapeHtml(food.foodName)}</span>
+        <span class="text-sm text-slate-500 shrink-0">${formatMacroValue(food.calories)} cal</span>
+      </div>
+    </button>
+  `).join('');
+
+  savedFoodDropdown.querySelectorAll('[data-food-id]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const foodId = button.getAttribute('data-food-id');
+      const selectedFood = customFoodsCache.find(food => food.id === foodId);
+
+      if (!selectedFood) {
+        if (formMessage) formMessage.textContent = 'Saved food could not be found.';
+        return;
+      }
+
+      applyCustomFoodToEntryForm(selectedFood);
+      savedFoodTriggerText.textContent = selectedFood.foodName;
+      savedFoodDropdown.classList.add('hidden');
+    });
+  });
 }
 
 function applyCustomFoodToEntryForm(food) {
@@ -1510,16 +1554,13 @@ syncSelectedDateInput();
 setWorkspaceTab('meal');
 updateSavedFoodsSummary();
 
-// all your existing app logic above...
-
-// ✅ ADD THIS AT THE VERY END
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", async () => {
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
     try {
-      await navigator.serviceWorker.register("./sw.js");
-      console.log("Service worker registered");
+      await navigator.serviceWorker.register('./sw.js');
+      console.log('Service worker registered');
     } catch (error) {
-      console.error("Service worker registration failed:", error);
+      console.error('Service worker registration failed:', error);
     }
   });
 }
