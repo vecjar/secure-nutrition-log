@@ -1503,7 +1503,13 @@ function populateSavedFoodsDropdown() {
     return;
   }
 
-  savedFoodDropdown.innerHTML = customFoodsCache.map(food => `
+  const sortedFoods = [...customFoodsCache].sort((a, b) =>
+    (a.foodName || '').localeCompare((b.foodName || ''), undefined, {
+      sensitivity: 'base'
+    })
+  );
+
+  savedFoodDropdown.innerHTML = sortedFoods.map(food => `
     <button
       type="button"
       class="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition"
