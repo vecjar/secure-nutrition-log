@@ -113,22 +113,39 @@ const mealModalSubtext = document.getElementById('mealModalSubtext');
 const profileSetupModal = document.getElementById('profileSetupModal');
 const startProfileSetupBtn = document.getElementById('startProfileSetupBtn');
 
+let deleteModal = document.getElementById('deleteModal');
+let deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
+let deleteModalTitle = document.getElementById('deleteModalTitle');
+let deleteModalMessage = document.getElementById('deleteModalMessage');
+let confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+let cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
 let currentUser = null;
 let nutritionProfile = null;
 let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
 let currentSelectedDate = getTodayDateString();
 let currentModalMealType = '';
+let pendingDeleteId = null;
+let pendingDeleteType = null;
+let pendingDeleteLabel = '';
 const mealSectionState = { breakfast: true, lunch: true, dinner: true, snack: true };
 
 startProfileSetupBtn?.addEventListener('click', () => {
   window.location.href = '/profile.html';
 });
 
+initializeDeleteModal();
+
 closeMealModalBtn?.addEventListener('click', closeMealEntryModal);
 mealEntryModalBackdrop?.addEventListener('click', closeMealEntryModal);
 
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+    closeDeleteModal();
+    return;
+  }
+
   if (event.key === 'Escape' && mealEntryModal && !mealEntryModal.classList.contains('hidden')) {
     closeMealEntryModal();
   }
@@ -271,12 +288,12 @@ deleteCustomFoodBtn?.addEventListener('click', async () => {
     return;
   }
 
-  const confirmed = window.confirm(`Delete saved food "${selectedFood.foodName}"?`);
-  if (!confirmed) return;
-
-  await deleteCustomFood(selectedFood.id);
-  if (savedFoodTriggerText) savedFoodTriggerText.textContent = 'Choose a saved food';
-  if (savedFoodDropdown) savedFoodDropdown.classList.add('hidden');
+  openDeleteModal({
+    id: selectedFood.id,
+    type: 'customFood',
+    title: 'Delete saved food?',
+    message: `Are you sure you want to delete "${selectedFood.foodName}"?`
+  });
 });
 
 foodSearchBtn?.addEventListener('click', async () => {
@@ -318,12 +335,15 @@ entriesList?.addEventListener('click', async (event) => {
   const deleteButton = event.target.closest('.delete-btn');
   if (deleteButton) {
     const entryId = deleteButton.getAttribute('data-entry-id');
+    const entryName = deleteButton.getAttribute('data-entry-name') || 'this entry';
     if (!entryId) return;
 
-    const confirmed = window.confirm('Delete this entry?');
-    if (!confirmed) return;
-
-    await deleteEntry(entryId);
+    openDeleteModal({
+      id: entryId,
+      type: 'entry',
+      title: 'Delete entry?',
+      message: `Are you sure you want to delete "${entryName}"?`
+    });
     return;
   }
 
@@ -341,6 +361,100 @@ entriesList?.addEventListener('click', async (event) => {
     await loadEntriesForSelectedDate();
   }
 });
+
+function initializeDeleteModal() {
+  if (deleteModal && confirmDeleteBtn && cancelDeleteBtn) {
+    return;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <div id="deleteModal" class="hidden fixed inset-0 z-[90]">
+      <div id="deleteModalBackdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+
+      <div class="relative flex min-h-screen items-center justify-center p-4">
+        <div class="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+          <div class="text-center">
+            <h3 id="deleteModalTitle" class="text-xl font-semibold text-slate-800">Delete item?</h3>
+            <p id="deleteModalMessage" class="mt-2 text-sm leading-6 text-slate-500">
+              Are you sure you want to delete this item?
+            </p>
+          </div>
+
+          <div class="mt-6 grid grid-cols-2 gap-3">
+            <button
+              id="cancelDeleteBtn"
+              type="button"
+              class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 transition"
+            >
+              Cancel
+            </button>
+
+            <button
+              id="confirmDeleteBtn"
+              type="button"
+              class="inline-flex items-center justify-center rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-red-700 transition"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `.trim();
+
+  document.body.appendChild(wrapper.firstElementChild);
+
+  deleteModal = document.getElementById('deleteModal');
+  deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
+  deleteModalTitle = document.getElementById('deleteModalTitle');
+  deleteModalMessage = document.getElementById('deleteModalMessage');
+  confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+  deleteModalBackdrop?.addEventListener('click', closeDeleteModal);
+  cancelDeleteBtn?.addEventListener('click', closeDeleteModal);
+
+  confirmDeleteBtn?.addEventListener('click', async () => {
+    if (!pendingDeleteId || !pendingDeleteType) return;
+
+    const deleteId = pendingDeleteId;
+    const deleteType = pendingDeleteType;
+
+    closeDeleteModal();
+
+    if (deleteType === 'entry') {
+      await deleteEntry(deleteId);
+      return;
+    }
+
+    if (deleteType === 'customFood') {
+      await deleteCustomFood(deleteId);
+    }
+  });
+}
+
+function openDeleteModal({ id, type, title, message }) {
+  initializeDeleteModal();
+
+  pendingDeleteId = id;
+  pendingDeleteType = type;
+  pendingDeleteLabel = message || '';
+
+  if (deleteModalTitle) deleteModalTitle.textContent = title || 'Delete item?';
+  if (deleteModalMessage) deleteModalMessage.textContent = message || 'Are you sure you want to delete this item?';
+
+  deleteModal?.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+}
+
+function closeDeleteModal() {
+  deleteModal?.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+  pendingDeleteId = null;
+  pendingDeleteType = null;
+  pendingDeleteLabel = '';
+}
 
 async function fetchNutritionProfile() {
   const response = await fetch(`${API_BASE_URL}/getNutritionProfile`);
@@ -1249,7 +1363,9 @@ function renderEntryCard(entry, accentClass = 'border-slate-300') {
 
           <button
             type="button"
-            class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-xs sm:text-sm font-medium text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition self-start"            data-entry-id="${entry.id}">
+            class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs sm:text-sm font-semibold text-red-600 hover:border-red-300 hover:bg-red-100 hover:text-red-700 transition self-start"
+            data-entry-id="${entry.id}"
+            data-entry-name="${escapeHtml(entry.foodName)}">
             Delete
           </button>
         </div>
@@ -1452,52 +1568,47 @@ function setProgress(element, value, goal) {
 }
 
 function roundToOne(value) {
-  return Math.round(value * 10) / 10;
-}
-
-function padNumber(value) {
-  return String(value).padStart(2, '0');
+  return Math.round((Number(value) || 0) * 10) / 10;
 }
 
 function getTodayDateString() {
   const today = new Date();
-  return `${today.getFullYear()}-${padNumber(today.getMonth() + 1)}-${padNumber(today.getDate())}`;
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function shiftDateString(dateString, days) {
-  const [year, month, day] = dateString.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
+  const date = new Date(`${dateString}T00:00:00`);
   date.setDate(date.getDate() + days);
 
-  return `${date.getFullYear()}-${padNumber(date.getMonth() + 1)}-${padNumber(date.getDate())}`;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function syncSelectedDateInput() {
-  if (selectedDateInput) {
-    selectedDateInput.value = currentSelectedDate;
-  }
+  if (selectedDateInput) selectedDateInput.value = currentSelectedDate;
 }
 
 function formatDateForDisplay(dateString) {
-  const [year, month, day] = dateString.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-
+  const date = new Date(`${dateString}T00:00:00`);
   return date.toLocaleDateString(undefined, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
   });
 }
 
 function showSpinner() {
-  if (!loadingSpinner) return;
-  loadingSpinner.classList.remove('hidden');
+  loadingSpinner?.classList.remove('hidden');
 }
 
 function hideSpinner() {
-  if (!loadingSpinner) return;
-  loadingSpinner.classList.add('hidden');
+  loadingSpinner?.classList.add('hidden');
 }
 
 function setFormLoadingState(isLoading) {
@@ -1505,61 +1616,19 @@ function setFormLoadingState(isLoading) {
   if (!submitButton) return;
 
   submitButton.disabled = isLoading;
-
-  if (isLoading) {
-    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
-    submitButton.textContent = 'Saving...';
-  } else {
-    submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
-    submitButton.textContent = currentModalMealType ? `Save ${MEAL_LABELS[currentModalMealType]}` : 'Save Meal Entry';
-  }
+  submitButton.classList.toggle('opacity-60', isLoading);
+  submitButton.classList.toggle('cursor-not-allowed', isLoading);
 }
 
-function hideStartupOverlay() {
-  const overlay = document.getElementById('startupOverlay');
-  if (!overlay) return;
-
-  overlay.classList.add('startup-overlay-hidden');
-
-  setTimeout(() => {
-    overlay.remove();
-  }, 700);
+function initializeApp() {
+  syncSelectedDateInput();
+  renderGoalLabels();
+  resetSummary();
+  renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
+  updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
+  updateSavedFoodsSummary();
+  setWorkspaceTab('meal');
+  loadUser();
 }
 
-async function initApp() {
-  const navEntry = performance.getEntriesByType('navigation')[0];
-  const isReload = navEntry && navEntry.type === 'reload';
-  const hasSeenStartup = sessionStorage.getItem('hasSeenStartup');
-
-  try {
-    await loadUser();
-  } catch (e) {
-    console.error(e);
-  } finally {
-    if (!hasSeenStartup || isReload) {
-      sessionStorage.setItem('hasSeenStartup', 'true');
-
-      setTimeout(() => {
-        hideStartupOverlay();
-      }, 1500);
-    } else {
-      hideStartupOverlay();
-    }
-  }
-}
-
-initApp();
-syncSelectedDateInput();
-setWorkspaceTab('meal');
-updateSavedFoodsSummary();
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      await navigator.serviceWorker.register('./sw.js');
-      console.log('Service worker registered');
-    } catch (error) {
-      console.error('Service worker registration failed:', error);
-    }
-  });
-}
+initializeApp();
