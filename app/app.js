@@ -1322,7 +1322,8 @@ function renderEntryCard(entry, accentClass = 'border-slate-300') {
   return `
     <div class="px-3 sm:px-5 py-3 sm:py-4">
       <div class="rounded-2xl border-2 ${accentClass} bg-white px-3 sm:px-4 py-3 sm:py-4">
-        <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-3">
+
           <div class="min-w-0 flex-1">
             <p class="text-sm sm:text-xl font-bold text-slate-800 break-words">
               ${escapeHtml(entry.foodName)}
@@ -1361,13 +1362,16 @@ function renderEntryCard(entry, accentClass = 'border-slate-300') {
             }
           </div>
 
-          <button
-            type="button"
-            class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs sm:text-sm font-semibold text-red-600 hover:border-red-300 hover:bg-red-100 hover:text-red-700 transition self-start"
-            data-entry-id="${entry.id}"
-            data-entry-name="${escapeHtml(entry.foodName)}">
-            Delete
-          </button>
+          <div class="flex-shrink-0">
+            <button
+              type="button"
+              class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs sm:text-sm font-semibold text-red-600 hover:border-red-300 hover:bg-red-100 hover:text-red-700 transition"
+              data-entry-id="${entry.id}"
+              data-entry-name="${escapeHtml(entry.foodName)}">
+              Delete
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
