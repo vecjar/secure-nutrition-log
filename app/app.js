@@ -1249,8 +1249,7 @@ function renderEntryCard(entry, accentClass = 'border-slate-300') {
 
           <button
             type="button"
-            class="delete-btn inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-medium text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition self-start"
-            data-entry-id="${entry.id}">
+            class="delete-btn inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3 py-2 text-xs sm:text-sm font-medium text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition self-start"            data-entry-id="${entry.id}">
             Delete
           </button>
         </div>
