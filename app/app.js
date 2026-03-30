@@ -104,6 +104,12 @@ const focusMealsLogged = document.getElementById('focusMealsLogged');
 
 const savedFoodsCount = document.getElementById('savedFoodsCount');
 
+// Install banner
+const installBanner = document.getElementById('installBanner');
+const installBannerText = document.getElementById('installBannerText');
+const installAppBtn = document.getElementById('installAppBtn');
+const dismissInstallBannerBtn = document.getElementById('dismissInstallBannerBtn');
+
 const mealEntryModal = document.getElementById('mealEntryModal');
 const mealEntryModalBackdrop = document.getElementById('mealEntryModalBackdrop');
 const closeMealModalBtn = document.getElementById('closeMealModalBtn');
@@ -121,6 +127,8 @@ let confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 let cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
 
 let currentUser = null;
+let deferredInstallPrompt = null;
+const INSTALL_BANNER_DISMISSED_KEY = 'installBannerDismissed';
 let nutritionProfile = null;
 let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
@@ -918,6 +926,8 @@ async function deleteCustomFood(foodId) {
 async function loadUser() {
   if (!userInfo) return;
 
+  initializeInstallExperience();
+
   try {
     const response = await fetch('/.auth/me');
     const data = await response.json();
@@ -1505,6 +1515,96 @@ function renderGoalLabels() {
   if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${currentGoals.protein}g`;
   if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${currentGoals.carbs}g`;
   if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${currentGoals.fats}g`;
+}
+
+// ============================
+// INSTALL APP LOGIC
+// ============================
+
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+}
+
+function isInStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function wasInstallBannerDismissed() {
+  return localStorage.getItem(INSTALL_BANNER_DISMISSED_KEY) === 'true';
+}
+
+function dismissInstallBanner() {
+  localStorage.setItem(INSTALL_BANNER_DISMISSED_KEY, 'true');
+  installBanner?.classList.add('hidden');
+}
+
+function showInstallBanner() {
+  if (!installBanner) return;
+  if (isInStandaloneMode()) return;
+  if (wasInstallBannerDismissed()) return;
+
+  installBanner.classList.remove('hidden');
+
+  if (deferredInstallPrompt) {
+    installBannerText.textContent = 'Install this app for a better experience.';
+    installAppBtn.textContent = 'Install App';
+    return;
+  }
+
+  if (isIosDevice()) {
+    installBannerText.textContent = 'On iPhone: tap Share → Add to Home Screen.';
+    installAppBtn.textContent = 'How to Install';
+    return;
+  }
+
+  installBannerText.textContent = 'Use your browser menu to install this app.';
+  installAppBtn.textContent = 'Install Help';
+}
+
+function hideInstallBanner() {
+  installBanner?.classList.add('hidden');
+}
+
+async function handleInstallAppClick() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+
+    deferredInstallPrompt = null;
+
+    if (choice.outcome === 'accepted') {
+      hideInstallBanner();
+    }
+
+    return;
+  }
+
+  if (isIosDevice()) {
+    alert('Open in Safari → Share → Add to Home Screen');
+    return;
+  }
+
+  alert('Use your browser install option in the address bar.');
+}
+
+function initializeInstallExperience() {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showInstallBanner();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    hideInstallBanner();
+    localStorage.removeItem(INSTALL_BANNER_DISMISSED_KEY);
+  });
+
+  installAppBtn?.addEventListener('click', handleInstallAppClick);
+  dismissInstallBannerBtn?.addEventListener('click', dismissInstallBanner);
+
+  // fallback show
+  showInstallBanner();
 }
 
 function populateSavedFoodsDropdown() {

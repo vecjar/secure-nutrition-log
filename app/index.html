@@ -179,6 +179,38 @@
       </div>
     </section>
 
+<section id="installBanner" class="hidden mb-6">
+  <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div>
+        <p class="text-xs uppercase tracking-wide text-slate-400">Install App</p>
+        <h2 class="text-xl sm:text-2xl font-semibold text-slate-800 mt-1">
+          Install Secure Nutrition Log
+        </h2>
+        <p id="installBannerText" class="text-slate-600 mt-2">
+          Add this app to your home screen for faster access and an app-like experience.
+        </p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button
+          id="installAppBtn"
+          type="button"
+          class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-white font-medium shadow hover:bg-green-700 transition">
+          Install App
+        </button>
+
+        <button
+          id="dismissInstallBannerBtn"
+          type="button"
+          class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
+          Not now
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
     <!-- Today Focus -->
     <section class="mb-6">
       <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
@@ -388,8 +420,7 @@
             <!-- Add Meal -->
             <div id="addMealTabSection">
               <div id="savedFoodSelectorSection" class="mb-5 rounded-2xl border border-lime-200 bg-lime-50 p-4">
-                <label for="savedFoodSelect" class="block text-sm font-medium text-slate-700 mb-2">Saved Foods</label>
-
+                <label for="savedFoodTrigger" class="block text-sm font-medium text-slate-700 mb-2">Saved Foods</label>
                 <div class="flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto] lg:items-center">
                 <div class="relative">
               <button
