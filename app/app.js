@@ -1566,25 +1566,23 @@ function hideInstallBanner() {
 }
 
 async function handleInstallAppClick() {
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    const choice = await deferredInstallPrompt.userChoice;
-
-    deferredInstallPrompt = null;
-
-    if (choice.outcome === 'accepted') {
-      hideInstallBanner();
-    }
-
+  if (!deferredInstallPrompt) {
+    console.log('No install prompt available');
     return;
   }
 
-  if (isIosDevice()) {
-    alert('Open in Safari → Share → Add to Home Screen');
-    return;
+  // Show install popup
+  deferredInstallPrompt.prompt();
+
+  const choiceResult = await deferredInstallPrompt.userChoice;
+
+  if (choiceResult.outcome === 'accepted') {
+    console.log('User accepted install');
+  } else {
+    console.log('User dismissed install');
   }
 
-  alert('Use your browser install option in the address bar.');
+  deferredInstallPrompt = null;
 }
 
 function initializeInstallExperience() {
