@@ -55,6 +55,7 @@ const weeklyOverviewGrid = document.getElementById('weeklyOverviewGrid');
 const weeklyRangeLabel = document.getElementById('weeklyRangeLabel');
 const entriesLoggedCard = document.getElementById('entriesLoggedCard');
 
+
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
 
@@ -590,14 +591,14 @@ function setSummaryTabState() {
 
   if (dailySummaryTabBtn) {
     dailySummaryTabBtn.className = isDaily
-      ? 'rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition'
-      : 'rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:text-slate-800';
+      ? 'rounded-xl bg-white px-6 py-4 text-base font-semibold text-slate-800 shadow-sm transition'
+      : 'rounded-xl px-6 py-4 text-base font-semibold text-slate-500 transition hover:text-slate-800';
   }
 
   if (weeklySummaryTabBtn) {
     weeklySummaryTabBtn.className = isWeekly
-      ? 'rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition'
-      : 'rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:text-slate-800';
+      ? 'rounded-xl bg-white px-6 py-4 text-base font-semibold text-slate-800 shadow-sm transition'
+      : 'rounded-xl px-6 py-4 text-base font-semibold text-slate-500 transition hover:text-slate-800';
   }
 
   if (summaryHeading) {
@@ -614,11 +615,13 @@ function setSummaryTabState() {
     chartHeading.textContent = isDaily ? 'Macro Breakdown' : 'Weekly Macro Breakdown';
   }
 
-  if (entriesLoggedCard) {
-  entriesLoggedCard.classList.toggle('hidden', currentSummaryView !== 'weekly');
-}
+  if (weeklyAtGlanceCard) {
+    weeklyAtGlanceCard.classList.toggle('hidden', !isWeekly);
+  }
 
-  weeklyAtGlanceCard?.classList.toggle('hidden', !isWeekly);
+  if (entriesLoggedCard) {
+    entriesLoggedCard.classList.toggle('hidden', !isWeekly);
+  }
 }
 
 function getWeekDatesEndingOn(dateString) {
