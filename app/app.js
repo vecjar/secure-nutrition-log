@@ -45,6 +45,16 @@ const nextDayBtn = document.getElementById('nextDayBtn');
 const todayBtn = document.getElementById('todayBtn');
 const selectedDateInput = document.getElementById('selectedDate');
 
+const dailySummaryTabBtn = document.getElementById('dailySummaryTabBtn');
+const weeklySummaryTabBtn = document.getElementById('weeklySummaryTabBtn');
+const summaryHeading = document.getElementById('summaryHeading');
+const summarySubheading = document.getElementById('summarySubheading');
+const chartHeading = document.getElementById('chartHeading');
+const weeklyAtGlanceCard = document.getElementById('weeklyAtGlanceCard');
+const weeklyOverviewGrid = document.getElementById('weeklyOverviewGrid');
+const weeklyRangeLabel = document.getElementById('weeklyRangeLabel');
+const entriesLoggedCard = document.getElementById('entriesLoggedCard');
+
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
 
@@ -104,6 +114,12 @@ const focusMealsLogged = document.getElementById('focusMealsLogged');
 
 const savedFoodsCount = document.getElementById('savedFoodsCount');
 
+// Install banner
+const installBanner = document.getElementById('installBanner');
+const installBannerText = document.getElementById('installBannerText');
+const installAppBtn = document.getElementById('installAppBtn');
+const dismissInstallBannerBtn = document.getElementById('dismissInstallBannerBtn');
+
 const mealEntryModal = document.getElementById('mealEntryModal');
 const mealEntryModalBackdrop = document.getElementById('mealEntryModalBackdrop');
 const closeMealModalBtn = document.getElementById('closeMealModalBtn');
@@ -121,10 +137,13 @@ let confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 let cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
 
 let currentUser = null;
+let deferredInstallPrompt = null;
+const INSTALL_BANNER_DISMISSED_KEY = 'installBannerDismissed';
 let nutritionProfile = null;
 let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
 let currentSelectedDate = getTodayDateString();
+let currentSummaryView = 'daily';
 let currentModalMealType = '';
 let pendingDeleteId = null;
 let pendingDeleteType = null;
@@ -273,6 +292,20 @@ customFoodForm?.addEventListener('submit', async (event) => {
 addMealTabBtn?.addEventListener('click', () => setWorkspaceTab('meal'));
 searchFoodTabBtn?.addEventListener('click', () => setWorkspaceTab('search'));
 saveCustomTabBtn?.addEventListener('click', () => setWorkspaceTab('custom'));
+
+dailySummaryTabBtn?.addEventListener('click', async () => {
+  if (currentSummaryView === 'daily') return;
+  currentSummaryView = 'daily';
+  setSummaryTabState();
+  await loadEntriesForSelectedDate();
+});
+
+weeklySummaryTabBtn?.addEventListener('click', async () => {
+  if (currentSummaryView === 'weekly') return;
+  currentSummaryView = 'weekly';
+  setSummaryTabState();
+  await loadEntriesForSelectedDate();
+});
 
 deleteCustomFoodBtn?.addEventListener('click', async () => {
   const selectedFoodName = savedFoodTriggerText?.textContent?.trim();
@@ -551,47 +584,339 @@ async function initializeNutritionProfile() {
   }
 }
 
+function setSummaryTabState() {
+  const isDaily = currentSummaryView === 'daily';
+  const isWeekly = currentSummaryView === 'weekly';
+
+  if (dailySummaryTabBtn) {
+    dailySummaryTabBtn.className = isDaily
+      ? 'rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition'
+      : 'rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:text-slate-800';
+  }
+
+  if (weeklySummaryTabBtn) {
+    weeklySummaryTabBtn.className = isWeekly
+      ? 'rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition'
+      : 'rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:text-slate-800';
+  }
+
+  if (summaryHeading) {
+    summaryHeading.textContent = isDaily ? 'Daily Summary' : 'Weekly Summary';
+  }
+
+  if (summarySubheading) {
+    summarySubheading.textContent = isDaily
+      ? 'Your totals, targets, and progress for the selected day.'
+      : 'Your totals, targets, and progress for the selected 7-day window.';
+  }
+
+  if (chartHeading) {
+    chartHeading.textContent = isDaily ? 'Macro Breakdown' : 'Weekly Macro Breakdown';
+  }
+
+  if (entriesLoggedCard) {
+  entriesLoggedCard.classList.toggle('hidden', currentSummaryView !== 'weekly');
+}
+
+  weeklyAtGlanceCard?.classList.toggle('hidden', !isWeekly);
+}
+
+function getWeekDatesEndingOn(dateString) {
+  const dates = [];
+
+  for (let i = 6; i >= 0; i -= 1) {
+    dates.push(shiftDateString(dateString, -i));
+  }
+
+  return dates;
+}
+
+function formatShortDayLabel(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  return date.toLocaleDateString(undefined, { weekday: 'short' });
+}
+
+function formatShortDayNumber(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+}
+
+function formatWeekRangeLabel(startDate, endDate) {
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+
+  const startText = start.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short'
+  });
+
+  const endText = end.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  return `${startText} - ${endText}`;
+}
+
+async function fetchEntriesByDate(dateString) {
+  const response = await fetch(
+    `${API_BASE_URL}/getTodayEntries?date=${encodeURIComponent(dateString)}`
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || `Failed to load entries for ${dateString}`);
+  }
+
+  return data;
+}
+
+function updateSummaryFromTotalsWithMultiplier(totals, entryCount, goalMultiplier = 1) {
+  if (summaryCalories) summaryCalories.textContent = Math.round(totals.calories || 0);
+  if (summaryProtein) summaryProtein.textContent = `${roundToOne(totals.protein || 0)}g`;
+  if (summaryCarbs) summaryCarbs.textContent = `${roundToOne(totals.carbs || 0)}g`;
+  if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats || 0)}g`;
+  if (summaryEntries) summaryEntries.textContent = entryCount;
+
+  const caloriesGoal = Math.round((currentGoals.calories || 0) * goalMultiplier);
+  const proteinGoal = roundToOne((currentGoals.protein || 0) * goalMultiplier);
+  const carbsGoal = roundToOne((currentGoals.carbs || 0) * goalMultiplier);
+  const fatsGoal = roundToOne((currentGoals.fats || 0) * goalMultiplier);
+
+  const caloriesRemaining = Math.max(0, caloriesGoal - Math.round(totals.calories || 0));
+  const proteinRemaining = Math.max(0, roundToOne(proteinGoal - (totals.protein || 0)));
+  const carbsRemaining = Math.max(0, roundToOne(carbsGoal - (totals.carbs || 0)));
+  const fatsRemaining = Math.max(0, roundToOne(fatsGoal - (totals.fats || 0)));
+
+  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${caloriesGoal}`;
+  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${proteinGoal}g`;
+  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${carbsGoal}g`;
+  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${fatsGoal}g`;
+
+  if (summaryCaloriesRemaining) summaryCaloriesRemaining.textContent = `Remaining: ${caloriesRemaining}`;
+  if (summaryProteinRemaining) summaryProteinRemaining.textContent = `Remaining: ${proteinRemaining}g`;
+  if (summaryCarbsRemaining) summaryCarbsRemaining.textContent = `Remaining: ${carbsRemaining}g`;
+  if (summaryFatsRemaining) summaryFatsRemaining.textContent = `Remaining: ${fatsRemaining}g`;
+
+  if (summaryEntriesHint) {
+    if (currentSummaryView === 'weekly') {
+      if (entryCount === 0) {
+        summaryEntriesHint.textContent = 'No meals logged this week';
+      } else if (entryCount < 10) {
+        summaryEntriesHint.textContent = 'A light tracking week so far';
+      } else if (entryCount < 20) {
+        summaryEntriesHint.textContent = 'Solid weekly consistency';
+      } else {
+        summaryEntriesHint.textContent = 'Excellent weekly tracking';
+      }
+    } else {
+      if (entryCount === 0) {
+        summaryEntriesHint.textContent = 'No meals logged yet';
+      } else if (entryCount < 3) {
+        summaryEntriesHint.textContent = 'A good start to the day';
+      } else if (entryCount < 5) {
+        summaryEntriesHint.textContent = 'Solid meal logging today';
+      } else {
+        summaryEntriesHint.textContent = 'Excellent tracking consistency';
+      }
+    }
+  }
+
+  setProgress(progressCalories, totals.calories || 0, caloriesGoal);
+  setProgress(progressProtein, totals.protein || 0, proteinGoal);
+  setProgress(progressCarbs, totals.carbs || 0, carbsGoal);
+  setProgress(progressFats, totals.fats || 0, fatsGoal);
+  setProgress(progressEntries, entryCount, DEFAULT_GOALS.entries * goalMultiplier);
+}
+
+function renderMacroChartWithGoals(totals, label, goalMultiplier = 1) {
+  if (chartDateLabel) chartDateLabel.textContent = label;
+
+  const caloriesValue = Math.round(totals.calories || 0);
+  const proteinValue = roundToOne(totals.protein || 0);
+  const carbsValue = roundToOne(totals.carbs || 0);
+  const fatsValue = roundToOne(totals.fats || 0);
+
+  const caloriesGoal = (currentGoals.calories || 0) * goalMultiplier;
+  const proteinGoal = (currentGoals.protein || 0) * goalMultiplier;
+  const carbsGoal = (currentGoals.carbs || 0) * goalMultiplier;
+  const fatsGoal = (currentGoals.fats || 0) * goalMultiplier;
+
+  const caloriesPercent = caloriesGoal > 0 ? Math.round((caloriesValue / caloriesGoal) * 100) : 0;
+  const proteinPercent = proteinGoal > 0 ? Math.round((proteinValue / proteinGoal) * 100) : 0;
+  const carbsPercent = carbsGoal > 0 ? Math.round((carbsValue / carbsGoal) * 100) : 0;
+  const fatsPercent = fatsGoal > 0 ? Math.round((fatsValue / fatsGoal) * 100) : 0;
+
+  if (chartCaloriesLabel) chartCaloriesLabel.textContent = `${caloriesValue}`;
+  if (chartProteinLabel) chartProteinLabel.textContent = `${proteinValue}g`;
+  if (chartCarbsLabel) chartCarbsLabel.textContent = `${carbsValue}g`;
+  if (chartFatsLabel) chartFatsLabel.textContent = `${fatsValue}g`;
+
+  if (chartCaloriesPercent) chartCaloriesPercent.textContent = `${caloriesPercent}%`;
+  if (chartProteinPercent) chartProteinPercent.textContent = `${proteinPercent}%`;
+  if (chartCarbsPercent) chartCarbsPercent.textContent = `${carbsPercent}%`;
+  if (chartFatsPercent) chartFatsPercent.textContent = `${fatsPercent}%`;
+
+  setProgress(chartCaloriesBar, caloriesValue, caloriesGoal);
+  setProgress(chartProteinBar, proteinValue, proteinGoal);
+  setProgress(chartCarbsBar, carbsValue, carbsGoal);
+  setProgress(chartFatsBar, fatsValue, fatsGoal);
+}
+
+function renderWeeklyOverview(days) {
+  if (!weeklyOverviewGrid) return;
+
+  if (!days.length) {
+    weeklyOverviewGrid.innerHTML = '';
+    if (weeklyRangeLabel) weeklyRangeLabel.textContent = '';
+    return;
+  }
+
+  const maxCalories = Math.max(...days.map(day => day.totals.calories || 0), 1);
+
+  weeklyOverviewGrid.innerHTML = days.map(day => {
+    const calories = Math.round(day.totals.calories || 0);
+    const entryCount = day.entryCount || 0;
+    const barHeight = Math.max(8, Math.round((calories / maxCalories) * 100));
+
+    return `
+      <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">${escapeHtml(day.dayLabel)}</p>
+          <p class="text-[11px] text-slate-400">${escapeHtml(day.dayDate)}</p>
+        </div>
+
+        <div class="mt-3 h-24 rounded-2xl bg-slate-50 border border-slate-100 flex items-end p-2">
+          <div
+            class="w-full rounded-xl bg-green-500/90 transition-all duration-500"
+            style="height: ${barHeight}%"
+          ></div>
+        </div>
+
+        <div class="mt-3">
+          <p class="text-lg font-bold text-slate-800">${calories}</p>
+          <p class="text-xs text-slate-500">calories</p>
+        </div>
+
+        <div class="mt-2 rounded-xl bg-slate-50 px-3 py-2">
+          <p class="text-xs text-slate-500">Meals logged</p>
+          <p class="text-sm font-semibold text-slate-800">${entryCount}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (weeklyRangeLabel) {
+    weeklyRangeLabel.textContent = formatWeekRangeLabel(days[0].date, days[days.length - 1].date);
+  }
+}
+
 async function loadEntriesForSelectedDate() {
   if (!currentUser) {
     if (entriesMessage) entriesMessage.textContent = 'Please sign in to load your entries.';
     if (entriesList) entriesList.innerHTML = '';
     resetSummary();
-    renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
+    renderMacroChartWithGoals(
+      { calories: 0, protein: 0, carbs: 0, fats: 0 },
+      formatDateForDisplay(currentSelectedDate),
+      currentSummaryView === 'weekly' ? 7 : 1
+    );
     updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
+    renderWeeklyOverview([]);
     hideSpinner();
     return;
   }
 
-  if (entriesMessage) entriesMessage.textContent = 'Loading entries...';
+  if (entriesMessage) {
+    entriesMessage.textContent =
+      currentSummaryView === 'weekly' ? 'Loading weekly summary...' : 'Loading entries...';
+  }
+
   if (entriesList) entriesList.innerHTML = '';
   showSpinner();
 
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/getTodayEntries?date=${encodeURIComponent(currentSelectedDate)}`
-    );
-    const data = await response.json();
+    if (currentSummaryView === 'daily') {
+      const response = await fetch(
+        `${API_BASE_URL}/getTodayEntries?date=${encodeURIComponent(currentSelectedDate)}`
+      );
+      const data = await response.json();
 
-    if (!response.ok) {
-      if (entriesMessage) entriesMessage.textContent = data.error || 'Failed to load entries.';
+      if (!response.ok) {
+        if (entriesMessage) entriesMessage.textContent = data.error || 'Failed to load entries.';
+        return;
+      }
+
+      if (entriesMessage) {
+        entriesMessage.textContent = `Found ${data.count} entr${data.count === 1 ? 'y' : 'ies'} for ${data.date}.`;
+      }
+
+      const sortedEntries = sortEntriesByMealOrder(data.entries);
+      const totals = calculateTotals(sortedEntries);
+
+      updateSummaryFromTotals(totals, sortedEntries.length);
+      renderMacroChart(totals, data.date);
+      updateTodayFocus(totals, sortedEntries.length);
+      renderWeeklyOverview([]);
+      renderEntriesGroupedByMeal(sortedEntries);
       return;
     }
 
+    const weekDates = getWeekDatesEndingOn(currentSelectedDate);
+
+    const weekResponses = await Promise.all(
+      weekDates.map(date => fetchEntriesByDate(date))
+    );
+
+    const weeklyDays = weekResponses.map(day => {
+      const entries = sortEntriesByMealOrder(day.entries || []);
+      const totals = calculateTotals(entries);
+
+      return {
+        date: day.date,
+        entries,
+        entryCount: entries.length,
+        totals,
+        dayLabel: formatShortDayLabel(day.date),
+        dayDate: formatShortDayNumber(day.date)
+      };
+    });
+
+    const weeklyTotals = weeklyDays.reduce(
+      (acc, day) => {
+        acc.calories += day.totals.calories || 0;
+        acc.protein += day.totals.protein || 0;
+        acc.carbs += day.totals.carbs || 0;
+        acc.fats += day.totals.fats || 0;
+        acc.entryCount += day.entryCount || 0;
+        return acc;
+      },
+      { calories: 0, protein: 0, carbs: 0, fats: 0, entryCount: 0 }
+    );
+
     if (entriesMessage) {
-      entriesMessage.textContent = `Found ${data.count} entr${data.count === 1 ? 'y' : 'ies'} for ${data.date}.`;
+      entriesMessage.textContent = `Weekly view: ${weeklyTotals.entryCount} entr${weeklyTotals.entryCount === 1 ? 'y' : 'ies'} across the last 7 days.`;
     }
 
-    const sortedEntries = sortEntriesByMealOrder(data.entries);
-    const totals = calculateTotals(sortedEntries);
-
-    updateSummaryFromTotals(totals, sortedEntries.length);
-    renderMacroChart(totals, data.date);
-    updateTodayFocus(totals, sortedEntries.length);
-
-    renderEntriesGroupedByMeal(sortedEntries);
+    updateSummaryFromTotalsWithMultiplier(weeklyTotals, weeklyTotals.entryCount, 7);
+    renderMacroChartWithGoals(
+      weeklyTotals,
+      formatWeekRangeLabel(weekDates[0], weekDates[weekDates.length - 1]),
+      7
+    );
+    updateTodayFocus(weeklyTotals, weeklyTotals.entryCount);
+    renderWeeklyOverview(weeklyDays);
+    renderEntriesGroupedByMeal([]);
   } catch (error) {
     console.error(error);
-    if (entriesMessage) entriesMessage.textContent = 'Could not load entries for the selected day.';
+    if (entriesMessage) {
+      entriesMessage.textContent =
+        currentSummaryView === 'weekly'
+          ? 'Could not load weekly summary.'
+          : 'Could not load entries for the selected day.';
+    }
   } finally {
     hideSpinner();
   }
@@ -918,6 +1243,8 @@ async function deleteCustomFood(foodId) {
 async function loadUser() {
   if (!userInfo) return;
 
+  initializeInstallExperience();
+
   try {
     const response = await fetch('/.auth/me');
     const data = await response.json();
@@ -948,7 +1275,11 @@ async function loadUser() {
       currentGoals = { ...DEFAULT_GOALS };
       renderGoalLabels();
       resetSummary();
-      renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
+      renderMacroChartWithGoals(
+        { calories: 0, protein: 0, carbs: 0, fats: 0 },
+        formatDateForDisplay(currentSelectedDate),
+        currentSummaryView === 'weekly' ? 7 : 1
+      );
       updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
       updatePersonalizedCopy();
       hideSpinner();
@@ -1009,7 +1340,11 @@ async function loadUser() {
     currentGoals = { ...DEFAULT_GOALS };
     renderGoalLabels();
     resetSummary();
-    renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
+    renderMacroChartWithGoals(
+      { calories: 0, protein: 0, carbs: 0, fats: 0 },
+      formatDateForDisplay(currentSelectedDate),
+      currentSummaryView === 'weekly' ? 7 : 1
+    );
     updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
     updatePersonalizedCopy();
     hideSpinner();
@@ -1409,102 +1744,142 @@ function calculateTotals(entries) {
 }
 
 function updateSummaryFromTotals(totals, entryCount) {
-  if (summaryCalories) summaryCalories.textContent = Math.round(totals.calories);
-  if (summaryProtein) summaryProtein.textContent = `${roundToOne(totals.protein)}g`;
-  if (summaryCarbs) summaryCarbs.textContent = `${roundToOne(totals.carbs)}g`;
-  if (summaryFats) summaryFats.textContent = `${roundToOne(totals.fats)}g`;
-  if (summaryEntries) summaryEntries.textContent = entryCount;
-
-  const caloriesRemaining = Math.max(0, Math.round((currentGoals.calories || 0) - (totals.calories || 0)));
-  const proteinRemaining = Math.max(0, roundToOne((currentGoals.protein || 0) - (totals.protein || 0)));
-  const carbsRemaining = Math.max(0, roundToOne((currentGoals.carbs || 0) - (totals.carbs || 0)));
-  const fatsRemaining = Math.max(0, roundToOne((currentGoals.fats || 0) - (totals.fats || 0)));
-
-  if (summaryCaloriesRemaining) summaryCaloriesRemaining.textContent = `Remaining: ${caloriesRemaining}`;
-  if (summaryProteinRemaining) summaryProteinRemaining.textContent = `Remaining: ${proteinRemaining}g`;
-  if (summaryCarbsRemaining) summaryCarbsRemaining.textContent = `Remaining: ${carbsRemaining}g`;
-  if (summaryFatsRemaining) summaryFatsRemaining.textContent = `Remaining: ${fatsRemaining}g`;
-
-  if (summaryEntriesHint) {
-    if (entryCount === 0) {
-      summaryEntriesHint.textContent = 'No meals logged yet';
-    } else if (entryCount < 3) {
-      summaryEntriesHint.textContent = 'A good start to the day';
-    } else if (entryCount < 5) {
-      summaryEntriesHint.textContent = 'Solid meal logging today';
-    } else {
-      summaryEntriesHint.textContent = 'Excellent tracking consistency';
-    }
-  }
-
-  setProgress(progressCalories, totals.calories, currentGoals.calories);
-  setProgress(progressProtein, totals.protein, currentGoals.protein);
-  setProgress(progressCarbs, totals.carbs, currentGoals.carbs);
-  setProgress(progressFats, totals.fats, currentGoals.fats);
-  setProgress(progressEntries, entryCount, DEFAULT_GOALS.entries);
+  updateSummaryFromTotalsWithMultiplier(totals, entryCount, 1);
 }
 
 function renderMacroChart(totals, dateString) {
-  if (chartDateLabel) chartDateLabel.textContent = formatDateForDisplay(dateString);
-
-  const caloriesValue = Math.round(totals.calories || 0);
-  const proteinValue = roundToOne(totals.protein || 0);
-  const carbsValue = roundToOne(totals.carbs || 0);
-  const fatsValue = roundToOne(totals.fats || 0);
-
-  const caloriesPercent = currentGoals.calories > 0
-    ? Math.round((caloriesValue / currentGoals.calories) * 100)
-    : 0;
-  const proteinPercent = currentGoals.protein > 0
-    ? Math.round((proteinValue / currentGoals.protein) * 100)
-    : 0;
-  const carbsPercent = currentGoals.carbs > 0
-    ? Math.round((carbsValue / currentGoals.carbs) * 100)
-    : 0;
-  const fatsPercent = currentGoals.fats > 0
-    ? Math.round((fatsValue / currentGoals.fats) * 100)
-    : 0;
-
-  if (chartCaloriesLabel) chartCaloriesLabel.textContent = `${caloriesValue}`;
-  if (chartProteinLabel) chartProteinLabel.textContent = `${proteinValue}g`;
-  if (chartCarbsLabel) chartCarbsLabel.textContent = `${carbsValue}g`;
-  if (chartFatsLabel) chartFatsLabel.textContent = `${fatsValue}g`;
-
-  if (chartCaloriesPercent) chartCaloriesPercent.textContent = `${caloriesPercent}%`;
-  if (chartProteinPercent) chartProteinPercent.textContent = `${proteinPercent}%`;
-  if (chartCarbsPercent) chartCarbsPercent.textContent = `${carbsPercent}%`;
-  if (chartFatsPercent) chartFatsPercent.textContent = `${fatsPercent}%`;
-
-  setProgress(chartCaloriesBar, caloriesValue, currentGoals.calories);
-  setProgress(chartProteinBar, proteinValue, currentGoals.protein);
-  setProgress(chartCarbsBar, carbsValue, currentGoals.carbs);
-  setProgress(chartFatsBar, fatsValue, currentGoals.fats);
+  renderMacroChartWithGoals(totals, formatDateForDisplay(dateString), 1);
 }
 
 function resetSummary() {
+  const goalMultiplier = currentSummaryView === 'weekly' ? 7 : 1;
+
   if (summaryCalories) summaryCalories.textContent = '0';
   if (summaryProtein) summaryProtein.textContent = '0g';
   if (summaryCarbs) summaryCarbs.textContent = '0g';
   if (summaryFats) summaryFats.textContent = '0g';
   if (summaryEntries) summaryEntries.textContent = '0';
-  if (summaryCaloriesRemaining) summaryCaloriesRemaining.textContent = `Remaining: ${currentGoals.calories}`;
-  if (summaryProteinRemaining) summaryProteinRemaining.textContent = `Remaining: ${currentGoals.protein}g`;
-  if (summaryCarbsRemaining) summaryCarbsRemaining.textContent = `Remaining: ${currentGoals.carbs}g`;
-  if (summaryFatsRemaining) summaryFatsRemaining.textContent = `Remaining: ${currentGoals.fats}g`;
-  if (summaryEntriesHint) summaryEntriesHint.textContent = 'No meals logged yet';
 
-  setProgress(progressCalories, 0, currentGoals.calories);
-  setProgress(progressProtein, 0, currentGoals.protein);
-  setProgress(progressCarbs, 0, currentGoals.carbs);
-  setProgress(progressFats, 0, currentGoals.fats);
-  setProgress(progressEntries, 0, DEFAULT_GOALS.entries);
+  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${Math.round(currentGoals.calories * goalMultiplier)}`;
+  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${roundToOne(currentGoals.protein * goalMultiplier)}g`;
+  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${roundToOne(currentGoals.carbs * goalMultiplier)}g`;
+  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${roundToOne(currentGoals.fats * goalMultiplier)}g`;
+
+  if (summaryCaloriesRemaining) summaryCaloriesRemaining.textContent = `Remaining: ${Math.round(currentGoals.calories * goalMultiplier)}`;
+  if (summaryProteinRemaining) summaryProteinRemaining.textContent = `Remaining: ${roundToOne(currentGoals.protein * goalMultiplier)}g`;
+  if (summaryCarbsRemaining) summaryCarbsRemaining.textContent = `Remaining: ${roundToOne(currentGoals.carbs * goalMultiplier)}g`;
+  if (summaryFatsRemaining) summaryFatsRemaining.textContent = `Remaining: ${roundToOne(currentGoals.fats * goalMultiplier)}g`;
+
+  if (summaryEntriesHint) {
+    summaryEntriesHint.textContent = currentSummaryView === 'weekly'
+      ? 'No meals logged this week'
+      : 'No meals logged yet';
+  }
+
+  setProgress(progressCalories, 0, currentGoals.calories * goalMultiplier);
+  setProgress(progressProtein, 0, currentGoals.protein * goalMultiplier);
+  setProgress(progressCarbs, 0, currentGoals.carbs * goalMultiplier);
+  setProgress(progressFats, 0, currentGoals.fats * goalMultiplier);
+  setProgress(progressEntries, 0, DEFAULT_GOALS.entries * goalMultiplier);
 }
 
 function renderGoalLabels() {
-  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${currentGoals.calories}`;
-  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${currentGoals.protein}g`;
-  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${currentGoals.carbs}g`;
-  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${currentGoals.fats}g`;
+  const goalMultiplier = currentSummaryView === 'weekly' ? 7 : 1;
+
+  if (summaryCaloriesGoal) summaryCaloriesGoal.textContent = `Goal: ${Math.round(currentGoals.calories * goalMultiplier)}`;
+  if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${roundToOne(currentGoals.protein * goalMultiplier)}g`;
+  if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${roundToOne(currentGoals.carbs * goalMultiplier)}g`;
+  if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${roundToOne(currentGoals.fats * goalMultiplier)}g`;
+}
+
+// ============================
+// INSTALL APP LOGIC
+// ============================
+
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+}
+
+function isInStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function wasInstallBannerDismissed() {
+  return localStorage.getItem(INSTALL_BANNER_DISMISSED_KEY) === 'true';
+}
+
+function dismissInstallBanner() {
+  localStorage.setItem(INSTALL_BANNER_DISMISSED_KEY, 'true');
+  installBanner?.classList.add('hidden');
+}
+
+function showInstallBanner() {
+  if (!installBanner) return;
+  if (isInStandaloneMode()) return;
+  if (wasInstallBannerDismissed()) return;
+
+  installBanner.classList.remove('hidden');
+
+  if (deferredInstallPrompt) {
+    installBannerText.textContent = 'Install this app for a better experience.';
+    installAppBtn.textContent = 'Install App';
+    return;
+  }
+
+  if (isIosDevice()) {
+    installBannerText.textContent = 'On iPhone: tap Share → Add to Home Screen.';
+    installAppBtn.textContent = 'How to Install';
+    return;
+  }
+
+  installBannerText.textContent = 'Use your browser menu to install this app.';
+  installAppBtn.textContent = 'Install Help';
+}
+
+function hideInstallBanner() {
+  installBanner?.classList.add('hidden');
+}
+
+async function handleInstallAppClick() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+
+    deferredInstallPrompt = null;
+
+    if (choice.outcome === 'accepted') {
+      hideInstallBanner();
+    }
+
+    return;
+  }
+
+  if (isIosDevice()) {
+    alert('Open in Safari → Share → Add to Home Screen');
+    return;
+  }
+
+  alert('Use your browser install option in the address bar.');
+}
+
+function initializeInstallExperience() {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showInstallBanner();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    hideInstallBanner();
+    localStorage.removeItem(INSTALL_BANNER_DISMISSED_KEY);
+  });
+
+  installAppBtn?.addEventListener('click', handleInstallAppClick);
+  dismissInstallBannerBtn?.addEventListener('click', dismissInstallBanner);
+
+  // fallback show
+  showInstallBanner();
 }
 
 function populateSavedFoodsDropdown() {
@@ -1664,9 +2039,14 @@ async function initApp() {
   const hasSeenStartup = sessionStorage.getItem('hasSeenStartup');
 
   syncSelectedDateInput();
+  setSummaryTabState();
   renderGoalLabels();
   resetSummary();
-  renderMacroChart({ calories: 0, protein: 0, carbs: 0, fats: 0 }, currentSelectedDate);
+  renderMacroChartWithGoals(
+    { calories: 0, protein: 0, carbs: 0, fats: 0 },
+    formatDateForDisplay(currentSelectedDate),
+    1
+  );
   updateTodayFocus({ calories: 0, protein: 0, carbs: 0, fats: 0 }, 0);
   updateSavedFoodsSummary();
   setWorkspaceTab('meal');
@@ -1688,4 +2068,21 @@ async function initApp() {
   }
 }
 
+// ============================
+// SERVICE WORKER
+// ============================
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  window.addEventListener('load', async () => {
+    try {
+      await navigator.serviceWorker.register('/service-worker.js');
+      console.log('✅ Service worker registered');
+    } catch (error) {
+      console.error('❌ Service worker failed:', error);
+    }
+  });
+}
+
+registerServiceWorker();
 initApp();
