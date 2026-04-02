@@ -1588,23 +1588,27 @@ async function handleInstallAppClick() {
 }
 
 function initializeInstallExperience() {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredInstallPrompt = e;
-    showInstallBanner();
-  });
+  window.addEventListener('beforeinstallprompt', (event) => {
+  console.log('beforeinstallprompt fired');
+
+  event.preventDefault(); // important
+  deferredInstallPrompt = event;
+
+  if (installBanner) installBanner.classList.remove('hidden');
+});
 
   window.addEventListener('appinstalled', () => {
-    deferredInstallPrompt = null;
-    hideInstallBanner();
-    localStorage.removeItem(INSTALL_BANNER_DISMISSED_KEY);
-  });
+  console.log('appinstalled fired');
+  deferredInstallPrompt = null;
+  hideInstallBanner();
+  localStorage.removeItem(INSTALL_BANNER_DISMISSED_KEY);
+});
 
   installAppBtn?.addEventListener('click', handleInstallAppClick);
   dismissInstallBannerBtn?.addEventListener('click', dismissInstallBanner);
 
   // fallback show
-  showInstallBanner();
+  // showInstallBanner();
 }
 
 function populateSavedFoodsDropdown() {
