@@ -1788,4 +1788,21 @@ async function initApp() {
   }
 }
 
+// ============================
+// SERVICE WORKER
+// ============================
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  window.addEventListener('load', async () => {
+    try {
+      await navigator.serviceWorker.register('/service-worker.js');
+      console.log('✅ Service worker registered');
+    } catch (error) {
+      console.error('❌ Service worker failed:', error);
+    }
+  });
+}
+
+registerServiceWorker();
 initApp();
