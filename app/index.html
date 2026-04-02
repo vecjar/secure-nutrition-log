@@ -276,80 +276,70 @@
   <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
     <div class="flex flex-col gap-4 mb-5">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div class="w-full lg:w-auto">
-  <div class="inline-flex w-full sm:w-auto rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-sm">
-    <button
-      id="dailySummaryTabBtn"
-      type="button"
-      class="min-w-[140px] rounded-xl bg-white px-6 py-3 text-base font-semibold text-slate-800 shadow-sm transition"
-    >
-      Daily
-    </button>
+  <div class="w-full lg:max-w-[420px]">
+    <div class="grid grid-cols-2 rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-sm w-full">
+      <button
+        id="dailySummaryTabBtn"
+        type="button"
+        class="rounded-xl bg-white px-6 py-4 text-base font-semibold text-slate-800 shadow-sm transition"
+      >
+        Daily
+      </button>
 
-    <button
-      id="weeklySummaryTabBtn"
-      type="button"
-      class="min-w-[140px] rounded-xl px-6 py-3 text-base font-semibold text-slate-500 transition hover:text-slate-800"
-    >
-      Weekly
-    </button>
-  </div>
+      <button
+        id="weeklySummaryTabBtn"
+        type="button"
+        class="rounded-xl px-6 py-4 text-base font-semibold text-slate-500 transition hover:text-slate-800"
+      >
+        Weekly
+      </button>
+    </div>
 
-  <div class="mt-3">
-    <p id="summarySubheading" class="text-slate-500 text-sm">
+    <p id="summarySubheading" class="mt-3 text-slate-500 text-sm">
       Your totals, targets, and progress for the selected day.
     </p>
+
+    <h2 id="summaryHeading" class="hidden">Daily Summary</h2>
   </div>
 
-  <h2 id="summaryHeading" class="hidden">Daily Summary</h2>
-</div>
+  <div class="w-full lg:w-auto">
+    <div class="flex flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+      <div class="hidden lg:block"></div>
 
-          <div class="mt-4">
-            <h2 id="summaryHeading" class="text-2xl font-semibold text-slate-800">Daily Summary</h2>
-            <p id="summarySubheading" class="text-slate-500 text-sm">
-              Your totals, targets, and progress for the selected day.
-            </p>
-          </div>
-        </div>
+      <div class="flex justify-center">
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <button
+            id="prevDayBtn"
+            type="button"
+            class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
+            Previous Day
+          </button>
 
-        <div class="w-full lg:w-auto">
-          <div class="flex flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-            <div class="hidden lg:block"></div>
+          <button
+            id="todayBtn"
+            type="button"
+            class="rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition">
+            Today
+          </button>
 
-            <div class="flex justify-center">
-              <div class="flex flex-wrap items-center justify-center gap-3">
-                <button
-                  id="prevDayBtn"
-                  type="button"
-                  class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
-                  Previous Day
-                </button>
-
-                <button
-                  id="todayBtn"
-                  type="button"
-                  class="rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition">
-                  Today
-                </button>
-
-                <button
-                  id="nextDayBtn"
-                  type="button"
-                  class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
-                  Next Day
-                </button>
-              </div>
-            </div>
-
-            <div class="flex justify-center lg:justify-end">
-              <input
-                id="selectedDate"
-                type="date"
-                class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200 w-full sm:w-auto min-w-[190px]" />
-            </div>
-          </div>
+          <button
+            id="nextDayBtn"
+            type="button"
+            class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
+            Next Day
+          </button>
         </div>
       </div>
+
+      <div class="flex justify-center lg:justify-end">
+        <input
+          id="selectedDate"
+          type="date"
+          class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200 w-full sm:w-auto min-w-[190px]" />
+      </div>
+    </div>
+  </div>
+</div>
 
       <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
         <div class="group min-w-0 rounded-3xl bg-white border border-green-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
@@ -381,7 +371,7 @@
         </div>
       </div>
 
-      <div class="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
+     <div id="entriesLoggedCard" class="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
   <div class="flex items-center justify-between gap-3">
     <div>
       <p class="text-xs uppercase tracking-wide text-slate-400">Entries Logged</p>

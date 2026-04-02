@@ -53,6 +53,7 @@ const chartHeading = document.getElementById('chartHeading');
 const weeklyAtGlanceCard = document.getElementById('weeklyAtGlanceCard');
 const weeklyOverviewGrid = document.getElementById('weeklyOverviewGrid');
 const weeklyRangeLabel = document.getElementById('weeklyRangeLabel');
+const entriesLoggedCard = document.getElementById('entriesLoggedCard');
 
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
@@ -612,6 +613,10 @@ function setSummaryTabState() {
   if (chartHeading) {
     chartHeading.textContent = isDaily ? 'Macro Breakdown' : 'Weekly Macro Breakdown';
   }
+
+  if (entriesLoggedCard) {
+  entriesLoggedCard.classList.toggle('hidden', currentSummaryView !== 'weekly');
+}
 
   weeklyAtGlanceCard?.classList.toggle('hidden', !isWeekly);
 }
