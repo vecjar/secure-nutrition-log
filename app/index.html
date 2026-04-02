@@ -271,78 +271,6 @@
       </div>
     </section>
 
-<div class="rounded-3xl border border-slate-200 bg-white/80 backdrop-blur p-4 sm:p-6 shadow-sm mt-6">
-  
-  <!-- BIG HEADING -->
-  <div class="rounded-2xl bg-slate-100 py-4 mb-5 text-center">
-    <h2 id="goalsSectionHeading" class="text-xl sm:text-2xl font-semibold text-slate-800">
-      Daily Goals
-    </h2>
-  </div>
-
-  <!-- TABS + DATE CONTROLS -->
-  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-    <!-- TABS -->
-    <div class="grid grid-cols-2 rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-sm w-full max-w-[320px]">
-      <button
-        id="dailySummaryTabBtn"
-        type="button"
-        class="rounded-xl bg-white px-6 py-3 text-base font-semibold text-slate-800 shadow-sm transition"
-      >
-        Daily
-      </button>
-
-      <button
-        id="weeklySummaryTabBtn"
-        type="button"
-        class="rounded-xl px-6 py-3 text-base font-semibold text-slate-500 transition hover:text-slate-800"
-      >
-        Weekly
-      </button>
-    </div>
-
-    <!-- DATE CONTROLS -->
-    <div class="flex flex-wrap items-center justify-center gap-3">
-      <button id="prevDayBtn" class="rounded-xl border px-4 py-2 text-sm">Previous</button>
-      <button id="todayBtn" class="rounded-xl bg-green-600 text-white px-4 py-2 text-sm">Today</button>
-      <button id="nextDayBtn" class="rounded-xl border px-4 py-2 text-sm">Next</button>
-
-      <input id="selectedDate" type="date" class="rounded-xl border px-4 py-2 text-sm" />
-    </div>
-
-  </div>
-
-  <!-- DESCRIPTION -->
-  <p id="goalsSubheading" class="mt-3 text-slate-500 text-sm">
-    Your nutrition targets for the selected day.
-  </p>
-
-  <!-- GOALS GRID -->
-  <div id="goalsGrid" class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-    <div class="rounded-xl bg-slate-50 p-4 text-center">
-      <p class="text-xs text-slate-400">Calories</p>
-      <p id="goalCaloriesDisplay" class="text-xl font-bold text-green-600">0</p>
-    </div>
-
-    <div class="rounded-xl bg-slate-50 p-4 text-center">
-      <p class="text-xs text-slate-400">Protein</p>
-      <p id="goalProteinDisplay" class="text-xl font-bold text-blue-600">0g</p>
-    </div>
-
-    <div class="rounded-xl bg-slate-50 p-4 text-center">
-      <p class="text-xs text-slate-400">Carbs</p>
-      <p id="goalCarbsDisplay" class="text-xl font-bold text-amber-600">0g</p>
-    </div>
-
-    <div class="rounded-xl bg-slate-50 p-4 text-center">
-      <p class="text-xs text-slate-400">Fats</p>
-      <p id="goalFatsDisplay" class="text-xl font-bold text-rose-600">0g</p>
-    </div>
-  </div>
-
-</div>
-
     <!-- Summary -->
 <section class="mb-6">
   <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
@@ -443,7 +371,7 @@
         </div>
       </div>
 
-     <div id="entriesLoggedCard" class="hidden rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
+     <div id="entriesLoggedCard" class="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
   <div class="flex items-center justify-between gap-3">
     <div>
       <p class="text-xs uppercase tracking-wide text-slate-400">Entries Logged</p>

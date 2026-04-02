@@ -55,7 +55,6 @@ const weeklyOverviewGrid = document.getElementById('weeklyOverviewGrid');
 const weeklyRangeLabel = document.getElementById('weeklyRangeLabel');
 const entriesLoggedCard = document.getElementById('entriesLoggedCard');
 
-
 const entriesMessage = document.getElementById('entriesMessage');
 const entriesList = document.getElementById('entriesList');
 
@@ -95,11 +94,6 @@ const chartCaloriesLabel = document.getElementById('chartCaloriesLabel');
 const chartProteinLabel = document.getElementById('chartProteinLabel');
 const chartCarbsLabel = document.getElementById('chartCarbsLabel');
 const chartFatsLabel = document.getElementById('chartFatsLabel');
-
-const goalCaloriesDisplay = document.getElementById('goalCaloriesDisplay');
-const goalProteinDisplay = document.getElementById('goalProteinDisplay');
-const goalCarbsDisplay = document.getElementById('goalCarbsDisplay');
-const goalFatsDisplay = document.getElementById('goalFatsDisplay');
 
 const chartCaloriesPercent = document.getElementById('chartCaloriesPercent');
 const chartProteinPercent = document.getElementById('chartProteinPercent');
@@ -593,30 +587,17 @@ async function initializeNutritionProfile() {
 function setSummaryTabState() {
   const isDaily = currentSummaryView === 'daily';
   const isWeekly = currentSummaryView === 'weekly';
-  const goalsSectionHeading = document.getElementById('goalsSectionHeading');
-  const goalsSubheading = document.getElementById('goalsSubheading');
 
-if (goalsSectionHeading) {
-  goalsSectionHeading.textContent = currentSummaryView === 'weekly'
-    ? 'Weekly Goals'
-    : 'Daily Goals';
-}
-
-if (goalsSubheading) {
-  goalsSubheading.textContent = currentSummaryView === 'weekly'
-    ? 'Your nutrition targets for the selected 7-day window.'
-    : 'Your nutrition targets for the selected day.';
-}
   if (dailySummaryTabBtn) {
     dailySummaryTabBtn.className = isDaily
-      ? 'rounded-xl bg-white px-6 py-4 text-base font-semibold text-slate-800 shadow-sm transition'
-      : 'rounded-xl px-6 py-4 text-base font-semibold text-slate-500 transition hover:text-slate-800';
+      ? 'rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition'
+      : 'rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:text-slate-800';
   }
 
   if (weeklySummaryTabBtn) {
     weeklySummaryTabBtn.className = isWeekly
-      ? 'rounded-xl bg-white px-6 py-4 text-base font-semibold text-slate-800 shadow-sm transition'
-      : 'rounded-xl px-6 py-4 text-base font-semibold text-slate-500 transition hover:text-slate-800';
+      ? 'rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition'
+      : 'rounded-xl px-5 py-2.5 text-sm font-semibold text-slate-500 transition hover:text-slate-800';
   }
 
   if (summaryHeading) {
@@ -633,13 +614,11 @@ if (goalsSubheading) {
     chartHeading.textContent = isDaily ? 'Macro Breakdown' : 'Weekly Macro Breakdown';
   }
 
-  if (weeklyAtGlanceCard) {
-    weeklyAtGlanceCard.classList.toggle('hidden', !isWeekly);
-  }
-
   if (entriesLoggedCard) {
-    entriesLoggedCard.classList.toggle('hidden', !isWeekly);
-  }
+  entriesLoggedCard.classList.toggle('hidden', currentSummaryView !== 'weekly');
+}
+
+  weeklyAtGlanceCard?.classList.toggle('hidden', !isWeekly);
 }
 
 function getWeekDatesEndingOn(dateString) {
