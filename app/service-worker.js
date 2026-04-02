@@ -1,4 +1,4 @@
-const CACHE_NAME = 'secure-nutrition-log-v2';
+const CACHE_NAME = 'secure-nutrition-log-v3';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -48,21 +48,26 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
+
   const isHtmlRequest =
     request.mode === 'navigate' ||
     url.pathname === '/' ||
     url.pathname === '/index.html';
 
-  if (isHtmlRequest) {
+  const isAppShellJs =
+    url.pathname === '/app.js' ||
+    url.pathname === '/service-worker.js';
+
+  if (isHtmlRequest || isAppShellJs) {
     event.respondWith(
       (async () => {
         try {
           const fresh = await fetch(request, { cache: 'no-cache' });
           const cache = await caches.open(CACHE_NAME);
-          cache.put('/index.html', fresh.clone());
+          cache.put(request, fresh.clone());
           return fresh;
         } catch (error) {
-          const cached = await caches.match('/index.html');
+          const cached = await caches.match(request);
           if (cached) return cached;
           throw error;
         }
