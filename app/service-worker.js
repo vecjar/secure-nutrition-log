@@ -1,9 +1,9 @@
-const CACHE_NAME = 'secure-nutrition-log-v3';
+const CACHE_NAME = 'secure-nutrition-log-v1';
 const APP_SHELL = [
   '/',
   '/index.html',
-  '/app.js',
   '/style.css',
+  '/app.js',
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
@@ -11,35 +11,22 @@ const APP_SHELL = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    (async () => {
-      const cache = await caches.open(CACHE_NAME);
-
-      for (const url of APP_SHELL) {
-        try {
-          const response = await fetch(url, { cache: 'no-cache' });
-          if (response.ok) {
-            await cache.put(url, response.clone());
-          }
-        } catch (error) {
-          console.warn('Skipped caching:', url, error);
-        }
-      }
-
-      await self.skipWaiting();
-    })()
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    (async () => {
-      const keys = await caches.keys();
-      await Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-      await self.clients.claim();
-    })()
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      )
+    )
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -47,51 +34,27 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
 
-  const url = new URL(request.url);
-
-  const isHtmlRequest =
-    request.mode === 'navigate' ||
-    url.pathname === '/' ||
-    url.pathname === '/index.html';
-
-  const isAppShellJs =
-    url.pathname === '/app.js' ||
-    url.pathname === '/service-worker.js';
-
-  if (isHtmlRequest || isAppShellJs) {
-    event.respondWith(
-      (async () => {
-        try {
-          const fresh = await fetch(request, { cache: 'no-cache' });
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(request, fresh.clone());
-          return fresh;
-        } catch (error) {
-          const cached = await caches.match(request);
-          if (cached) return cached;
-          throw error;
-        }
-      })()
-    );
-    return;
-  }
-
   event.respondWith(
-    (async () => {
-      const cached = await caches.match(request);
-      if (cached) return cached;
-
-      const response = await fetch(request);
-      if (
-        response &&
-        response.status === 200 &&
-        request.url.startsWith(self.location.origin)
-      ) {
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(request, response.clone());
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
       }
 
-      return response;
-    })()
+      return fetch(request)
+        .then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            return networkResponse;
+          }
+
+          const responseToCache = networkResponse.clone();
+
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+
+          return networkResponse;
+        })
+        .catch(() => caches.match('/index.html'));
+    })
   );
 });
