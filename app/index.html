@@ -56,49 +56,80 @@
   </div>
 
   <!-- First-time setup modal -->
-  <div id="profileSetupModal" class="hidden fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+<div id="profileSetupModal" class="hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
 
-    <div class="relative min-h-screen flex items-center justify-center p-4">
-      <div class="w-full max-w-3xl h-[90vh] rounded-3xl bg-white shadow-2xl border border-green-100 overflow-hidden flex flex-col">
-        <div class="flex items-center gap-3 mb-4">
+  <div class="relative h-[100dvh] w-full flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-3xl bg-white shadow-2xl border-0 sm:border border-green-100 overflow-hidden flex flex-col">
+      
+      <div class="px-5 sm:px-8 pt-8 sm:pt-8 pb-6 border-b border-slate-100 bg-gradient-to-br from-white to-emerald-50/60">
+        <div class="flex items-center gap-4">
           <img
             src="/icons/icon-192.png"
             alt="App Icon"
-            class="w-12 h-12 rounded-xl shadow-sm"
+            class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shadow-sm flex-shrink-0"
           />
 
-          <div>
-            <h2 class="text-2xl font-bold text-slate-900">
-              Welcome to Secure Nutrition Log
+          <div class="min-w-0">
+            <p class="text-xs uppercase tracking-wide text-slate-400">Welcome</p>
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight mt-1">
+              Set up your profile
             </h2>
-            <p class="text-sm text-slate-500 mt-1">
-              Let’s set up your profile first.
+            <p class="text-sm sm:text-base text-slate-500 mt-2">
+              Let’s personalise your dashboard before you start using the app.
             </p>
           </div>
         </div>
+      </div>
 
-        <p class="text-slate-600 leading-7">
-          To personalise your dashboard and calculate your nutrition targets, please complete your profile before using the app.
-        </p>
+      <div class="flex-1 overflow-y-auto px-5 sm:px-8 py-6 sm:py-8">
+        <div class="rounded-2xl border border-green-100 bg-green-50 p-4 sm:p-5">
+          <h3 class="text-sm sm:text-base font-semibold text-slate-800">
+            Why this matters
+          </h3>
+          <p class="text-sm sm:text-base text-slate-600 leading-7 mt-2">
+            To personalise your dashboard and calculate your nutrition targets, please complete your profile before using the app.
+          </p>
+        </div>
 
-        <div class="mt-6 flex flex-wrap items-center gap-3">
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+            <p class="text-sm font-semibold text-slate-800">Calories</p>
+            <p class="text-xs text-slate-500 mt-1">Set smart daily targets</p>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+            <p class="text-sm font-semibold text-slate-800">Macros</p>
+            <p class="text-xs text-slate-500 mt-1">Protein, carbs, and fats</p>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
+            <p class="text-sm font-semibold text-slate-800">Dashboard</p>
+            <p class="text-xs text-slate-500 mt-1">Make the app feel personal</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-200 px-5 sm:px-8 py-4 sm:py-5 bg-white">
+        <div class="flex flex-col sm:flex-row gap-3">
           <button
             id="startProfileSetupBtn"
             type="button"
-            class="inline-flex items-center justify-center rounded-2xl bg-green-600 px-5 py-3 text-white font-semibold shadow hover:bg-green-700 transition">
+            class="inline-flex w-full items-center justify-center rounded-2xl bg-green-600 px-5 py-3.5 text-white font-semibold shadow hover:bg-green-700 transition">
             Set Up Profile
           </button>
 
           <a
             href="/.auth/logout"
-            class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
+            class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3.5 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
             Sign out
           </a>
         </div>
       </div>
+
     </div>
   </div>
+</div>
 
   <main class="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
     <!-- Header -->
@@ -243,12 +274,11 @@
     <!-- Daily Summary -->
     <section class="mb-6">
       <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
-        <div class="py-5 bg-emerald-50 rounded-xl text-center mb-6">
-  <h2 class="text-3xl sm:text-4xl font-bold text-slate-800 tracking-tight">
-    Daily Summary
-  </h2>
-</div>
         <div class="flex flex-col gap-4 mb-5">
+          <div>
+            <h2 class="text-2xl font-semibold text-slate-800">Daily Summary</h2>
+            <p class="text-slate-500 text-sm">Your totals, targets, and progress for the selected day.</p>
+          </div>
 
        <div class="flex flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
 
@@ -654,7 +684,6 @@
     <!-- Today's Log -->
     <section>
   <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
-
     <div class="px-4 sm:px-5 py-5 bg-emerald-50 rounded-xl text-center">
       <h2 class="text-3xl sm:text-4xl font-bold text-slate-800 tracking-tight">
         Today’s Log
