@@ -56,80 +56,49 @@
   </div>
 
   <!-- First-time setup modal -->
-<div id="profileSetupModal" class="hidden fixed inset-0 z-50">
-  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+  <div id="profileSetupModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
 
-  <div class="relative h-[100dvh] w-full flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="w-full sm:max-w-2xl h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-3xl bg-white shadow-2xl border-0 sm:border border-green-100 overflow-hidden flex flex-col">
-      
-      <div class="px-5 sm:px-8 pt-8 sm:pt-8 pb-6 border-b border-slate-100 bg-gradient-to-br from-white to-emerald-50/60">
-        <div class="flex items-center gap-4">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+      <div class="w-full max-w-3xl h-[90vh] rounded-3xl bg-white shadow-2xl border border-green-100 overflow-hidden flex flex-col">
+        <div class="flex items-center gap-3 mb-4">
           <img
             src="/icons/icon-192.png"
             alt="App Icon"
-            class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shadow-sm flex-shrink-0"
+            class="w-12 h-12 rounded-xl shadow-sm"
           />
 
-          <div class="min-w-0">
-            <p class="text-xs uppercase tracking-wide text-slate-400">Welcome</p>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight mt-1">
-              Set up your profile
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">
+              Welcome to Secure Nutrition Log
             </h2>
-            <p class="text-sm sm:text-base text-slate-500 mt-2">
-              Let’s personalise your dashboard before you start using the app.
+            <p class="text-sm text-slate-500 mt-1">
+              Let’s set up your profile first.
             </p>
           </div>
         </div>
-      </div>
 
-      <div class="flex-1 overflow-y-auto px-5 sm:px-8 py-6 sm:py-8">
-        <div class="rounded-2xl border border-green-100 bg-green-50 p-4 sm:p-5">
-          <h3 class="text-sm sm:text-base font-semibold text-slate-800">
-            Why this matters
-          </h3>
-          <p class="text-sm sm:text-base text-slate-600 leading-7 mt-2">
-            To personalise your dashboard and calculate your nutrition targets, please complete your profile before using the app.
-          </p>
-        </div>
+        <p class="text-slate-600 leading-7">
+          To personalise your dashboard and calculate your nutrition targets, please complete your profile before using the app.
+        </p>
 
-        <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-            <p class="text-sm font-semibold text-slate-800">Calories</p>
-            <p class="text-xs text-slate-500 mt-1">Set smart daily targets</p>
-          </div>
-
-          <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-            <p class="text-sm font-semibold text-slate-800">Macros</p>
-            <p class="text-xs text-slate-500 mt-1">Protein, carbs, and fats</p>
-          </div>
-
-          <div class="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-            <p class="text-sm font-semibold text-slate-800">Dashboard</p>
-            <p class="text-xs text-slate-500 mt-1">Make the app feel personal</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="border-t border-slate-200 px-5 sm:px-8 py-4 sm:py-5 bg-white">
-        <div class="flex flex-col sm:flex-row gap-3">
+        <div class="mt-6 flex flex-wrap items-center gap-3">
           <button
             id="startProfileSetupBtn"
             type="button"
-            class="inline-flex w-full items-center justify-center rounded-2xl bg-green-600 px-5 py-3.5 text-white font-semibold shadow hover:bg-green-700 transition">
+            class="inline-flex items-center justify-center rounded-2xl bg-green-600 px-5 py-3 text-white font-semibold shadow hover:bg-green-700 transition">
             Set Up Profile
           </button>
 
           <a
             href="/.auth/logout"
-            class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3.5 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
+            class="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
             Sign out
           </a>
         </div>
       </div>
-
     </div>
   </div>
-</div>
 
   <main class="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
     <!-- Header -->
@@ -210,38 +179,6 @@
       </div>
     </section>
 
-<section id="installBanner" class="hidden mb-6">
-  <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-      <div>
-        <p class="text-xs uppercase tracking-wide text-slate-400">Install App</p>
-        <h2 class="text-xl sm:text-2xl font-semibold text-slate-800 mt-1">
-          Install Secure Nutrition Log
-        </h2>
-        <p id="installBannerText" class="text-slate-600 mt-2">
-          Add this app to your home screen for faster access and an app-like experience.
-        </p>
-      </div>
-
-      <div class="flex flex-col sm:flex-row gap-3">
-        <button
-          id="installAppBtn"
-          type="button"
-          class="inline-flex items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-white font-medium shadow hover:bg-green-700 transition">
-          Install App
-        </button>
-
-        <button
-          id="dismissInstallBannerBtn"
-          type="button"
-          class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-700 font-medium shadow-sm hover:bg-slate-50 transition">
-          Not now
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-
     <!-- Today Focus -->
     <section class="mb-6">
       <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
@@ -271,205 +208,148 @@
       </div>
     </section>
 
-    <!-- Summary -->
-<section class="mb-6">
-  <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
-    <div class="flex flex-col gap-4 mb-5">
-      <div class="rounded-2xl bg-emerald-50 py-5 text-center">
-  <h2 class="text-3xl sm:text-4xl font-bold text-slate-800 tracking-tight">
-    Goals
-  </h2>
-</div>
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-  <div class="w-full lg:max-w-[420px]">
-    <div class="grid grid-cols-2 rounded-2xl border border-slate-200 bg-slate-50 p-1 shadow-sm w-full">
+    <!-- Daily Summary -->
+    <section class="mb-6">
+      <div class="bg-white rounded-3xl shadow-md border border-green-100 p-4 sm:p-6">
+        <div class="flex flex-col gap-4 mb-5">
+          <div>
+            <h2 class="text-2xl font-semibold text-slate-800">Daily Summary</h2>
+            <p class="text-slate-500 text-sm">Your totals, targets, and progress for the selected day.</p>
+          </div>
+
+       <div class="flex flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
+
+  <!-- LEFT SPACER -->
+  <div class="hidden lg:block"></div>
+
+  <!-- BUTTONS (CENTERED) -->
+  <div class="flex justify-center">
+    <div class="flex flex-wrap items-center justify-center gap-3">
       <button
-        id="dailySummaryTabBtn"
+        id="prevDayBtn"
         type="button"
-        class="rounded-xl bg-white px-6 py-4 text-base font-semibold text-slate-800 shadow-sm transition"
-      >
-        Daily
+        class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
+        Previous Day
       </button>
 
       <button
-        id="weeklySummaryTabBtn"
+        id="todayBtn"
         type="button"
-        class="rounded-xl px-6 py-4 text-base font-semibold text-slate-500 transition hover:text-slate-800"
-      >
-        Weekly
+        class="rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition">
+        Today
+      </button>
+
+      <button
+        id="nextDayBtn"
+        type="button"
+        class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
+        Next Day
       </button>
     </div>
-
-    <p id="summarySubheading" class="mt-3 text-slate-500 text-sm">
-      Your totals, targets, and progress for the selected day.
-    </p>
-
-    <h2 id="summaryHeading" class="hidden">Daily Summary</h2>
   </div>
 
-  <div class="w-full lg:w-auto">
-    <div class="flex flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:items-center">
-      <div class="hidden lg:block"></div>
-
-      <div class="flex justify-center">
-        <div class="flex flex-wrap items-center justify-center gap-3">
-          <button
-            id="prevDayBtn"
-            type="button"
-            class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
-            Previous Day
-          </button>
-
-          <button
-            id="todayBtn"
-            type="button"
-            class="rounded-xl bg-green-600 px-4 py-2 text-white text-sm font-medium shadow hover:bg-green-700 transition">
-            Today
-          </button>
-
-          <button
-            id="nextDayBtn"
-            type="button"
-            class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 text-sm font-medium shadow-sm hover:bg-slate-50 transition">
-            Next Day
-          </button>
-        </div>
-      </div>
-
-      <div class="flex justify-center lg:justify-end">
-        <input
-          id="selectedDate"
-          type="date"
-          class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200 w-full sm:w-auto min-w-[190px]" />
-      </div>
-    </div>
+  <!-- DATE (RIGHT) -->
+  <div class="flex justify-center lg:justify-end">
+    <input
+      id="selectedDate"
+      type="date"
+      class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-slate-700 shadow-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200 w-full sm:w-auto min-w-[190px]" />
   </div>
+
 </div>
 
-      <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
-        <div class="group min-w-0 rounded-3xl bg-white border border-green-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
-          <p class="text-[11px] sm:text-xs uppercase tracking-wide text-slate-400">Calories</p>
-          <p id="summaryCalories" class="text-2xl sm:text-3xl font-bold text-green-700 mt-2 leading-none">0</p>
-          <p id="summaryCaloriesGoal" class="text-xs text-slate-500 mt-2">Goal: 2200</p>
-          <p id="summaryCaloriesRemaining" class="text-xs text-green-700 mt-1">Remaining: 2200</p>
-        </div>
-
-        <div class="group min-w-0 rounded-3xl bg-white border border-blue-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
-          <p class="text-[11px] sm:text-xs uppercase tracking-wide text-slate-400">Protein</p>
-          <p id="summaryProtein" class="text-2xl sm:text-3xl font-bold text-blue-700 mt-2 leading-none">0g</p>
-          <p id="summaryProteinGoal" class="text-xs text-slate-500 mt-2">Goal: 180g</p>
-          <p id="summaryProteinRemaining" class="text-xs text-blue-700 mt-1">Remaining: 180g</p>
-        </div>
-
-        <div class="group min-w-0 rounded-3xl bg-white border border-amber-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
-          <p class="text-[11px] sm:text-xs uppercase tracking-wide text-slate-400">Carbs</p>
-          <p id="summaryCarbs" class="text-2xl sm:text-3xl font-bold text-amber-700 mt-2 leading-none">0g</p>
-          <p id="summaryCarbsGoal" class="text-xs text-slate-500 mt-2">Goal: 220g</p>
-          <p id="summaryCarbsRemaining" class="text-xs text-amber-700 mt-1">Remaining: 220g</p>
-        </div>
-
-        <div class="group min-w-0 rounded-3xl bg-white border border-rose-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
-          <p class="text-[11px] sm:text-xs uppercase tracking-wide text-slate-400">Fats</p>
-          <p id="summaryFats" class="text-2xl sm:text-3xl font-bold text-rose-700 mt-2 leading-none">0g</p>
-          <p id="summaryFatsGoal" class="text-xs text-slate-500 mt-2">Goal: 70g</p>
-          <p id="summaryFatsRemaining" class="text-xs text-rose-700 mt-1">Remaining: 70g</p>
-        </div>
-      </div>
-
-     <div id="entriesLoggedCard" class="hidden rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
-  <div class="flex items-center justify-between gap-3">
-    <div>
-      <p class="text-xs uppercase tracking-wide text-slate-400">Entries Logged</p>
-      <p id="summaryEntries" class="mt-1 text-2xl font-bold text-slate-800">0</p>
-    </div>
-
-    <p id="summaryEntriesHint" class="text-sm text-slate-500 text-right">
-      No meals logged yet
-    </p>
-  </div>
-</div>
-
-      <div
-        id="weeklyAtGlanceCard"
-        class="hidden rounded-3xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5"
-      >
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 class="text-lg font-semibold text-slate-800">Week at a glance</h3>
-            <p class="text-sm text-slate-500">Calories and meals logged across the week.</p>
-          </div>
-          <p id="weeklyRangeLabel" class="text-sm text-slate-500"></p>
-        </div>
-
-        <div
-          id="weeklyOverviewGrid"
-          class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"
-        ></div>
-      </div>
-
-      <div class="mt-2 rounded-3xl border border-green-100 bg-white p-4 sm:p-6 shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-          <h3 id="chartHeading" class="text-lg font-semibold text-slate-800">Macro Breakdown</h3>
-          <p id="chartDateLabel" class="text-sm text-slate-500"></p>
-        </div>
-
-        <div class="space-y-5">
-          <div>
-            <div class="flex justify-between text-sm mb-2 gap-3">
-              <span class="text-slate-500">
-                Calories
-                <span id="chartCaloriesLabel" class="ml-2 font-semibold text-slate-800">0</span>
-              </span>
-              <span id="chartCaloriesPercent" class="font-semibold text-slate-500 shrink-0">0%</span>
-            </div>
-            <div class="h-3 bg-green-100 rounded-full overflow-hidden">
-              <div id="chartCaloriesBar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
-            </div>
+        <div class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+          <div class="group min-w-0 rounded-3xl bg-white border border-green-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
+            <p class="text-[11px] sm:text-xs uppercase tracking-wide text-slate-400">Calories</p>
+            <p id="summaryCalories" class="text-2xl sm:text-3xl font-bold text-green-700 mt-2 leading-none">0</p>
+            <p id="summaryCaloriesGoal" class="text-xs text-slate-500 mt-2">Goal: 2200</p>
+            <p id="summaryCaloriesRemaining" class="text-xs text-green-700 mt-1">Remaining: 2200</p>
           </div>
 
-          <div>
-            <div class="flex justify-between text-sm mb-2 gap-3">
-              <span class="text-slate-500">
-                Protein
-                <span id="chartProteinLabel" class="ml-2 font-semibold text-slate-800">0g</span>
-              </span>
-              <span id="chartProteinPercent" class="font-semibold text-slate-500 shrink-0">0%</span>
-            </div>
-            <div class="h-3 bg-blue-100 rounded-full overflow-hidden">
-              <div id="chartProteinBar" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
-            </div>
+          <div class="group min-w-0 rounded-3xl bg-white border border-blue-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
+            <p class="text-[11px] sm:text-xs uppercase tracking-wide text-slate-400">Protein</p>
+            <p id="summaryProtein" class="text-2xl sm:text-3xl font-bold text-blue-700 mt-2 leading-none">0g</p>
+            <p id="summaryProteinGoal" class="text-xs text-slate-500 mt-2">Goal: 180g</p>
+            <p id="summaryProteinRemaining" class="text-xs text-blue-700 mt-1">Remaining: 180g</p>
           </div>
 
-          <div>
-            <div class="flex justify-between text-sm mb-2 gap-3">
-              <span class="text-slate-500">
-                Carbs
-                <span id="chartCarbsLabel" class="ml-2 font-semibold text-slate-800">0g</span>
-              </span>
-              <span id="chartCarbsPercent" class="font-semibold text-slate-500 shrink-0">0%</span>
-            </div>
-            <div class="h-3 bg-amber-100 rounded-full overflow-hidden">
-              <div id="chartCarbsBar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
-            </div>
+          <div class="group min-w-0 rounded-3xl bg-white border border-amber-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
+            <p class="text-[11px] sm:text-xs uppercase tracking-wide text-slate-400">Carbs</p>
+            <p id="summaryCarbs" class="text-2xl sm:text-3xl font-bold text-amber-700 mt-2 leading-none">0g</p>
+            <p id="summaryCarbsGoal" class="text-xs text-slate-500 mt-2">Goal: 220g</p>
+            <p id="summaryCarbsRemaining" class="text-xs text-amber-700 mt-1">Remaining: 220g</p>
           </div>
 
-          <div>
-            <div class="flex justify-between text-sm mb-2 gap-3">
-              <span class="text-slate-500">
-                Fats
-                <span id="chartFatsLabel" class="ml-2 font-semibold text-slate-800">0g</span>
-              </span>
-              <span id="chartFatsPercent" class="font-semibold text-slate-500 shrink-0">0%</span>
+          <div class="group min-w-0 rounded-3xl bg-white border border-rose-100 p-3 sm:p-5 shadow-sm hover:shadow-md transition">
+            <p class="text-[11px] sm:text-xs uppercase tracking-wide text-slate-400">Fats</p>
+            <p id="summaryFats" class="text-2xl sm:text-3xl font-bold text-rose-700 mt-2 leading-none">0g</p>
+            <p id="summaryFatsGoal" class="text-xs text-slate-500 mt-2">Goal: 70g</p>
+            <p id="summaryFatsRemaining" class="text-xs text-rose-700 mt-1">Remaining: 70g</p>
+          </div>
+        </div>
+
+        <div class="mt-6 rounded-3xl border border-green-100 bg-white p-4 sm:p-6 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+            <h3 class="text-lg font-semibold text-slate-800">Macro Breakdown</h3>
+            <p id="chartDateLabel" class="text-sm text-slate-500"></p>
+          </div>
+
+          <div class="space-y-5">
+            <div>
+              <div class="flex justify-between text-sm mb-2 gap-3">
+                <span class="text-slate-500">
+                  Calories
+                  <span id="chartCaloriesLabel" class="ml-2 font-semibold text-slate-800">0</span>
+                </span>
+                <span id="chartCaloriesPercent" class="font-semibold text-slate-500 shrink-0">0%</span>
+              </div>
+              <div class="h-3 bg-green-100 rounded-full overflow-hidden">
+                <div id="chartCaloriesBar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+              </div>
             </div>
-            <div class="h-3 bg-rose-100 rounded-full overflow-hidden">
-              <div id="chartFatsBar" class="h-full bg-rose-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+
+            <div>
+              <div class="flex justify-between text-sm mb-2 gap-3">
+                <span class="text-slate-500">
+                  Protein
+                  <span id="chartProteinLabel" class="ml-2 font-semibold text-slate-800">0g</span>
+                </span>
+                <span id="chartProteinPercent" class="font-semibold text-slate-500 shrink-0">0%</span>
+              </div>
+              <div class="h-3 bg-blue-100 rounded-full overflow-hidden">
+                <div id="chartProteinBar" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-sm mb-2 gap-3">
+                <span class="text-slate-500">
+                  Carbs
+                  <span id="chartCarbsLabel" class="ml-2 font-semibold text-slate-800">0g</span>
+                </span>
+                <span id="chartCarbsPercent" class="font-semibold text-slate-500 shrink-0">0%</span>
+              </div>
+              <div class="h-3 bg-amber-100 rounded-full overflow-hidden">
+                <div id="chartCarbsBar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-sm mb-2 gap-3">
+                <span class="text-slate-500">
+                  Fats
+                  <span id="chartFatsLabel" class="ml-2 font-semibold text-slate-800">0g</span>
+                </span>
+                <span id="chartFatsPercent" class="font-semibold text-slate-500 shrink-0">0%</span>
+              </div>
+              <div class="h-3 bg-rose-100 rounded-full overflow-hidden">
+                <div id="chartFatsBar" class="h-full bg-rose-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
     <!-- Meal Entry Modal -->
     <div id="mealEntryModal" class="hidden fixed inset-0 z-[70]">
@@ -508,7 +388,8 @@
             <!-- Add Meal -->
             <div id="addMealTabSection">
               <div id="savedFoodSelectorSection" class="mb-5 rounded-2xl border border-lime-200 bg-lime-50 p-4">
-                <label for="savedFoodTrigger" class="block text-sm font-medium text-slate-700 mb-2">Saved Foods</label>
+                <label for="savedFoodSelect" class="block text-sm font-medium text-slate-700 mb-2">Saved Foods</label>
+
                 <div class="flex flex-col gap-3 lg:grid lg:grid-cols-[1fr_auto] lg:items-center">
                 <div class="relative">
               <button
