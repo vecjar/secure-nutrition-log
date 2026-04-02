@@ -1,6 +1,22 @@
 {
   "routes": [
     {
+      "route": "/manifest.webmanifest",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/service-worker.js",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/icons/*",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/favicon.ico",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
       "route": "/login",
       "rewrite": "/.auth/login/aad"
     },
@@ -28,7 +44,8 @@
       "/*.js",
       "/*.png",
       "/*.jpg",
-      "/*.svg"
+      "/*.svg",
+      "/*.webmanifest"
     ]
   },
   "responseOverrides": {
