@@ -221,10 +221,20 @@ entryForm?.addEventListener('submit', async (event) => {
       body: JSON.stringify(payload)
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (parseError) {
+      console.error('Failed to parse createEntry response:', parseError, rawText);
+    }
 
     if (!response.ok) {
-      if (formMessage) formMessage.textContent = data.error || 'Failed to save entry.';
+      if (formMessage) {
+        formMessage.textContent =
+          data.error || `Failed to save entry (${response.status}). Check Azure function logs.`;
+      }
       return;
     }
 
@@ -272,17 +282,27 @@ customFoodForm?.addEventListener('submit', async (event) => {
       body: JSON.stringify(payload)
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
 
-    if (!response.ok) {
-      if (customFoodsMessage) customFoodsMessage.textContent = data.error || 'Failed to save custom food.';
-      return;
-    }
+let data = {};
+try {
+  data = rawText ? JSON.parse(rawText) : {};
+} catch (parseError) {
+  console.error('Failed to parse createCustomFood response:', parseError, rawText);
+}
 
-    customFoodForm.reset();
-    if (customFoodsMessage) customFoodsMessage.textContent = `Saved custom food: ${data.food.foodName}`;
-    await loadCustomFoods();
-    setWorkspaceTab('meal');
+if (!response.ok) {
+  if (customFoodsMessage) {
+    customFoodsMessage.textContent =
+      data.error || `Failed to save custom food (${response.status}). Check Azure function logs.`;
+  }
+  return;
+}
+
+customFoodForm.reset();
+if (customFoodsMessage) customFoodsMessage.textContent = `Saved custom food: ${data.food.foodName}`;
+await loadCustomFoods();
+setWorkspaceTab('meal');
   } catch (error) {
     console.error(error);
     if (customFoodsMessage) customFoodsMessage.textContent = 'Could not save custom food.';
@@ -1168,10 +1188,20 @@ async function deleteEntry(entryId) {
       { method: 'DELETE' }
     );
 
-    const data = await response.json();
+    const rawText = await response.text();
+
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (parseError) {
+      console.error('Failed to parse deleteEntry response:', parseError, rawText);
+    }
 
     if (!response.ok) {
-      if (entriesMessage) entriesMessage.textContent = data.error || 'Failed to delete entry.';
+      if (entriesMessage) {
+        entriesMessage.textContent =
+          data.error || `Failed to delete entry (${response.status}). Check Azure function logs.`;
+      }
       return;
     }
 
@@ -1201,10 +1231,20 @@ async function deleteCustomFood(foodId) {
       { method: 'DELETE' }
     );
 
-    const data = await response.json();
+    const rawText = await response.text();
+
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (parseError) {
+      console.error('Failed to parse deleteCustomFood response:', parseError, rawText);
+    }
 
     if (!response.ok) {
-      if (formMessage) formMessage.textContent = data.error || 'Failed to delete saved food.';
+      if (formMessage) {
+        formMessage.textContent =
+          data.error || `Failed to delete saved food (${response.status}). Check Azure function logs.`;
+      }
       return;
     }
 
