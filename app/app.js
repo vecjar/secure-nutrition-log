@@ -89,6 +89,42 @@ const chartCaloriesPercent = document.getElementById('chartCaloriesPercent');
 const chartProteinPercent = document.getElementById('chartProteinPercent');
 const chartCarbsPercent = document.getElementById('chartCarbsPercent');
 const chartFatsPercent = document.getElementById('chartFatsPercent');
+const dailySummaryTabBtn = document.getElementById('dailySummaryTabBtn');
+const weeklySummaryTabBtn = document.getElementById('weeklySummaryTabBtn');
+const dailySummaryPanel = document.getElementById('dailySummaryPanel');
+const weeklySummaryPanel = document.getElementById('weeklySummaryPanel');
+
+const weeklyRangeLabel = document.getElementById('weeklyRangeLabel');
+const weeklyCalories = document.getElementById('weeklyCalories');
+const weeklyProtein = document.getElementById('weeklyProtein');
+const weeklyCarbs = document.getElementById('weeklyCarbs');
+const weeklyFats = document.getElementById('weeklyFats');
+
+const weeklyCaloriesGoal = document.getElementById('weeklyCaloriesGoal');
+const weeklyProteinGoal = document.getElementById('weeklyProteinGoal');
+const weeklyCarbsGoal = document.getElementById('weeklyCarbsGoal');
+const weeklyFatsGoal = document.getElementById('weeklyFatsGoal');
+
+const weeklyCaloriesRemaining = document.getElementById('weeklyCaloriesRemaining');
+const weeklyProteinRemaining = document.getElementById('weeklyProteinRemaining');
+const weeklyCarbsRemaining = document.getElementById('weeklyCarbsRemaining');
+const weeklyFatsRemaining = document.getElementById('weeklyFatsRemaining');
+
+const weeklyChartDateLabel = document.getElementById('weeklyChartDateLabel');
+const weeklyChartCaloriesBar = document.getElementById('weeklyChartCaloriesBar');
+const weeklyChartProteinBar = document.getElementById('weeklyChartProteinBar');
+const weeklyChartCarbsBar = document.getElementById('weeklyChartCarbsBar');
+const weeklyChartFatsBar = document.getElementById('weeklyChartFatsBar');
+
+const weeklyChartCaloriesLabel = document.getElementById('weeklyChartCaloriesLabel');
+const weeklyChartProteinLabel = document.getElementById('weeklyChartProteinLabel');
+const weeklyChartCarbsLabel = document.getElementById('weeklyChartCarbsLabel');
+const weeklyChartFatsLabel = document.getElementById('weeklyChartFatsLabel');
+
+const weeklyChartCaloriesPercent = document.getElementById('weeklyChartCaloriesPercent');
+const weeklyChartProteinPercent = document.getElementById('weeklyChartProteinPercent');
+const weeklyChartCarbsPercent = document.getElementById('weeklyChartCarbsPercent');
+const weeklyChartFatsPercent = document.getElementById('weeklyChartFatsPercent');
 
 const adminDashboardBtn = document.getElementById('adminDashboardBtn');
 const signInBtn = document.getElementById('signInBtn');
@@ -134,6 +170,7 @@ let currentGoals = { ...DEFAULT_GOALS };
 let customFoodsCache = [];
 let currentSelectedDate = getTodayDateString();
 let currentModalMealType = '';
+let activeSummaryTab = 'daily';
 let pendingDeleteId = null;
 let pendingDeleteType = null;
 let pendingDeleteLabel = '';
@@ -144,6 +181,8 @@ startProfileSetupBtn?.addEventListener('click', () => {
 });
 
 initializeDeleteModal();
+setSummaryTab('daily');
+resetWeeklySummary();
 
 closeMealModalBtn?.addEventListener('click', closeMealEntryModal);
 mealEntryModalBackdrop?.addEventListener('click', closeMealEntryModal);
@@ -319,24 +358,49 @@ prevDayBtn?.addEventListener('click', async () => {
   currentSelectedDate = shiftDateString(currentSelectedDate, -1);
   syncSelectedDateInput();
   await loadEntriesForSelectedDate();
+
+  if (activeSummaryTab === 'weekly') {
+    await loadWeeklySummary();
+  }
 });
 
 nextDayBtn?.addEventListener('click', async () => {
   currentSelectedDate = shiftDateString(currentSelectedDate, 1);
   syncSelectedDateInput();
   await loadEntriesForSelectedDate();
+
+  if (activeSummaryTab === 'weekly') {
+    await loadWeeklySummary();
+  }
 });
 
 todayBtn?.addEventListener('click', async () => {
   currentSelectedDate = getTodayDateString();
   syncSelectedDateInput();
   await loadEntriesForSelectedDate();
+
+  if (activeSummaryTab === 'weekly') {
+    await loadWeeklySummary();
+  }
+});
+
+dailySummaryTabBtn?.addEventListener('click', () => {
+  setSummaryTab('daily');
+});
+
+weeklySummaryTabBtn?.addEventListener('click', async () => {
+  setSummaryTab('weekly');
+  await loadWeeklySummary();
 });
 
 selectedDateInput?.addEventListener('change', async (event) => {
   if (!event.target.value) return;
   currentSelectedDate = event.target.value;
   await loadEntriesForSelectedDate();
+
+  if (activeSummaryTab === 'weekly') {
+    await loadWeeklySummary();
+  }
 });
 
 entriesList?.addEventListener('click', async (event) => {
@@ -1515,6 +1579,217 @@ function renderGoalLabels() {
   if (summaryProteinGoal) summaryProteinGoal.textContent = `Goal: ${currentGoals.protein}g`;
   if (summaryCarbsGoal) summaryCarbsGoal.textContent = `Goal: ${currentGoals.carbs}g`;
   if (summaryFatsGoal) summaryFatsGoal.textContent = `Goal: ${currentGoals.fats}g`;
+
+  if (weeklyCaloriesGoal) weeklyCaloriesGoal.textContent = `Weekly Goal: ${currentGoals.calories * 7}`;
+  if (weeklyProteinGoal) weeklyProteinGoal.textContent = `Weekly Goal: ${currentGoals.protein * 7}g`;
+  if (weeklyCarbsGoal) weeklyCarbsGoal.textContent = `Weekly Goal: ${currentGoals.carbs * 7}g`;
+  if (weeklyFatsGoal) weeklyFatsGoal.textContent = `Weekly Goal: ${currentGoals.fats * 7}g`;
+}
+
+function setSummaryTab(tab) {
+  activeSummaryTab = tab;
+
+  const isDaily = tab === 'daily';
+
+  dailySummaryPanel?.classList.toggle('hidden', !isDaily);
+  weeklySummaryPanel?.classList.toggle('hidden', isDaily);
+
+  dailySummaryTabBtn?.classList.toggle('bg-white', isDaily);
+  dailySummaryTabBtn?.classList.toggle('text-slate-800', isDaily);
+  dailySummaryTabBtn?.classList.toggle('shadow-sm', isDaily);
+  dailySummaryTabBtn?.classList.toggle('text-slate-500', !isDaily);
+
+  weeklySummaryTabBtn?.classList.toggle('bg-white', !isDaily);
+  weeklySummaryTabBtn?.classList.toggle('text-slate-800', !isDaily);
+  weeklySummaryTabBtn?.classList.toggle('shadow-sm', !isDaily);
+  weeklySummaryTabBtn?.classList.toggle('text-slate-500', isDaily);
+}
+
+function getStartOfWeek(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Monday start
+  date.setDate(date.getDate() + diff);
+  return formatDateToYyyyMmDd(date);
+}
+
+function getWeekDates(dateString) {
+  const start = new Date(`${getStartOfWeek(dateString)}T00:00:00`);
+  const dates = [];
+
+  for (let i = 0; i < 7; i += 1) {
+    const current = new Date(start);
+    current.setDate(start.getDate() + i);
+    dates.push(formatDateToYyyyMmDd(current));
+  }
+
+  return dates;
+}
+
+function formatDateToYyyyMmDd(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatWeekRange(dateString) {
+  const weekDates = getWeekDates(dateString);
+  const start = new Date(`${weekDates[0]}T00:00:00`);
+  const end = new Date(`${weekDates[6]}T00:00:00`);
+
+  const startLabel = start.toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'short'
+  });
+
+  const endLabel = end.toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  return `${startLabel} - ${endLabel}`;
+}
+
+async function fetchEntriesForDate(dateString) {
+  const response = await fetch(
+    `${API_BASE_URL}/getTodayEntries?date=${encodeURIComponent(dateString)}`
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || `Failed to load entries for ${dateString}`);
+  }
+
+  return data.entries || [];
+}
+
+async function loadWeeklySummary() {
+  if (!currentUser) {
+    resetWeeklySummary();
+    return;
+  }
+
+  try {
+    const weekDates = getWeekDates(currentSelectedDate);
+    const weekEntriesArrays = await Promise.all(
+      weekDates.map((date) => fetchEntriesForDate(date))
+    );
+
+    const allWeekEntries = weekEntriesArrays.flat();
+    const weeklyTotals = calculateTotals(allWeekEntries);
+
+    updateWeeklySummaryFromTotals(weeklyTotals);
+    renderWeeklyMacroChart(weeklyTotals, currentSelectedDate);
+  } catch (error) {
+    console.error('Failed to load weekly summary', error);
+    resetWeeklySummary();
+  }
+}
+
+function updateWeeklySummaryFromTotals(totals) {
+  const weeklyCalorieGoal = (currentGoals.calories || 0) * 7;
+  const weeklyProteinGoalValue = (currentGoals.protein || 0) * 7;
+  const weeklyCarbsGoalValue = (currentGoals.carbs || 0) * 7;
+  const weeklyFatsGoalValue = (currentGoals.fats || 0) * 7;
+
+  const caloriesValue = Math.round(totals.calories || 0);
+  const proteinValue = roundToOne(totals.protein || 0);
+  const carbsValue = roundToOne(totals.carbs || 0);
+  const fatsValue = roundToOne(totals.fats || 0);
+
+  const caloriesRemainingValue = Math.max(0, weeklyCalorieGoal - caloriesValue);
+  const proteinRemainingValue = Math.max(0, roundToOne(weeklyProteinGoalValue - proteinValue));
+  const carbsRemainingValue = Math.max(0, roundToOne(weeklyCarbsGoalValue - carbsValue));
+  const fatsRemainingValue = Math.max(0, roundToOne(weeklyFatsGoalValue - fatsValue));
+
+  if (weeklyRangeLabel) weeklyRangeLabel.textContent = formatWeekRange(currentSelectedDate);
+
+  if (weeklyCalories) weeklyCalories.textContent = `${caloriesValue}`;
+  if (weeklyProtein) weeklyProtein.textContent = `${proteinValue}g`;
+  if (weeklyCarbs) weeklyCarbs.textContent = `${carbsValue}g`;
+  if (weeklyFats) weeklyFats.textContent = `${fatsValue}g`;
+
+  if (weeklyCaloriesGoal) weeklyCaloriesGoal.textContent = `Weekly Goal: ${weeklyCalorieGoal}`;
+  if (weeklyProteinGoal) weeklyProteinGoal.textContent = `Weekly Goal: ${weeklyProteinGoalValue}g`;
+  if (weeklyCarbsGoal) weeklyCarbsGoal.textContent = `Weekly Goal: ${weeklyCarbsGoalValue}g`;
+  if (weeklyFatsGoal) weeklyFatsGoal.textContent = `Weekly Goal: ${weeklyFatsGoalValue}g`;
+
+  if (weeklyCaloriesRemaining) weeklyCaloriesRemaining.textContent = `Remaining: ${caloriesRemainingValue}`;
+  if (weeklyProteinRemaining) weeklyProteinRemaining.textContent = `Remaining: ${proteinRemainingValue}g`;
+  if (weeklyCarbsRemaining) weeklyCarbsRemaining.textContent = `Remaining: ${carbsRemainingValue}g`;
+  if (weeklyFatsRemaining) weeklyFatsRemaining.textContent = `Remaining: ${fatsRemainingValue}g`;
+}
+
+function renderWeeklyMacroChart(totals, dateString) {
+  const weeklyCalorieGoal = (currentGoals.calories || 0) * 7;
+  const weeklyProteinGoalValue = (currentGoals.protein || 0) * 7;
+  const weeklyCarbsGoalValue = (currentGoals.carbs || 0) * 7;
+  const weeklyFatsGoalValue = (currentGoals.fats || 0) * 7;
+
+  const caloriesValue = Math.round(totals.calories || 0);
+  const proteinValue = roundToOne(totals.protein || 0);
+  const carbsValue = roundToOne(totals.carbs || 0);
+  const fatsValue = roundToOne(totals.fats || 0);
+
+  const caloriesPercent = weeklyCalorieGoal > 0 ? Math.round((caloriesValue / weeklyCalorieGoal) * 100) : 0;
+  const proteinPercent = weeklyProteinGoalValue > 0 ? Math.round((proteinValue / weeklyProteinGoalValue) * 100) : 0;
+  const carbsPercent = weeklyCarbsGoalValue > 0 ? Math.round((carbsValue / weeklyCarbsGoalValue) * 100) : 0;
+  const fatsPercent = weeklyFatsGoalValue > 0 ? Math.round((fatsValue / weeklyFatsGoalValue) * 100) : 0;
+
+  if (weeklyChartDateLabel) weeklyChartDateLabel.textContent = formatWeekRange(dateString);
+
+  if (weeklyChartCaloriesLabel) weeklyChartCaloriesLabel.textContent = `${caloriesValue}`;
+  if (weeklyChartProteinLabel) weeklyChartProteinLabel.textContent = `${proteinValue}g`;
+  if (weeklyChartCarbsLabel) weeklyChartCarbsLabel.textContent = `${carbsValue}g`;
+  if (weeklyChartFatsLabel) weeklyChartFatsLabel.textContent = `${fatsValue}g`;
+
+  if (weeklyChartCaloriesPercent) weeklyChartCaloriesPercent.textContent = `${caloriesPercent}%`;
+  if (weeklyChartProteinPercent) weeklyChartProteinPercent.textContent = `${proteinPercent}%`;
+  if (weeklyChartCarbsPercent) weeklyChartCarbsPercent.textContent = `${carbsPercent}%`;
+  if (weeklyChartFatsPercent) weeklyChartFatsPercent.textContent = `${fatsPercent}%`;
+
+  setProgress(weeklyChartCaloriesBar, caloriesValue, weeklyCalorieGoal);
+  setProgress(weeklyChartProteinBar, proteinValue, weeklyProteinGoalValue);
+  setProgress(weeklyChartCarbsBar, carbsValue, weeklyCarbsGoalValue);
+  setProgress(weeklyChartFatsBar, fatsValue, weeklyFatsGoalValue);
+}
+
+function resetWeeklySummary() {
+  if (weeklyRangeLabel) weeklyRangeLabel.textContent = formatWeekRange(currentSelectedDate);
+
+  if (weeklyCalories) weeklyCalories.textContent = '0';
+  if (weeklyProtein) weeklyProtein.textContent = '0g';
+  if (weeklyCarbs) weeklyCarbs.textContent = '0g';
+  if (weeklyFats) weeklyFats.textContent = '0g';
+
+  if (weeklyCaloriesGoal) weeklyCaloriesGoal.textContent = `Weekly Goal: ${(currentGoals.calories || 0) * 7}`;
+  if (weeklyProteinGoal) weeklyProteinGoal.textContent = `Weekly Goal: ${(currentGoals.protein || 0) * 7}g`;
+  if (weeklyCarbsGoal) weeklyCarbsGoal.textContent = `Weekly Goal: ${(currentGoals.carbs || 0) * 7}g`;
+  if (weeklyFatsGoal) weeklyFatsGoal.textContent = `Weekly Goal: ${(currentGoals.fats || 0) * 7}g`;
+
+  if (weeklyCaloriesRemaining) weeklyCaloriesRemaining.textContent = `Remaining: ${(currentGoals.calories || 0) * 7}`;
+  if (weeklyProteinRemaining) weeklyProteinRemaining.textContent = `Remaining: ${(currentGoals.protein || 0) * 7}g`;
+  if (weeklyCarbsRemaining) weeklyCarbsRemaining.textContent = `Remaining: ${(currentGoals.carbs || 0) * 7}g`;
+  if (weeklyFatsRemaining) weeklyFatsRemaining.textContent = `Remaining: ${(currentGoals.fats || 0) * 7}g`;
+
+  if (weeklyChartDateLabel) weeklyChartDateLabel.textContent = formatWeekRange(currentSelectedDate);
+  if (weeklyChartCaloriesLabel) weeklyChartCaloriesLabel.textContent = '0';
+  if (weeklyChartProteinLabel) weeklyChartProteinLabel.textContent = '0g';
+  if (weeklyChartCarbsLabel) weeklyChartCarbsLabel.textContent = '0g';
+  if (weeklyChartFatsLabel) weeklyChartFatsLabel.textContent = '0g';
+
+  if (weeklyChartCaloriesPercent) weeklyChartCaloriesPercent.textContent = '0%';
+  if (weeklyChartProteinPercent) weeklyChartProteinPercent.textContent = '0%';
+  if (weeklyChartCarbsPercent) weeklyChartCarbsPercent.textContent = '0%';
+  if (weeklyChartFatsPercent) weeklyChartFatsPercent.textContent = '0%';
+
+  setProgress(weeklyChartCaloriesBar, 0, (currentGoals.calories || 0) * 7);
+  setProgress(weeklyChartProteinBar, 0, (currentGoals.protein || 0) * 7);
+  setProgress(weeklyChartCarbsBar, 0, (currentGoals.carbs || 0) * 7);
+  setProgress(weeklyChartFatsBar, 0, (currentGoals.fats || 0) * 7);
 }
 
 // ============================
