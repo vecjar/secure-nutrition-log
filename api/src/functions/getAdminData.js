@@ -178,7 +178,7 @@ app.http('getAdminData', {
     }
 
     // 7) Final normalization
-    const users = Array.from(usersMap.values()).map((user) => {
+    const allUsers = Array.from(usersMap.values()).map((user) => {
       const finalUserType = normalizeUserType(
         user.userType || classifyUserType(user.userDetails || user.email || user.userId)
       );
@@ -199,28 +199,31 @@ app.http('getAdminData', {
       };
     });
 
-    users.sort((a, b) => {
+    allUsers.sort((a, b) => {
       const aTime = toSortableTime(a.lastSeen);
       const bTime = toSortableTime(b.lastSeen);
       return bTime - aTime;
     });
 
-    const trackedUsers = users.length;
-    const profilesCompleted = users.filter((u) => u.profileComplete).length;
-    const internalUsers = users.filter((u) => u.userType === 'internal').length;
-    const externalUsers = users.filter((u) => u.userType === 'external').length;
-    const unknownUsers = users.filter((u) => u.userType === 'unknown').length;
-    const inactiveUsers = users.filter((u) => u.status === 'inactive').length;
-    const blockedUsers = users.filter((u) => u.status === 'blocked').length;
+    const trackedUsers = allUsers.length;
+    const profilesCompleted = allUsers.filter((u) => u.profileComplete).length;
+    const internalUsers = allUsers.filter((u) => u.userType === 'internal').length;
+    const externalUsers = allUsers.filter((u) => u.userType === 'external').length;
+    const unknownUsers = allUsers.filter((u) => u.userType === 'unknown').length;
+    const inactiveUsers = allUsers.filter((u) => u.status === 'inactive').length;
+    const blockedUsers = allUsers.filter((u) => u.status === 'blocked').length;
 
     const totalSignIns =
       auditEntities.filter((e) => {
         const eventType = (e.eventType || e.action || '').toLowerCase();
         return eventType === 'sign-in' || eventType === 'signin' || eventType === 'login';
       }).length ||
-      users.reduce((sum, user) => sum + Number(user.loginCount || 0), 0);
+      allUsers.reduce((sum, user) => sum + Number(user.loginCount || 0), 0);
 
-    const recentActivity = buildRecentActivity(auditEntities, users);
+    const allRecentActivity = buildRecentActivity(auditEntities, allUsers);
+
+    const users = allUsers.slice(0, 25);
+    const recentActivity = allRecentActivity.slice(0, 25);
 
     return {
       status: 200,
@@ -379,8 +382,7 @@ function buildRecentActivity(auditEntities, users) {
         description: entity.description || entity.userDetails || entity.email || entity.userId || entity.partitionKey || 'System event',
         timestamp: entity.timestamp || entity.createdAt || entity.updatedAt || null
       }))
-      .sort((a, b) => toSortableTime(b.timestamp) - toSortableTime(a.timestamp))
-      .slice(0, 10);
+      .sort((a, b) => toSortableTime(b.timestamp) - toSortableTime(a.timestamp));
   }
 
   return users
@@ -390,8 +392,7 @@ function buildRecentActivity(auditEntities, users) {
       description: user.userDetails || user.email || user.userId,
       timestamp: user.lastSeen
     }))
-    .sort((a, b) => toSortableTime(b.timestamp) - toSortableTime(a.timestamp))
-    .slice(0, 10);
+    .sort((a, b) => toSortableTime(b.timestamp) - toSortableTime(a.timestamp));
 }
 
 function formatAuditTitle(entity) {
