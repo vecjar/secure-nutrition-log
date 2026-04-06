@@ -157,42 +157,59 @@ function renderUserTable(users) {
       userTypeBadge = '<span class="inline-flex items-center rounded-full bg-violet-100 px-2 py-1 text-xs font-medium text-violet-700">External</span>';
     }
 
-    let statusBadge = '<span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 whitespace-nowrap">Active</span>';
+    let statusBadge = '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-semibold text-emerald-700 whitespace-nowrap">Active</span>';
 if (status === 'inactive') {
-  statusBadge = '<span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700 whitespace-nowrap">Inactive</span>';
+  statusBadge = '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-700 whitespace-nowrap">Inactive</span>';
 } else if (status === 'blocked') {
-  statusBadge = '<span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-700 whitespace-nowrap">Blocked</span>';
+  statusBadge = '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-1 text-[11px] font-semibold text-rose-700 whitespace-nowrap">Blocked</span>';
 }
 
 const actionButton = status === 'blocked'
   ? `<button
-       class="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-white px-2 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50 transition whitespace-nowrap"
+       class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700 transition whitespace-nowrap"
        onclick="updateUserStatus('${escapeHtml(user.userId)}', 'active', '${escapeHtml(user.userDetails || user.userId)}')"
      >
        Unblock
      </button>`
   : `<button
-       class="inline-flex items-center justify-center rounded-lg border border-rose-300 bg-white px-2 py-1 text-[11px] font-semibold text-rose-700 shadow-sm hover:bg-rose-50 transition whitespace-nowrap"
+       class="inline-flex items-center justify-center rounded-lg bg-rose-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-rose-700 transition whitespace-nowrap"
        onclick="updateUserStatus('${escapeHtml(user.userId)}', 'blocked', '${escapeHtml(user.userDetails || user.userId)}')"
      >
        Block
      </button>`;
 
     return `
-      <tr class="align-top">
-  <td class="py-4 pr-3 text-slate-800 break-words">${escapeHtml(userLabel)}</td>
-  <td class="py-4 pr-3">${userTypeBadge}</td>
-  <td class="py-4 pr-3 text-slate-600">${escapeHtml(String(loginCount))}</td>
-  <td class="py-4 pr-3">${profileComplete}</td>
-  <td class="py-4 pr-3 text-slate-600">${escapeHtml(lastSeen)}</td>
- <td class="py-4 pr-2 whitespace-nowrap">
-  <div class="flex flex-col items-start gap-2">
-    ${statusBadge}
-    ${actionButton}
-  </div>
-</td>
-</tr>
-    `;
+  <tr class="align-top">
+    <td class="py-4 pr-4 text-slate-800 align-top">
+      <div class="min-w-[220px] max-w-[280px] break-words">
+        ${escapeHtml(userLabel)}
+      </div>
+    </td>
+
+    <td class="py-4 pr-4 align-top whitespace-nowrap">
+      ${userTypeBadge}
+    </td>
+
+    <td class="py-4 pr-4 text-slate-600 align-top whitespace-nowrap">
+      ${escapeHtml(String(loginCount))}
+    </td>
+
+    <td class="py-4 pr-4 align-top whitespace-nowrap">
+      ${profileComplete}
+    </td>
+
+    <td class="py-4 pr-4 text-slate-600 align-top whitespace-nowrap">
+      ${escapeHtml(lastSeen)}
+    </td>
+
+    <td class="py-4 align-top whitespace-nowrap">
+      <div class="flex flex-col items-start gap-2 min-w-[88px]">
+        ${statusBadge}
+        ${actionButton}
+      </div>
+    </td>
+  </tr>
+`;
   }).join('');
 }
 
