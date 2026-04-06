@@ -1,6 +1,7 @@
 const { app } = require('@azure/functions');
 const { TableClient } = require('@azure/data-tables');
 const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
+const checkUserBlocked = require('../shared/checkUserBlocked');
 
 app.http('getGoals', {
   methods: ['GET'],
@@ -17,6 +18,11 @@ app.http('getGoals', {
     }
 
     const authUser = authResult.authUser;
+
+    const blockedCheck = await checkUserBlocked(authUser, context);
+    if (!blockedCheck.ok) {
+      return blockedCheck.response;
+    }
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.GOALS_TABLE_NAME || 'usergoals';
 

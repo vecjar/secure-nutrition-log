@@ -1,6 +1,7 @@
 const { app } = require('@azure/functions');
 const { TableClient } = require('@azure/data-tables');
 const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
+const checkUserBlocked = require('../shared/checkUserBlocked');
 
 app.http('deleteCustomFood', {
   methods: ['DELETE'],
@@ -17,6 +18,11 @@ app.http('deleteCustomFood', {
     }
 
     const authUser = authResult.authUser;
+
+    const blockedCheck = await checkUserBlocked(authUser, context);
+    if (!blockedCheck.ok) {
+      return blockedCheck.response;
+    }
 
     const foodId = request.query.get('foodId');
 

@@ -1,24 +1,27 @@
 const { app } = require("@azure/functions");
 const { TableClient } = require("@azure/data-tables");
-
-function getUserId(req) {
-  const principal = req.headers.get("x-ms-client-principal");
-
-  if (!principal) return null;
-
-  const decoded = JSON.parse(
-    Buffer.from(principal, "base64").toString("utf-8")
-  );
-
-  return decoded.userId || null;
-}
+const { requireAuthenticatedUser } = require("../shared/requireAuthenticatedUser");
+const checkUserBlocked = require("../shared/checkUserBlocked");
 
 app.http("getNutritionProfile", {
   methods: ["GET"],
   authLevel: "anonymous",
   handler: async (req, context) => {
     try {
-      const userId = getUserId(req);
+      const authResult = requireAuthenticatedUser(req);
+
+      if (!authResult.ok) {
+        return authResult.response;
+      }
+
+      const authUser = authResult.authUser;
+
+      const blockedCheck = await checkUserBlocked(authUser, context);
+      if (!blockedCheck.ok) {
+        return blockedCheck.response;
+      }
+
+      const userId = authUser.userKey || authUser.userId;
 
       if (!userId) {
         return {
@@ -28,7 +31,8 @@ app.http("getNutritionProfile", {
       }
 
       const connectionString = process.env.STORAGE_CONNECTION_STRING;
-      const tableName = process.env.NUTRITION_PROFILES_TABLE_NAME || "NutritionProfiles";
+      const tableName =
+        process.env.NUTRITION_PROFILES_TABLE_NAME || "NutritionProfiles";
 
       if (!connectionString) {
         context.log("Missing STORAGE_CONNECTION_STRING");
