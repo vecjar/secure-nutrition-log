@@ -56,31 +56,42 @@ This project was built to:
 ### High-Level Design
 
 ```text
-## 🏗️ Architecture
-
-### High-Level Design
-
-- **Azure Static Web App (Frontend UI)**
-  - Hosts the user interface
-  - Handles Microsoft Entra ID sign-in
+User
+  ↓
+Azure Static Web App (Frontend UI)
+  - Hosts the nutrition tracking interface
+  - Handles user sign-in with Microsoft Entra ID
   - Sends authenticated requests to backend API routes
 
-- **Azure Functions (Backend API Layer)**
-  - Validates user identity on each request
-  - Applies business logic
+  ↓
+
+Azure Functions (Backend API Layer)
+  - Validates the authenticated user on each request
+  - Applies business logic for meals, goals, profiles, and admin features
   - Enforces per-user data isolation
-  - Acts as the secure layer between frontend and storage
+  - Acts as the secure boundary between frontend and storage
 
-- **Azure Table Storage (Data Layer)**
-  - Stores food entries, custom foods, goals, nutrition profiles, and admin tracking data
+  ↓
 
-- **Azure Key Vault (Secrets Management)**
+Azure Table Storage (Data Layer)
+  - Stores food entries
+  - Stores custom foods
+  - Stores user goals
+  - Stores nutrition profiles
+  - Stores admin/user tracking records
+
+  ↑
+
+Azure Key Vault (Secrets Management)
   - Stores sensitive configuration such as storage connection strings
-  - Removes hardcoded secrets from the application
+  - Removes the need to hardcode secrets in code or configuration
 
-- **Managed Identity + RBAC**
-  - Used to securely access Key Vault and other Azure resources
-  - Enforces least-privilege access controls
+  ↑
+
+Managed Identity + RBAC
+  - Function App uses a system-assigned managed identity
+  - RBAC controls access to Key Vault and storage resources
+  - Supports least-privilege access and stronger secret management
 ```
 
 ---
