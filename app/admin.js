@@ -166,16 +166,16 @@ if (status === 'inactive') {
 
 const actionButton = status === 'blocked'
   ? `<button
-       class="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50 transition"
+       class="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-emerald-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50 transition"
        onclick="updateUserStatus('${escapeHtml(user.userId)}', 'active', '${escapeHtml(user.userDetails || user.userId)}')"
      >
-       Unblock User
+       Unblock
      </button>`
   : `<button
-       class="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-rose-700 shadow-sm hover:bg-rose-50 transition"
+       class="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-rose-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 shadow-sm hover:bg-rose-50 transition"
        onclick="updateUserStatus('${escapeHtml(user.userId)}', 'blocked', '${escapeHtml(user.userDetails || user.userId)}')"
      >
-       Block User
+       Block
      </button>`;
 
     return `
@@ -185,8 +185,8 @@ const actionButton = status === 'blocked'
   <td class="py-4 pr-3 text-slate-600">${escapeHtml(String(loginCount))}</td>
   <td class="py-4 pr-3">${profileComplete}</td>
   <td class="py-4 pr-3 text-slate-600">${escapeHtml(lastSeen)}</td>
-  <td class="py-4">
-  <div class="min-w-[120px] rounded-2xl bg-slate-50 border border-slate-200 p-2">
+ <td class="py-4 align-top">
+  <div class="w-full max-w-[110px] rounded-2xl bg-slate-50 border border-slate-200 p-2">
     <div class="flex flex-col items-stretch gap-2">
       ${statusBadge}
       ${actionButton}
