@@ -15,7 +15,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 class="text-4xl font-bold text-slate-900 tracking-tight">Admin Dashboard</h1>
-            <p class="text-slate-500 mt-2 text-lg">Monitor users, profile completion, recent activity, and admin-visible data quality.</p>
+            <p class="text-slate-500 mt-2 text-lg">Monitor sign-ins, user types, profile completion, and access activity across the app.</p>
           </div>
 
           <a
@@ -28,78 +28,84 @@
     </section>
 
     <section class="mb-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Tracked Records</p>
-          <p id="kpiMealsToday" class="text-3xl font-bold text-slate-900 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Total meal entry records in current snapshot</p>
-        </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Tracked Users</p>
+      <p id="kpiTrackedUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+      <p class="text-xs text-slate-500 mt-1">Unique users seen by the app</p>
+    </div>
 
-        <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Custom Food Records</p>
-          <p id="kpiSavedFoods" class="text-3xl font-bold text-slate-900 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Reusable food items created by users</p>
-        </div>
+    <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Profiles Completed</p>
+      <p id="kpiProfilesCompleted" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+      <p class="text-xs text-slate-500 mt-1">Users with completed nutrition profiles</p>
+    </div>
 
-        <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Profiles Completed</p>
-          <p id="kpiProfilesCompleted" class="text-3xl font-bold text-slate-900 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Users with completed nutrition profiles</p>
-        </div>
+    <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Internal Users</p>
+      <p id="kpiInternalUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+      <p class="text-xs text-slate-500 mt-1">Users classified as internal accounts</p>
+    </div>
 
-        <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Registered Users</p>
-          <p id="kpiUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Unique authenticated users in current snapshot</p>
-        </div>
-      </div>
-    </section>
+    <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-slate-400">External / Guest Users</p>
+      <p id="kpiExternalUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+      <p class="text-xs text-slate-500 mt-1">Users classified as external or guest accounts</p>
+    </div>
+  </div>
+</section>
 
     <section class="mb-6">
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-semibold text-slate-900">User Status Breakdown</h2>
-            <span class="text-sm text-slate-500">Profile and activity snapshot</span>
-          </div>
-          <div class="h-[320px]">
-            <canvas id="mealBreakdownChart"></canvas>
-          </div>
-        </div>
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-semibold text-slate-900">User Type Breakdown</h2>
+    <span class="text-sm text-slate-500">Internal, external, and unknown users</span>
+  </div>
+  <div class="h-[320px]">
+    <canvas id="mealBreakdownChart"></canvas>
+  </div>
+</div>
 
-        <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-semibold text-slate-900">Admin Snapshot</h2>
-            <span class="text-sm text-slate-500">Useful system overview</span>
-          </div>
-          <div class="h-[320px]">
-            <canvas id="systemOverviewChart"></canvas>
-          </div>
-        </div>
+       <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-sm">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-semibold text-slate-900">Access Overview</h2>
+    <span class="text-sm text-slate-500">Visibility into sign-ins and account state</span>
+  </div>
+  <div class="h-[320px]">
+    <canvas id="systemOverviewChart"></canvas>
+  </div>
+</div>
       </div>
     </section>
 
     <section class="mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="rounded-3xl bg-white border border-amber-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Profiles Missing</p>
-          <p id="healthProfilesMissing" class="text-3xl font-bold text-amber-700 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Users without a completed nutrition profile</p>
-        </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Unknown Users</p>
+      <p id="healthUnknownUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+      <p class="text-xs text-slate-500 mt-1">Users not yet clearly classified</p>
+    </div>
 
-        <div class="rounded-3xl bg-white border border-blue-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Entries Missing Macros</p>
-          <p id="healthEntriesMissingMacros" class="text-3xl font-bold text-blue-700 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Logged entries with incomplete macro data</p>
-        </div>
+    <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Total Sign-ins</p>
+      <p id="healthTotalSignIns" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+      <p class="text-xs text-slate-500 mt-1">Total recorded app sign-in events</p>
+    </div>
 
-        <div class="rounded-3xl bg-white border border-rose-200 p-5 shadow-sm">
-          <p class="text-xs uppercase tracking-wide text-slate-400">Inactive Users</p>
-          <p id="healthInactiveUsers" class="text-3xl font-bold text-rose-700 mt-2">0</p>
-          <p class="text-xs text-slate-500 mt-1">Users with no recent visible activity</p>
-        </div>
-      </div>
-    </section>
+    <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Inactive Users</p>
+      <p id="healthInactiveUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+      <p class="text-xs text-slate-500 mt-1">Users with no recent visible activity</p>
+    </div>
+
+    <div class="rounded-3xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-slate-400">Blocked Users</p>
+      <p id="healthBlockedUsers" class="text-3xl font-bold text-slate-900 mt-2">0</p>
+      <p class="text-xs text-slate-500 mt-1">Reserved for future account blocking controls</p>
+    </div>
+  </div>
+</section>
 
     <section class="mb-6">
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -112,19 +118,20 @@
           <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
               <thead>
-                <tr class="text-left text-slate-500 border-b border-slate-200">
-                  <th class="py-3 pr-4">User</th>
-                  <th class="py-3 pr-4">Entries</th>
-                  <th class="py-3 pr-4">Saved Foods</th>
-                  <th class="py-3 pr-4">Profile</th>
-                  <th class="py-3">Last Active</th>
-                </tr>
-              </thead>
+  <tr class="text-left text-slate-500 border-b border-slate-200">
+    <th class="py-3 pr-4">User</th>
+    <th class="py-3 pr-4">User Type</th>
+    <th class="py-3 pr-4">Login Count</th>
+    <th class="py-3 pr-4">Profile</th>
+    <th class="py-3 pr-4">Last Seen</th>
+    <th class="py-3">Status</th>
+  </tr>
+</thead>
               <tbody id="userOverviewTable" class="divide-y divide-slate-100">
-                <tr>
-                  <td colspan="5" class="py-4 text-slate-500">Loading user overview...</td>
-                </tr>
-              </tbody>
+  <tr>
+    <td colspan="6" class="py-4 text-slate-500">Loading user access overview...</td>
+  </tr>
+</tbody>
             </table>
           </div>
         </div>
