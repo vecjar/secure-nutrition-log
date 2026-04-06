@@ -151,6 +151,7 @@ const mealEntryModalBackdrop = document.getElementById('mealEntryModalBackdrop')
 const closeMealModalBtn = document.getElementById('closeMealModalBtn');
 const mealModalHeading = document.getElementById('mealModalHeading');
 const mealModalSubtext = document.getElementById('mealModalSubtext');
+const mealEntryModalScrollArea = document.getElementById('mealEntryModalScrollArea');
 
 const profileSetupModal = document.getElementById('profileSetupModal');
 const startProfileSetupBtn = document.getElementById('startProfileSetupBtn');
@@ -1222,8 +1223,14 @@ function openMealEntryModal(mealType = '') {
 
   setWorkspaceTab('meal');
 
-  mealEntryModal?.classList.remove('hidden');
-  document.body.classList.add('modal-open');
+mealEntryModal?.classList.remove('hidden');
+document.body.classList.add('modal-open');
+
+requestAnimationFrame(() => {
+  if (mealEntryModalScrollArea) {
+    mealEntryModalScrollArea.scrollTop = 0;
+  }
+});
 
   if (!history.state || history.state.modal !== 'meal') {
     history.pushState({ modal: 'meal' }, '');
@@ -1246,8 +1253,12 @@ function closeMealEntryModal(skipHistoryBack = false) {
   if (foodSearchInput) foodSearchInput.value = '';
 
   entryForm?.reset();
-  if (savedFoodTriggerText) savedFoodTriggerText.textContent = 'Choose a saved food';
-  if (savedFoodDropdown) savedFoodDropdown.classList.add('hidden');
+if (savedFoodTriggerText) savedFoodTriggerText.textContent = 'Choose a saved food';
+if (savedFoodDropdown) savedFoodDropdown.classList.add('hidden');
+
+if (mealEntryModalScrollArea) {
+  mealEntryModalScrollArea.scrollTop = 0;
+}
 
   if (!skipHistoryBack && history.state && history.state.modal === 'meal') {
     history.back();
