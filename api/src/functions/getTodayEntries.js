@@ -54,9 +54,12 @@ app.http('getTodayEntries', {
       });
 
       return {
-        status: 500,
-        jsonBody: { error: 'Failed to create storage client.' }
-      };
+  status: 500,
+  jsonBody: {
+    error: 'Failed to create storage client.',
+    details: error?.message || String(error)
+  }
+};
     }
 
     const entries = [];
@@ -110,10 +113,13 @@ app.http('getTodayEntries', {
         error: error?.message || String(error)
       });
 
-      return {
-        status: 500,
-        jsonBody: { error: 'Failed to retrieve food entries.' }
-      };
+     return {
+  status: 500,
+  jsonBody: {
+    error: 'Failed to retrieve food entries.',
+    details: error?.message || String(error)
+  }
+};
     }
   }
 });
