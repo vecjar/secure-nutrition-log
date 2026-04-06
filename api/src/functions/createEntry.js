@@ -4,6 +4,7 @@ const { TableClient } = require('@azure/data-tables');
 const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
 const checkUserBlocked = require('../shared/checkUserBlocked');
 
+
 app.http('createEntry', {
   methods: ['POST'],
   authLevel: 'anonymous',

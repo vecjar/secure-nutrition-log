@@ -157,25 +157,25 @@ function renderUserTable(users) {
       userTypeBadge = '<span class="inline-flex items-center rounded-full bg-violet-100 px-2 py-1 text-xs font-medium text-violet-700">External</span>';
     }
 
-    let statusBadge = '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">Active</span>';
-    if (status === 'inactive') {
-      statusBadge = '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">Inactive</span>';
-    } else if (status === 'blocked') {
-      statusBadge = '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700">Blocked</span>';
-    }
+    let statusBadge = '<span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">● Active</span>';
+if (status === 'inactive') {
+  statusBadge = '<span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">● Inactive</span>';
+} else if (status === 'blocked') {
+  statusBadge = '<span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">● Blocked</span>';
+}
 
-    const actionButton = status === 'blocked'
+const actionButton = status === 'blocked'
   ? `<button
-       class="mt-2 inline-flex items-center rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200 transition"
+       class="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50 transition"
        onclick="updateUserStatus('${escapeHtml(user.userId)}', 'active', '${escapeHtml(user.userDetails || user.userId)}')"
      >
-       Unblock
+       Unblock User
      </button>`
   : `<button
-       class="mt-2 inline-flex items-center rounded-lg bg-rose-100 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-200 transition"
+       class="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-rose-700 shadow-sm hover:bg-rose-50 transition"
        onclick="updateUserStatus('${escapeHtml(user.userId)}', 'blocked', '${escapeHtml(user.userDetails || user.userId)}')"
      >
-       Block
+       Block User
      </button>`;
 
     return `
@@ -186,11 +186,13 @@ function renderUserTable(users) {
   <td class="py-4 pr-3">${profileComplete}</td>
   <td class="py-4 pr-3 text-slate-600">${escapeHtml(lastSeen)}</td>
   <td class="py-4">
-    <div class="flex flex-col items-start gap-2">
+  <div class="min-w-[120px] rounded-2xl bg-slate-50 border border-slate-200 p-2">
+    <div class="flex flex-col items-stretch gap-2">
       ${statusBadge}
       ${actionButton}
     </div>
-  </td>
+  </div>
+</td>
 </tr>
     `;
   }).join('');
