@@ -156,6 +156,9 @@ const mealEntryModalScrollArea = document.getElementById('mealEntryModalScrollAr
 const profileSetupModal = document.getElementById('profileSetupModal');
 const startProfileSetupBtn = document.getElementById('startProfileSetupBtn');
 
+const blockedAccessScreen = document.getElementById('blockedAccessScreen');
+const appShell = document.getElementById('appShell');
+
 let deleteModal = document.getElementById('deleteModal');
 let deleteModalBackdrop = document.getElementById('deleteModalBackdrop');
 let deleteModalTitle = document.getElementById('deleteModalTitle');
@@ -434,6 +437,29 @@ entriesList?.addEventListener('click', async (event) => {
     await loadEntriesForSelectedDate();
   }
 });
+
+async function getAccessStatus() {
+  const response = await fetch(`${API_BASE_URL}/access-status`);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to check access status.');
+  }
+
+  return data;
+}
+
+function showBlockedAccessScreen() {
+  blockedAccessScreen?.classList.remove('hidden');
+  appShell?.classList.add('hidden');
+
+  const startupOverlay = document.getElementById('startupOverlay');
+  if (startupOverlay) {
+    startupOverlay.remove();
+  }
+
+  hideProfileSetupModal();
+}
 
 function initializeDeleteModal() {
   if (deleteModal && confirmDeleteBtn && cancelDeleteBtn) {
@@ -2050,6 +2076,17 @@ async function initApp() {
   const navEntry = performance.getEntriesByType('navigation')[0];
   const isReload = navEntry && navEntry.type === 'reload';
   const hasSeenStartup = sessionStorage.getItem('hasSeenStartup');
+
+  try {
+    const accessStatus = await getAccessStatus();
+
+    if (accessStatus.blocked) {
+      showBlockedAccessScreen();
+      return;
+    }
+  } catch (error) {
+    console.error('Failed to check access status', error);
+  }
 
   syncSelectedDateInput();
   renderGoalLabels();
