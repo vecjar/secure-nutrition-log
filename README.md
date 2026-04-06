@@ -70,7 +70,7 @@ Azure Key Vault (Secrets)
         ^
         |
 Managed Identity + RBAC
-
+```
 
 ---
 
