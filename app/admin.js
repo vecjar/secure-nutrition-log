@@ -180,18 +180,18 @@ function renderUserTable(users) {
 
     return `
       <tr class="align-top">
-        <td class="py-4 pr-4 text-slate-800">${escapeHtml(userLabel)}</td>
-        <td class="py-4 pr-4">${userTypeBadge}</td>
-        <td class="py-4 pr-4 text-slate-600">${escapeHtml(String(loginCount))}</td>
-        <td class="py-4 pr-4">${profileComplete}</td>
-        <td class="py-4 pr-4 text-slate-600">${escapeHtml(lastSeen)}</td>
-        <td class="py-4">
-  <div class="flex flex-col items-start">
-    ${statusBadge}
-    ${actionButton}
-  </div>
-</td>
-      </tr>
+  <td class="py-4 pr-3 text-slate-800 break-words">${escapeHtml(userLabel)}</td>
+  <td class="py-4 pr-3">${userTypeBadge}</td>
+  <td class="py-4 pr-3 text-slate-600">${escapeHtml(String(loginCount))}</td>
+  <td class="py-4 pr-3">${profileComplete}</td>
+  <td class="py-4 pr-3 text-slate-600">${escapeHtml(lastSeen)}</td>
+  <td class="py-4">
+    <div class="flex flex-col items-start gap-2">
+      ${statusBadge}
+      ${actionButton}
+    </div>
+  </td>
+</tr>
     `;
   }).join('');
 }
