@@ -140,7 +140,12 @@ function renderUserTable(users) {
   }
 
   userOverviewTable.innerHTML = users.map((user) => {
-    const userLabel = user.userDetails || user.email || user.userId || 'Unknown user';
+    const userLabel =
+  (user.email && user.email.includes('@') ? user.email : null) ||
+  (user.userDetails && user.userDetails.includes('@') ? user.userDetails : null) ||
+  user.userDetails ||
+  user.userId ||
+  'Unknown user';
     const userType = (user.userType || 'unknown').toLowerCase();
     const loginCount = user.loginCount ?? 0;
     const profileComplete = user.profileComplete === true
@@ -225,7 +230,13 @@ function renderRecentActivity(activity) {
 
   recentActivityList.innerHTML = activity.map((item) => {
     const title = item.title || item.action || 'Activity';
-    const subtitle = item.description || item.userDetails || item.userId || 'System event';
+    const subtitle =
+  (item.email && item.email.includes('@') ? item.email : null) ||
+  (item.userDetails && item.userDetails.includes('@') ? item.userDetails : null) ||
+  item.description ||
+  item.userDetails ||
+  item.userId ||
+  'System event';
     const timestamp = formatAdminDate(item.timestamp || item.createdAt || item.updatedAt);
 
     return `

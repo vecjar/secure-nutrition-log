@@ -13,13 +13,11 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
     }
 
     const userId = authUser.userId || authUser.userKey;
-    const userDetails = authUser.userDetails || authUser.email || authUser.userKey || 'Unknown user';
-
-    context.log('trackUserAccess starting', {
-      userId,
-      userDetails,
-      action
-    });
+    const rawUserDetails =
+      authUser.userDetails ||
+      authUser.email ||
+      authUser.userKey ||
+      'Unknown user';
 
     if (!userId) {
       context.log('trackUserAccess skipped: no userId/userKey found on authUser');
@@ -44,99 +42,116 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
       }
     }
 
+    const userDetails = chooseBestUserDetails(
+      rawUserDetails,
+      existingUser?.userDetails
+    );
+
     const userType = classifyUserType(userDetails);
 
-    if (!existingUser) {
-  const initialLoginCount = action === 'sign-in' ? 1 : 0;
-
-  await registryClient.createEntity({
-    partitionKey: userId,
-    rowKey: userId,
-    userId,
-    userDetails,
-    userType,
-    loginCount: initialLoginCount,
-    firstSeen: now,
-    lastSeen: now,
-    status: 'active'
-  });
-
-  await auditClient.createEntity({
-    partitionKey: userId,
-    rowKey: cryptoRandom(),
-    userId,
-    userDetails,
-    userType,
-    eventType: 'first-seen',
-    timestamp: now
-  });
-
-  if (action === 'sign-in') {
-    await auditClient.createEntity({
-      partitionKey: userId,
-      rowKey: cryptoRandom(),
+    context.log('trackUserAccess starting', {
       userId,
       userDetails,
-      userType,
-      eventType: 'sign-in',
-      timestamp: now
+      action
     });
-  }
 
-  if (action !== 'sign-in') {
+    if (!existingUser) {
+      const initialLoginCount = action === 'sign-in' ? 1 : 0;
+
+      await registryClient.createEntity({
+        partitionKey: userId,
+        rowKey: userId,
+        userId,
+        userDetails,
+        email: userDetails,
+        userType,
+        loginCount: initialLoginCount,
+        firstSeen: now,
+        lastSeen: now,
+        status: 'active'
+      });
+
+      await auditClient.createEntity({
+        partitionKey: userId,
+        rowKey: cryptoRandom(),
+        userId,
+        userDetails,
+        email: userDetails,
+        userType,
+        eventType: 'first-seen',
+        timestamp: now
+      });
+
+      if (action === 'sign-in') {
+        await auditClient.createEntity({
+          partitionKey: userId,
+          rowKey: cryptoRandom(),
+          userId,
+          userDetails,
+          email: userDetails,
+          userType,
+          eventType: 'sign-in',
+          timestamp: now
+        });
+      }
+
+      if (action !== 'sign-in') {
+        await auditClient.createEntity({
+          partitionKey: userId,
+          rowKey: cryptoRandom(),
+          userId,
+          userDetails,
+          email: userDetails,
+          userType,
+          eventType: action,
+          timestamp: now
+        });
+      }
+
+      context.log('trackUserAccess created new user record', {
+        userId,
+        userDetails,
+        userType,
+        action
+      });
+
+      return;
+    }
+
+    const nextLoginCount =
+      action === 'sign-in'
+        ? Number(existingUser.loginCount || 0) + 1
+        : Number(existingUser.loginCount || 0);
+
+    await registryClient.updateEntity({
+      partitionKey: userId,
+      rowKey: userId,
+      userId,
+      userDetails,
+      email: userDetails,
+      userType,
+      loginCount: nextLoginCount,
+      lastSeen: now,
+      status: existingUser.status || 'active'
+    }, 'Merge');
+
     await auditClient.createEntity({
       partitionKey: userId,
       rowKey: cryptoRandom(),
       userId,
       userDetails,
+      email: userDetails,
       userType,
       eventType: action,
       timestamp: now
     });
-  }
 
-  context.log('trackUserAccess created new user record', {
-    userId,
-    userDetails,
-    userType,
-    action
-  });
-
-  return;
-}
-
-const nextLoginCount =
-  action === 'sign-in'
-    ? Number(existingUser.loginCount || 0) + 1
-    : Number(existingUser.loginCount || 0);
-
-await registryClient.updateEntity({
-  partitionKey: userId,
-  rowKey: userId,
-  userId,
-  userDetails,
-  userType,
-  loginCount: nextLoginCount,
-  lastSeen: now,
-  status: 'active'
-}, 'Merge');
-
-await auditClient.createEntity({
-  partitionKey: userId,
-  rowKey: cryptoRandom(),
-  userId,
-  userDetails,
-  userType,
-  eventType: action,
-  timestamp: now
-});
-
-context.log('trackUserAccess wrote audit event', {
-  userId,
-  userDetails,
-  action,
-  loginCount: nextLoginCount
-});
+    context.log('trackUserAccess wrote audit event', {
+      userId,
+      userDetails,
+      action,
+      loginCount: nextLoginCount
+    });
   } catch (err) {
     context.log('trackUserAccess error', {
       message: err?.message || String(err),
@@ -170,6 +185,35 @@ function classifyUserType(value) {
   if (v.endsWith('.onmicrosoft.com')) return 'internal';
 
   return 'unknown';
+}
+
+function chooseBestUserDetails(currentValue, existingValue) {
+  const current = String(currentValue || '').trim();
+  const existing = String(existingValue || '').trim();
+
+  const currentLooksMasked = current.includes('*');
+  const existingLooksMasked = existing.includes('*');
+
+  const currentLooksEmail = current.includes('@');
+  const existingLooksEmail = existing.includes('@');
+
+  if (existingLooksEmail && currentLooksMasked) {
+    return existing;
+  }
+
+  if (existing && !existingLooksMasked && currentLooksMasked) {
+    return existing;
+  }
+
+  if (currentLooksEmail) {
+    return current;
+  }
+
+  if (existingLooksEmail) {
+    return existing;
+  }
+
+  return current || existing || 'Unknown user';
 }
 
 async function ensureTableExists(tableClient, context) {
