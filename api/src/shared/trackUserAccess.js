@@ -15,6 +15,12 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
     const userId = authUser.userId || authUser.userKey;
     const userDetails = authUser.userDetails || authUser.email || authUser.userKey || 'Unknown user';
 
+    context.log('trackUserAccess starting', {
+      userId,
+      userDetails,
+      action
+    });
+
     if (!userId) {
       context.log('trackUserAccess skipped: no userId/userKey found on authUser');
       return;
@@ -22,6 +28,9 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
 
     const registryClient = TableClient.fromConnectionString(connectionString, USER_REGISTRY_TABLE);
     const auditClient = TableClient.fromConnectionString(connectionString, USER_ACCESS_AUDIT_TABLE);
+
+    await ensureTableExists(registryClient, context);
+    await ensureTableExists(auditClient, context);
 
     const now = new Date().toISOString();
 
@@ -70,10 +79,9 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
         timestamp: now
       });
 
-      context.log('trackUserAccess created new user registry record', {
+      context.log('trackUserAccess wrote first-seen + sign-in audit events', {
         userId,
-        userDetails,
-        userType
+        userDetails
       });
 
       return;
@@ -100,10 +108,9 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
       timestamp: now
     });
 
-    context.log('trackUserAccess updated existing user registry record', {
+    context.log('trackUserAccess wrote access audit event', {
       userId,
       userDetails,
-      userType,
       action
     });
   } catch (err) {
@@ -139,4 +146,17 @@ function classifyUserType(value) {
   if (v.endsWith('.onmicrosoft.com')) return 'internal';
 
   return 'unknown';
+}
+
+async function ensureTableExists(tableClient, context) {
+  try {
+    await tableClient.createTable();
+    context.log(`Created table ${tableClient.tableName}`);
+  } catch (err) {
+    if (err.statusCode === 409 || err.code === 'TableAlreadyExists') {
+      return;
+    }
+
+    throw err;
+  }
 }
