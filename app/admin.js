@@ -133,7 +133,7 @@ function renderUserTable(users) {
   if (!users.length) {
     userOverviewTable.innerHTML = `
       <tr>
-        <td colspan="5" class="py-4 text-slate-500">No detailed user data available yet from the admin API.</td>
+        <td colspan="6" class="py-4 text-slate-500">No user access data available yet from the admin API.</td>
       </tr>
     `;
     return;
@@ -141,20 +141,37 @@ function renderUserTable(users) {
 
   userOverviewTable.innerHTML = users.map((user) => {
     const userLabel = user.userDetails || user.email || user.userId || 'Unknown user';
-    const entriesCount = user.entriesCount ?? user.totalEntries ?? '-';
-    const savedFoodsCount = user.savedFoodsCount ?? user.totalCustomFoods ?? '-';
+    const userType = (user.userType || 'unknown').toLowerCase();
+    const loginCount = user.loginCount ?? 0;
     const profileComplete = user.profileComplete === true
       ? '<span class="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">Complete</span>'
       : '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">Missing</span>';
-    const lastActive = formatAdminDate(user.lastActive || user.updatedAt);
+
+    const lastSeen = formatAdminDate(user.lastSeen || user.lastActive || user.updatedAt);
+    const status = (user.status || 'active').toLowerCase();
+
+    let userTypeBadge = '<span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">Unknown</span>';
+    if (userType === 'internal') {
+      userTypeBadge = '<span class="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Internal</span>';
+    } else if (userType === 'external') {
+      userTypeBadge = '<span class="inline-flex items-center rounded-full bg-violet-100 px-2 py-1 text-xs font-medium text-violet-700">External</span>';
+    }
+
+    let statusBadge = '<span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">Active</span>';
+    if (status === 'inactive') {
+      statusBadge = '<span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">Inactive</span>';
+    } else if (status === 'blocked') {
+      statusBadge = '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700">Blocked</span>';
+    }
 
     return `
       <tr class="align-top">
         <td class="py-4 pr-4 text-slate-800">${escapeHtml(userLabel)}</td>
-        <td class="py-4 pr-4 text-slate-600">${escapeHtml(String(entriesCount))}</td>
-        <td class="py-4 pr-4 text-slate-600">${escapeHtml(String(savedFoodsCount))}</td>
+        <td class="py-4 pr-4">${userTypeBadge}</td>
+        <td class="py-4 pr-4 text-slate-600">${escapeHtml(String(loginCount))}</td>
         <td class="py-4 pr-4">${profileComplete}</td>
-        <td class="py-4 text-slate-600">${escapeHtml(lastActive)}</td>
+        <td class="py-4 pr-4 text-slate-600">${escapeHtml(lastSeen)}</td>
+        <td class="py-4">${statusBadge}</td>
       </tr>
     `;
   }).join('');
@@ -205,20 +222,18 @@ function renderUserStatusChart(stats) {
   mealBreakdownChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Profiles Complete', 'Profiles Missing', 'Active Users', 'Inactive Users'],
+      labels: ['Internal Users', 'External Users', 'Unknown Users'],
       datasets: [
         {
           data: [
-            stats.profilesCompleted,
-            stats.profilesMissing,
-            Math.max(0, stats.totalUsers - stats.inactiveUsers),
-            stats.inactiveUsers
+            stats.internalUsers,
+            stats.externalUsers,
+            stats.unknownUsers
           ],
           backgroundColor: [
-            '#22c55e',
-            '#f59e0b',
             '#3b82f6',
-            '#ef4444'
+            '#8b5cf6',
+            '#94a3b8'
           ],
           borderColor: '#ffffff',
           borderWidth: 2
@@ -228,7 +243,7 @@ function renderUserStatusChart(stats) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: '50%',
+      cutout: '55%',
       plugins: {
         legend: {
           position: 'top'
@@ -249,21 +264,21 @@ function renderAdminSnapshotChart(stats) {
   systemOverviewChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Users', 'Profiles Complete', 'Profiles Missing', 'Inactive Users'],
+      labels: ['Tracked Users', 'Profiles Complete', 'Inactive Users', 'Total Sign-ins'],
       datasets: [
         {
           label: 'Counts',
           data: [
-            stats.totalUsers,
+            stats.trackedUsers,
             stats.profilesCompleted,
-            stats.profilesMissing,
-            stats.inactiveUsers
+            stats.inactiveUsers,
+            stats.totalSignIns
           ],
           backgroundColor: [
             '#93c5fd',
             '#86efac',
-            '#fde68a',
-            '#fda4af'
+            '#fca5a5',
+            '#fcd34d'
           ],
           borderRadius: 12
         }
@@ -301,10 +316,10 @@ function renderFallbackState(message) {
   healthBlockedUsers.textContent = '0';
 
   userOverviewTable.innerHTML = `
-    <tr>
-      <td colspan="5" class="py-4 text-red-600">Failed to load user overview: ${escapeHtml(message)}</td>
-    </tr>
-  `;
+  <tr>
+    <td colspan="6" class="py-4 text-red-600">Failed to load user overview: ${escapeHtml(message)}</td>
+  </tr>
+`;
 
   recentActivityList.innerHTML = `
     <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
