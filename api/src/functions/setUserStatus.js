@@ -55,6 +55,14 @@ app.http('setUserStatus', {
       };
     }
 
+    // Prevent admins from blocking themselves
+    if (authUser.userId === userId && status === 'blocked') {
+      return {
+        status: 400,
+        jsonBody: { error: 'You cannot block your own account.' }
+      };
+    }
+
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
 
     if (!connectionString) {
