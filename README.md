@@ -55,14 +55,20 @@ This project was built to:
 
 ### High-Level Design
 
+```text
 Frontend (Azure Static Web App)
-↓
+        |
+        v
 Azure Functions (API Layer)
-↓
+        |
+        v
 Azure Table Storage (Data Layer)
-↑
+
+        ^
+        |
 Azure Key Vault (Secrets)
-↑
+        ^
+        |
 Managed Identity + RBAC
 
 
