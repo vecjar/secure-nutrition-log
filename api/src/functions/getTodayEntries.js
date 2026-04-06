@@ -1,8 +1,8 @@
 const { app } = require('@azure/functions');
+const { TableClient } = require('@azure/data-tables');
 const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
 const trackUserAccess = require('../shared/trackUserAccess');
 const checkUserBlocked = require('../shared/checkUserBlocked');
-const { getTableClient } = require('../shared/getTableClient');
 
 app.http('getTodayEntries', {
   methods: ['GET'],
@@ -14,21 +14,23 @@ app.http('getTodayEntries', {
     const authResult = requireAuthenticatedUser(request);
 
     if (!authResult.ok) {
-      context.warn('getTodayEntries unauthorized');
+      context.log.warn('getTodayEntries unauthorized');
       return authResult.response;
     }
 
     const authUser = authResult.authUser;
 
-    const blockedCheck = await checkUserBlocked(authUser, context);
-    if (!blockedCheck.ok) {
-      return blockedCheck.response;
-    }
+const blockedCheck = await checkUserBlocked(authUser, context);
+if (!blockedCheck.ok) {
+  return blockedCheck.response;
+}
 
-    await trackUserAccess(authUser, context, 'access');
+await trackUserAccess(authUser, context, 'access');
 
-    const requestedDate = request.query.get('date');
+const requestedDate = request.query.get('date');
     const targetDate = requestedDate || new Date().toISOString().split('T')[0];
+
+    const connectionString = process.env.STORAGE_CONNECTION_STRING;
     const tableName = process.env.TABLE_NAME || 'foodentries';
 
     context.log('getTodayEntries authenticated', {
@@ -37,10 +39,22 @@ app.http('getTodayEntries', {
       targetDate
     });
 
+    if (!connectionString) {
+      context.log.error('getTodayEntries missing storage connection string', {
+        userKey: authUser.userKey,
+        tableName
+      });
+
+      return {
+        status: 500,
+        jsonBody: { error: 'STORAGE_CONNECTION_STRING is missing.' }
+      };
+    }
+
     let client;
 
     try {
-      client = getTableClient('TABLE_NAME', 'foodentries');
+      client = TableClient.fromConnectionString(connectionString, tableName);
 
       context.log('getTodayEntries storage client created', {
         userKey: authUser.userKey,
@@ -54,12 +68,9 @@ app.http('getTodayEntries', {
       });
 
       return {
-  status: 500,
-  jsonBody: {
-    error: 'Failed to create storage client.',
-    details: error?.message || String(error)
-  }
-};
+        status: 500,
+        jsonBody: { error: 'Failed to create storage client.' }
+      };
     }
 
     const entries = [];
@@ -113,13 +124,10 @@ app.http('getTodayEntries', {
         error: error?.message || String(error)
       });
 
-     return {
-  status: 500,
-  jsonBody: {
-    error: 'Failed to retrieve food entries.',
-    details: error?.message || String(error)
-  }
-};
+      return {
+        status: 500,
+        jsonBody: { error: 'Failed to retrieve food entries.' }
+      };
     }
   }
 });
