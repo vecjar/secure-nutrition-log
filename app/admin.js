@@ -1,13 +1,16 @@
 const adminDebugOutput = document.getElementById('adminDebugOutput');
 
-const kpiMealsToday = document.getElementById('kpiMealsToday');
-const kpiSavedFoods = document.getElementById('kpiSavedFoods');
+// NEW KPI ELEMENTS
+const kpiTrackedUsers = document.getElementById('kpiTrackedUsers');
 const kpiProfilesCompleted = document.getElementById('kpiProfilesCompleted');
-const kpiUsers = document.getElementById('kpiUsers');
+const kpiInternalUsers = document.getElementById('kpiInternalUsers');
+const kpiExternalUsers = document.getElementById('kpiExternalUsers');
 
-const healthProfilesMissing = document.getElementById('healthProfilesMissing');
-const healthEntriesMissingMacros = document.getElementById('healthEntriesMissingMacros');
+// NEW HEALTH ELEMENTS
+const healthUnknownUsers = document.getElementById('healthUnknownUsers');
+const healthTotalSignIns = document.getElementById('healthTotalSignIns');
 const healthInactiveUsers = document.getElementById('healthInactiveUsers');
+const healthBlockedUsers = document.getElementById('healthBlockedUsers');
 
 const userOverviewTable = document.getElementById('userOverviewTable');
 const recentActivityList = document.getElementById('recentActivityList');
@@ -49,43 +52,23 @@ async function loadAdminDashboard() {
 
 function normalizeAdminData(data) {
   const stats = data.stats || {};
-
   const users = Array.isArray(data.users) ? data.users : [];
   const activity = Array.isArray(data.recentActivity) ? data.recentActivity : [];
-  const entries = Array.isArray(data.entries) ? data.entries : [];
-  const foods = Array.isArray(data.customFoods) ? data.customFoods : [];
-  const profiles = Array.isArray(data.profiles) ? data.profiles : [];
-
-  const totalEntries = Number(stats.totalEntries ?? entries.length ?? 0) || 0;
-  const totalCustomFoods = Number(stats.totalCustomFoods ?? foods.length ?? 0) || 0;
-  const totalGoals = Number(stats.totalGoals ?? profiles.length ?? 0) || 0;
-  const totalUsers = Number(stats.totalUsers ?? users.length ?? 0) || 0;
-
-  const profilesCompleted = calculateProfilesCompleted(users, profiles, totalGoals);
-  const profilesMissing = Math.max(0, totalUsers - profilesCompleted);
-  const entriesMissingMacros = calculateEntriesMissingMacros(entries, stats.entriesMissingMacros);
-  const inactiveUsers = calculateInactiveUsers(users, totalUsers);
-
-  const recordsTracked = Number(stats.mealsToday ?? totalEntries) || 0;
 
   return {
     raw: data,
     stats: {
-      totalEntries,
-      totalCustomFoods,
-      totalGoals,
-      totalUsers,
-      recordsTracked,
-      profilesCompleted,
-      profilesMissing,
-      entriesMissingMacros,
-      inactiveUsers
+      trackedUsers: Number(stats.trackedUsers ?? users.length ?? 0) || 0,
+      profilesCompleted: Number(stats.profilesCompleted ?? 0) || 0,
+      internalUsers: Number(stats.internalUsers ?? 0) || 0,
+      externalUsers: Number(stats.externalUsers ?? 0) || 0,
+      unknownUsers: Number(stats.unknownUsers ?? 0) || 0,
+      totalSignIns: Number(stats.totalSignIns ?? 0) || 0,
+      inactiveUsers: Number(stats.inactiveUsers ?? 0) || 0,
+      blockedUsers: Number(stats.blockedUsers ?? 0) || 0
     },
     users,
-    activity,
-    entries,
-    foods,
-    profiles
+    activity
   };
 }
 
@@ -133,16 +116,17 @@ function calculateInactiveUsers(users, fallbackTotalUsers) {
 }
 
 function renderKpis(data) {
-  kpiMealsToday.textContent = data.stats.recordsTracked;
-  kpiSavedFoods.textContent = data.stats.totalCustomFoods;
+  kpiTrackedUsers.textContent = data.stats.trackedUsers;
   kpiProfilesCompleted.textContent = data.stats.profilesCompleted;
-  kpiUsers.textContent = data.stats.totalUsers;
+  kpiInternalUsers.textContent = data.stats.internalUsers;
+  kpiExternalUsers.textContent = data.stats.externalUsers;
 }
 
 function renderHealth(data) {
-  healthProfilesMissing.textContent = data.stats.profilesMissing;
-  healthEntriesMissingMacros.textContent = data.stats.entriesMissingMacros;
+  healthUnknownUsers.textContent = data.stats.unknownUsers;
+  healthTotalSignIns.textContent = data.stats.totalSignIns;
   healthInactiveUsers.textContent = data.stats.inactiveUsers;
+  healthBlockedUsers.textContent = data.stats.blockedUsers;
 }
 
 function renderUserTable(users) {
@@ -306,14 +290,15 @@ function renderAdminSnapshotChart(stats) {
 }
 
 function renderFallbackState(message) {
-  kpiMealsToday.textContent = '0';
-  kpiSavedFoods.textContent = '0';
+  kpiTrackedUsers.textContent = '0';
   kpiProfilesCompleted.textContent = '0';
-  kpiUsers.textContent = '0';
+  kpiInternalUsers.textContent = '0';
+  kpiExternalUsers.textContent = '0';
 
-  healthProfilesMissing.textContent = '0';
-  healthEntriesMissingMacros.textContent = '0';
+  healthUnknownUsers.textContent = '0';
+  healthTotalSignIns.textContent = '0';
   healthInactiveUsers.textContent = '0';
+  healthBlockedUsers.textContent = '0';
 
   userOverviewTable.innerHTML = `
     <tr>
