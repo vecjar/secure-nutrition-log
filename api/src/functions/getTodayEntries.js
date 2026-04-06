@@ -2,6 +2,7 @@ const { app } = require('@azure/functions');
 const { TableClient } = require('@azure/data-tables');
 const { requireAuthenticatedUser } = require('../shared/requireAuthenticatedUser');
 const trackUserAccess = require('../shared/trackUserAccess');
+const checkUserBlocked = require('../shared/checkUserBlocked');
 
 app.http('getTodayEntries', {
   methods: ['GET'],
@@ -18,8 +19,15 @@ app.http('getTodayEntries', {
     }
 
     const authUser = authResult.authUser;
-    await trackUserAccess(authUser, context, 'access');
-    const requestedDate = request.query.get('date');
+
+const blockedCheck = await checkUserBlocked(authUser, context);
+if (!blockedCheck.ok) {
+  return blockedCheck.response;
+}
+
+await trackUserAccess(authUser, context, 'access');
+
+const requestedDate = request.query.get('date');
     const targetDate = requestedDate || new Date().toISOString().split('T')[0];
 
     const connectionString = process.env.STORAGE_CONNECTION_STRING;

@@ -164,6 +164,20 @@ function renderUserTable(users) {
       statusBadge = '<span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700">Blocked</span>';
     }
 
+    const actionButton = status === 'blocked'
+  ? `<button
+       class="mt-2 inline-flex items-center rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200 transition"
+       onclick="updateUserStatus('${escapeHtml(user.userId)}', 'active', '${escapeHtml(user.userDetails || user.userId)}')"
+     >
+       Unblock
+     </button>`
+  : `<button
+       class="mt-2 inline-flex items-center rounded-lg bg-rose-100 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-200 transition"
+       onclick="updateUserStatus('${escapeHtml(user.userId)}', 'blocked', '${escapeHtml(user.userDetails || user.userId)}')"
+     >
+       Block
+     </button>`;
+
     return `
       <tr class="align-top">
         <td class="py-4 pr-4 text-slate-800">${escapeHtml(userLabel)}</td>
@@ -171,7 +185,12 @@ function renderUserTable(users) {
         <td class="py-4 pr-4 text-slate-600">${escapeHtml(String(loginCount))}</td>
         <td class="py-4 pr-4">${profileComplete}</td>
         <td class="py-4 pr-4 text-slate-600">${escapeHtml(lastSeen)}</td>
-        <td class="py-4">${statusBadge}</td>
+        <td class="py-4">
+  <div class="flex flex-col items-start">
+    ${statusBadge}
+    ${actionButton}
+  </div>
+</td>
       </tr>
     `;
   }).join('');
@@ -345,5 +364,41 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 }
+
+async function updateUserStatus(userId, status, userDetails) {
+  const actionLabel = status === 'blocked' ? 'block' : 'unblock';
+  const confirmed = window.confirm(`Are you sure you want to ${actionLabel} this user?`);
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/rolecheck/user-status', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId,
+        status,
+        userDetails
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update user status.');
+    }
+
+    await loadAdminDashboard();
+  } catch (error) {
+    console.error(error);
+    window.alert(error.message || 'Failed to update user status.');
+  }
+}
+
+window.updateUserStatus = updateUserStatus;
 
 loadAdminDashboard();

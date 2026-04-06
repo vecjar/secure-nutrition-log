@@ -11,3 +11,4 @@ require('./functions/getNutritionProfile');
 require('./functions/saveNutritionProfile');
 require('./functions/calculateNutritionTargets');
 require('./functions/searchFood');
+require('./functions/setUserStatus');
