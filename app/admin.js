@@ -157,22 +157,22 @@ function renderUserTable(users) {
       userTypeBadge = '<span class="inline-flex items-center rounded-full bg-violet-100 px-2 py-1 text-xs font-medium text-violet-700">External</span>';
     }
 
-    let statusBadge = '<span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">● Active</span>';
+    let statusBadge = '<span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 whitespace-nowrap">Active</span>';
 if (status === 'inactive') {
-  statusBadge = '<span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">● Inactive</span>';
+  statusBadge = '<span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700 whitespace-nowrap">Inactive</span>';
 } else if (status === 'blocked') {
-  statusBadge = '<span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">● Blocked</span>';
+  statusBadge = '<span class="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-700 whitespace-nowrap">Blocked</span>';
 }
 
 const actionButton = status === 'blocked'
   ? `<button
-       class="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-emerald-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50 transition"
+       class="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-white px-2 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50 transition whitespace-nowrap"
        onclick="updateUserStatus('${escapeHtml(user.userId)}', 'active', '${escapeHtml(user.userDetails || user.userId)}')"
      >
        Unblock
      </button>`
   : `<button
-       class="mt-2 inline-flex w-full items-center justify-center rounded-xl border border-rose-300 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 shadow-sm hover:bg-rose-50 transition"
+       class="inline-flex items-center justify-center rounded-lg border border-rose-300 bg-white px-2 py-1 text-[11px] font-semibold text-rose-700 shadow-sm hover:bg-rose-50 transition whitespace-nowrap"
        onclick="updateUserStatus('${escapeHtml(user.userId)}', 'blocked', '${escapeHtml(user.userDetails || user.userId)}')"
      >
        Block
@@ -185,12 +185,10 @@ const actionButton = status === 'blocked'
   <td class="py-4 pr-3 text-slate-600">${escapeHtml(String(loginCount))}</td>
   <td class="py-4 pr-3">${profileComplete}</td>
   <td class="py-4 pr-3 text-slate-600">${escapeHtml(lastSeen)}</td>
- <td class="py-4 align-top">
-  <div class="w-full max-w-[110px] rounded-2xl bg-slate-50 border border-slate-200 p-2">
-    <div class="flex flex-col items-stretch gap-2">
-      ${statusBadge}
-      ${actionButton}
-    </div>
+ <td class="py-4 pr-2 whitespace-nowrap">
+  <div class="flex flex-col items-start gap-2">
+    ${statusBadge}
+    ${actionButton}
   </div>
 </td>
 </tr>
