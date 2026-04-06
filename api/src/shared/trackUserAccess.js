@@ -7,30 +7,37 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
   try {
     const connectionString = process.env.STORAGE_CONNECTION_STRING;
 
-    if (!connectionString || !authUser) return;
+    if (!connectionString || !authUser) {
+      context.log('trackUserAccess skipped: missing connection string or authUser');
+      return;
+    }
 
-    const userId = authUser.userId;
-    const userDetails = authUser.userDetails;
+    const userId = authUser.userId || authUser.userKey;
+    const userDetails = authUser.userDetails || authUser.email || authUser.userKey || 'Unknown user';
+
+    if (!userId) {
+      context.log('trackUserAccess skipped: no userId/userKey found on authUser');
+      return;
+    }
 
     const registryClient = TableClient.fromConnectionString(connectionString, USER_REGISTRY_TABLE);
     const auditClient = TableClient.fromConnectionString(connectionString, USER_ACCESS_AUDIT_TABLE);
 
     const now = new Date().toISOString();
 
-    // 🔹 Try get existing user
     let existingUser = null;
 
     try {
       existingUser = await registryClient.getEntity(userId, userId);
     } catch (err) {
-      if (err.statusCode !== 404) throw err;
+      if (err.statusCode !== 404) {
+        throw err;
+      }
     }
 
-    // 🔹 Determine user type
     const userType = classifyUserType(userDetails);
 
     if (!existingUser) {
-      // 🟢 New user
       await registryClient.createEntity({
         partitionKey: userId,
         rowKey: userId,
@@ -48,35 +55,62 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
         rowKey: cryptoRandom(),
         userId,
         userDetails,
+        userType,
         eventType: 'first-seen',
         timestamp: now
       });
-
-    } else {
-      // 🔵 Existing user
-      await registryClient.updateEntity({
-        partitionKey: userId,
-        rowKey: userId,
-        userId,
-        userDetails,
-        userType,
-        loginCount: Number(existingUser.loginCount || 0) + 1,
-        lastSeen: now,
-        status: 'active'
-      }, "Merge");
 
       await auditClient.createEntity({
         partitionKey: userId,
         rowKey: cryptoRandom(),
         userId,
         userDetails,
-        eventType: action,
+        userType,
+        eventType: 'sign-in',
         timestamp: now
       });
+
+      context.log('trackUserAccess created new user registry record', {
+        userId,
+        userDetails,
+        userType
+      });
+
+      return;
     }
 
+    await registryClient.updateEntity({
+      partitionKey: userId,
+      rowKey: userId,
+      userId,
+      userDetails,
+      userType,
+      loginCount: Number(existingUser.loginCount || 0) + 1,
+      lastSeen: now,
+      status: 'active'
+    }, 'Merge');
+
+    await auditClient.createEntity({
+      partitionKey: userId,
+      rowKey: cryptoRandom(),
+      userId,
+      userDetails,
+      userType,
+      eventType: action,
+      timestamp: now
+    });
+
+    context.log('trackUserAccess updated existing user registry record', {
+      userId,
+      userDetails,
+      userType,
+      action
+    });
   } catch (err) {
-    context.log('trackUserAccess error', err);
+    context.log('trackUserAccess error', {
+      message: err?.message || String(err),
+      stack: err?.stack || null
+    });
   }
 };
 
@@ -87,15 +121,20 @@ function cryptoRandom() {
 function classifyUserType(value) {
   if (!value) return 'unknown';
 
-  const v = value.toLowerCase();
+  const v = String(value).toLowerCase().trim();
 
   if (v.includes('#ext#')) return 'external';
 
   if (
     v.includes('gmail.com') ||
     v.includes('outlook.com') ||
-    v.includes('hotmail.com')
-  ) return 'external';
+    v.includes('hotmail.com') ||
+    v.includes('live.com') ||
+    v.includes('yahoo.com') ||
+    v.includes('icloud.com')
+  ) {
+    return 'external';
+  }
 
   if (v.endsWith('.onmicrosoft.com')) return 'internal';
 
