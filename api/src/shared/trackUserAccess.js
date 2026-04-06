@@ -47,57 +47,43 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
     const userType = classifyUserType(userDetails);
 
     if (!existingUser) {
-      await registryClient.createEntity({
-        partitionKey: userId,
-        rowKey: userId,
-        userId,
-        userDetails,
-        userType,
-        loginCount: 1,
-        firstSeen: now,
-        lastSeen: now,
-        status: 'active'
-      });
+  const initialLoginCount = action === 'sign-in' ? 1 : 0;
 
-      await auditClient.createEntity({
-        partitionKey: userId,
-        rowKey: cryptoRandom(),
-        userId,
-        userDetails,
-        userType,
-        eventType: 'first-seen',
-        timestamp: now
-      });
+  await registryClient.createEntity({
+    partitionKey: userId,
+    rowKey: userId,
+    userId,
+    userDetails,
+    userType,
+    loginCount: initialLoginCount,
+    firstSeen: now,
+    lastSeen: now,
+    status: 'active'
+  });
 
-      await auditClient.createEntity({
-        partitionKey: userId,
-        rowKey: cryptoRandom(),
-        userId,
-        userDetails,
-        userType,
-        eventType: 'sign-in',
-        timestamp: now
-      });
+  await auditClient.createEntity({
+    partitionKey: userId,
+    rowKey: cryptoRandom(),
+    userId,
+    userDetails,
+    userType,
+    eventType: 'first-seen',
+    timestamp: now
+  });
 
-      context.log('trackUserAccess wrote first-seen + sign-in audit events', {
-        userId,
-        userDetails
-      });
-
-      return;
-    }
-
-    await registryClient.updateEntity({
+  if (action === 'sign-in') {
+    await auditClient.createEntity({
       partitionKey: userId,
-      rowKey: userId,
+      rowKey: cryptoRandom(),
       userId,
       userDetails,
       userType,
-      loginCount: Number(existingUser.loginCount || 0) + 1,
-      lastSeen: now,
-      status: 'active'
-    }, 'Merge');
+      eventType: 'sign-in',
+      timestamp: now
+    });
+  }
 
+  if (action !== 'sign-in') {
     await auditClient.createEntity({
       partitionKey: userId,
       rowKey: cryptoRandom(),
@@ -107,12 +93,50 @@ module.exports = async function trackUserAccess(authUser, context, action = 'acc
       eventType: action,
       timestamp: now
     });
+  }
 
-    context.log('trackUserAccess wrote access audit event', {
-      userId,
-      userDetails,
-      action
-    });
+  context.log('trackUserAccess created new user record', {
+    userId,
+    userDetails,
+    userType,
+    action
+  });
+
+  return;
+}
+
+const nextLoginCount =
+  action === 'sign-in'
+    ? Number(existingUser.loginCount || 0) + 1
+    : Number(existingUser.loginCount || 0);
+
+await registryClient.updateEntity({
+  partitionKey: userId,
+  rowKey: userId,
+  userId,
+  userDetails,
+  userType,
+  loginCount: nextLoginCount,
+  lastSeen: now,
+  status: 'active'
+}, 'Merge');
+
+await auditClient.createEntity({
+  partitionKey: userId,
+  rowKey: cryptoRandom(),
+  userId,
+  userDetails,
+  userType,
+  eventType: action,
+  timestamp: now
+});
+
+context.log('trackUserAccess wrote audit event', {
+  userId,
+  userDetails,
+  action,
+  loginCount: nextLoginCount
+});
   } catch (err) {
     context.log('trackUserAccess error', {
       message: err?.message || String(err),
