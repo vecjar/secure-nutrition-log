@@ -7,7 +7,7 @@ This project demonstrates modern full-stack development combined with Azure secu
 
 ## 🚀 Live Application
 
-👉 https://salmon-ground-0674e7100.1.azurestaticapps.net
+👉 https://agreeable-rock-092143c00.6.azurestaticapps.net/
 
 🔐 **Login required:**  
 Sign in using a Microsoft account (Microsoft Entra ID authentication)
