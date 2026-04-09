@@ -19,7 +19,9 @@ var storageAccountName = toLower('${projectName}${environmentName}stg01')
 var functionAppName = '${projectName}-${environmentName}-func-01'
 var appInsightsName = '${projectName}-${environmentName}-appi-01'
 var hostingPlanName = '${projectName}-${environmentName}-plan-01'
-var keyVaultName = '${projectName}-${environmentName}-kv-01'
+var keyVaultName = '${projectName}-${environmentName}-jvsnkv-01'
+var staticWebAppName = '${projectName}-${environmentName}-swa-01'
+var staticWebAppLocation = 'eastasia'
 
 // Key Vault Secrets User built-in role
 var keyVaultSecretsUserRoleDefinitionId = subscriptionResourceId(
@@ -86,8 +88,17 @@ resource keyVaultSecretsUserAssignment 'Microsoft.Authorization/roleAssignments@
   }
 }
 
+module staticWebApp './modules/staticWebApp.bicep' = {
+  name: 'staticWebAppDeploy'
+  params: {
+    staticWebAppName: staticWebAppName
+    location: staticWebAppLocation
+  }
+}
+
 output storageAccountName string = storage.outputs.name
 output functionAppName string = functionApp.outputs.name
 output appInsightsName string = monitoring.outputs.name
 output keyVaultName string = keyVault.outputs.name
 output keyVaultUri string = keyVault.outputs.vaultUri
+output staticWebAppName string = staticWebApp.outputs.name
