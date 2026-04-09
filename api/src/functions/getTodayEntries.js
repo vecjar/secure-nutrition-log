@@ -14,9 +14,9 @@ app.http('getTodayEntries', {
     const authResult = requireAuthenticatedUser(request);
 
     if (!authResult.ok) {
-      context.log.warn('getTodayEntries unauthorized');
-      return authResult.response;
-    }
+  context.log('getTodayEntries unauthorized');
+  return authResult.response;
+}
 
     const authUser = authResult.authUser;
 
